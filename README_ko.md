@@ -1,4 +1,4 @@
-P# Book Study (Design Patterns, Elements of Reusable Object-Oriented Software)
+Book Study (Refactoring)
 
 
 *다른 언어로 글을 읽어보세요*: [English](README.md), [한국어](README_ko.md)
@@ -18,7 +18,7 @@ P# Book Study (Design Patterns, Elements of Reusable Object-Oriented Software)
 - 한 주에 4명씩 공부한 code smell에 대해 발표합니다(발표 해야 할 code smell은 첫 모임에 정해드립니다)
 - 발표하시는 분들은 예제와 함께 발표자료도 함께 포스팅합니다 (발표 시 시각적인 정보가 있으면 더 전달이 원할합니다)
 - **매주 일요일 23:59:59** 까지 예제 및 발표자료를 commit하고 **pull request**를 만듭니다
-- **발표(모임)** 은 **매주 월요일 오후 8시** 에 진행됩니다 (10.10 모임만 Thanksgiving day 이유로 10.12로 대체합니다)
+- **발표(모임)** 은 **매주 월요일 오후 8시** 에 진행됩니다
 - 포스팅 및 발표는 **영어**, **한국어** 중 개인적으로 편하신 언어로 작성, 진행합니다
 - 한국어로 발표하실 때에도, 단어들은 최대한 한국어로 번역하지 않고 원어(영어) 그대로 발표 해 주시는 걸 부탁드리겠습니다
 
