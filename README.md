@@ -24,9 +24,16 @@
 
 > 🖋 Writing a post
   - Format:
-    1. Explain about the code smell
-    2. Describe the solution that author suggests(all the solutions are well-explained in the book)
-    3. Provide an example on your own
+    - Presentation
+      1. Explain about the code smell
+      2. Describe the solution that author suggests(all the solutions are well-explained in the book)
+      3. Pick an example under each refactoring method and describe (There are multiple examples per refactoring method)  
+
+    - Examples
+      1. Create your own examples
+      2. Post one example for one code smell 
+      (A code smell has could have a few refactoring methods and the refactoring methods have its own examples. If you want, you can create all examples for the refactoring methods)
+
   - Post your own example(3) only without 1 & 2, if you do not present the following week
   - Please leave references if you have any
   - Please make sure that the article is written in a plain language and easy to read
