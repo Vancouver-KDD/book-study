@@ -16,7 +16,6 @@
 - Study 4 code smells every week (Total 24 code smells)
 - Conduct a presentation about a code smell (4 ppl a week)
   - Who presents what will be pre-announced
-- Presenters post the presentation with their own example
 - Make a **pull request** of examples and presentation by **every Sunday 23:59:59**
 - **Presentations** are given on **8pm every Monday**
 - Posting and presentation can be written and conducted with a preferred language, either **English** or **Korean**
