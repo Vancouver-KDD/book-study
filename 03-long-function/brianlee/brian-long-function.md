@@ -7,26 +7,29 @@
 ## Parameter 줄이는 Refactoring
 ### 1. Replace Temp with Query
 * Parameter 대신 다른 메서드로 대체하라!
-  * Ex1) method(int a, int b, int c)의 경우 c 값을 a와 b의 조합으로 구할 수 있다면 method(int a, int b)로 파라미터를 줄 이 수 있다.
-  * Ex2) getPrice() VS getPrice2()
+  * Ex) getPrice() VS getPrice2()
     * getPrice2()는 짧고 이해하기 쉽지만 getBasePrice를 2번 호출한다.
 ```java
 class Example {
     int quantity = 10;
-    int price = 100;
+    double price = 100;
     
-    public int  getPrice() {
-        int basePrice = this.price * this.quantity;
+    public double getPrice() {
+        double basePrice = this.price * this.quantity;
         double discountFactor = 0.98;
         if(basePrice > 1000) discountFactor -= 0.03;
         return basePrice * discountFactor;
     }
 
-    public int  getPrice2() {
+    public double getPrice2() {
+        // 기존: return basePrice * discountFactor;
+        // temp => query
+        // basePrice => getBasePrice()
+        // discountFactor => getDiscountFactor()
         return getBasePrice() * getDiscountFactor();
     }
     
-    private int getBasePrice() {
+    private double getBasePrice() {
         return this.price * this.quantity;
     }
     
