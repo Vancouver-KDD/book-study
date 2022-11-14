@@ -41,11 +41,6 @@ Tip: 좋은 이름이 생각이 나지 않을 때, 해당 function이 하는 일
 - 임시로 이름을 지어줬다면, **Change Function Declaration**을 사용해 원래의 이름을 돌려준다
 - 테스트한다
 
-```
-If you're changing a method on a class with polymorphism, you'll need to add indirection for each binding. If the method is polymorphic within a single class hierarchy, you only need the forwarding method on the superclass. If the polymorphism has no superclass link, then you'll need forwarding methods on each implementation class.
-
-If you are refactoring a published API, you can pause the refactoring once you've created the new function. During this pause, deprecate the original function and wait for clients to change to the new function. The original function declaration can be removed when (and if) you're confident all the clients of the old function have migrated to the new one.
-```
 
 ##### 1.3 Examples  
 

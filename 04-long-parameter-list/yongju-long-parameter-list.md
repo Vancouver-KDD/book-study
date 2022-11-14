@@ -168,9 +168,6 @@ if (!aPlan.withinRange(aRoom.daysTempRange))
     alerts.push("room temperature went outside range");
 ```
 
-# ***Note: A Variation to Create the New Function***
-
-
 ### 3. Introduce Parameter Object
 
 **1.1 Motivation**
