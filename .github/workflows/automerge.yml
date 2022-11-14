@@ -1,7 +1,7 @@
 name: automerge
 on:
   schedule:
-    - cron: '59 6 * * *'
+    - cron: '59 7 * * *'
     
 jobs:
   automerge:
