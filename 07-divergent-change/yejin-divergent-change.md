@@ -2,12 +2,12 @@
 
 # Quick Preview
 You can find it when you have to change a class many times because of other changes that are made of outside of class.  
-If an object does too much, it might change in different directions.It means that code has low cohesion.
-You can fix it by separating by its context.  
+If an object does too much, it might change in different directions.
+You can fix it by separating by its context so that it can have a single responsibility .  
 
 하나의 모듈이 다른 부분 변경시마다 너무 자주 수정되어한다면 Divergent change code smell을 찾을 수 있다.   
 한 모듈이 너무 많은 일을 한다면  (=너무 많은 responsibilites 있다면 ) 중구난방으로 수정이 필요해 제대로 관리할 수 없다.   
-이때 context 별로 분리해서 high cohesion 가지도록 한다.   
+이때 context 별로 분리해서 single responsibility만 가지도록 한다.   
   
 ## 1. Split phase
 ### Motivation
