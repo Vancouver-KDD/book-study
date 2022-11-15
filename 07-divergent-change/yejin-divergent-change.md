@@ -285,10 +285,7 @@ class Person {
     }
 
     get telephoneNumber() {return this._telephoneNumber.telephoneNumber;}
-    get officeAreaCode()    {return this._telephoneNumber.areaCode;}
-    set officeAreaCode(arg) {this._telephoneNumber.areaCode = arg;}
-    get officeNumber()    {return this._telephoneNumber.number;}
-    set officeNumber(arg) {this._telephoneNumber.number = arg;}
+  
 }
 
 class TelephoneNumber {
