@@ -26,7 +26,7 @@ class Singleton {
 
 class AppClient {
     public static void main(String[] args) {
-        GlobalDataExample.count++;
+        GlobalDataExample.globalDataCount++;
         Example example = new Example();
         example.classVariableCount++;
     } 

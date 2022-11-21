@@ -1,5 +1,5 @@
 # Feature Envy
-* 한 모듈에서 다른 모듈의 데이터나 함수를 더 많이 참조하는 경우
+* 한 모듈에서 다른 모듈의 데이터나 함수를 더 많이 참조하는 경우 -> 데이터나 함수를 옮겨라
   * Ex) 다른 객체의 getter를 여러개 사용하는 경우
 
 ## Move Function (#Divergent Change)
