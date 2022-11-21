@@ -1,10 +1,11 @@
 # Long Parameter List
 * 파라미터가 많으면 메서드의 역할을 이해하기 힘들다.
-* 
+
 ## Replace Parameter with Query
 * method(int a, int b, int c)의 경우 c 값을 a와 b의 조합으로 구할 수 있다면 method(int a, int b)로 파라미터를 줄일 수 있다.
 * Ex) getPrice() vs getPrice2() vs getPrice3()
   * Replace temp with Query 와 다른거를 잘 모르겠다.
+
 ```java
 class Example {
     int quantity = 10;

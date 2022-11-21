@@ -8,11 +8,15 @@
   * 코드를 볼때 완전히 같은것인지 아니면 조금 다은것인지 주의깊게 봐야한다.
   * 코드를 변경할때, 같은 모든 곳을 찾아서 같이 수정해야한다.
 ## Extract Function
+* Extract Function VS Inline Function
+  * Extract Function: 메소드 쪼개기
+  * Inline Function: 메소드 합치기
 * 긴 메서드안에서 특정 기능을 하는 라인들을 메서드로 빼낸다. 이때 메서드명이 이 기능을 다 설명해야한다.
 * 한줄 메서드 도 괜찮은가? Sure!
 * 주석이 필요할 정도로 긴 메서드는 Extract Faction의 중요한 단서.
 * Intention VS Implementation
   * Implementation: 구현을 모두 봐야하는 경우
+
 ```java
 public class Example {
     public static void main(String[] args) {

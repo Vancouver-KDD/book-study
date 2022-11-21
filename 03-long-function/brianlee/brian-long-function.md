@@ -2,13 +2,15 @@
 * 긴 함수 길이 vs 짦은 함수 문맥 전환 -> 메서드 명이 좋으면 문맥 전환 필요 X
 * 주석을 남기고 싶다면, 주석 대신 메서드로 Intention을 표현하라!
 
-## Extract Function
+## Extract Function  (#Duplicated Code)
 * Long Function의 99% 문제를 Extract Function으로 해결
+
 ## Parameter 줄이는 Refactoring
 ### 1. Replace Temp with Query
 * Parameter 대신 다른 메서드로 대체하라!
   * Ex) getPrice() VS getPrice2()
     * getPrice2()는 짧고 이해하기 쉽지만 getBasePrice를 2번 호출한다.
+    * 
 ```java
 class Example {
     int quantity = 10;
@@ -68,6 +70,7 @@ class Example {
 * 특징은 for 문도 같이 Extract 하여 Function으로 옮겨진다는 것이다.
 * 성능상의 문제가 될 수 도 있겠지만 사실 O(n) 이나 O(2n)은 같으며 리팩토링과 성능최적화는 별개로 봐야한다.
 * 리팩토링 후 문제가 있을시 최적화하는 것이 맞다.
+
 ```java
 class BeforeExample {
     public static void main(String[] args) {
