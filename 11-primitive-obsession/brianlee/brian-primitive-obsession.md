@@ -41,7 +41,7 @@ public class Employee {
     }
 }
 ```
-## Replace Conditional with Polymorphism
+## Replace Conditional with Polymorphism (#Long Function)
 * If 문이나 Swich 문 같은 조건문들의 기능을 하위 클래스에서 구현하게 만든다.
 * 우의 리팩토링은 Type만 나누어는 것이라고 하면 이것은 Polymorphism 을 이용하여 조건문 별 다른 기능을 하위 클래스에서 구현하는 것아디.
 * 사실 Replace Type Code with Subclasses 의 연장선상에 있는 리팩토링 기법이며 나는 사실 두개는 같다고 볼 수도 있다고 생각한다.
@@ -64,25 +64,25 @@ class EmployeeWork {
             default -> throw new IlligalArgumentException(type);
         }
     }
-    public void managerWork1() {
+    private void managerWork1() {
         // do work1
     }
-  
-    public void managerWork2() {
+
+    private void managerWork2() {
         // do work2
     }
 
-    public void engineerWork1() {
+    private void engineerWork1() {
         // do work1   
     }
-  
-    public void engineerWork2() {
+
+    private void engineerWork2() {
         // do work2
     }
 }
 
 // Polymorphism
-class Manager {
+class Manager implements Employee {
     public void managerWork1() {
         // do work1   
     }
@@ -92,7 +92,7 @@ class Manager {
     }
 }
 
-class Engineer {
+class Engineer implements Employee {
     public void engineerWork1() {
         // do work1   
     }
