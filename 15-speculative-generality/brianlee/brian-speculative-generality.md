@@ -7,4 +7,6 @@
 ## Inline Class (#Shotgun Surgery)
 ## Change Function Declaration (#Mysterious Name)
 ## Remove Dead Code
-* ...
+* 사용하지 않는 코드 -> 성능 문제 X But 개발자의 이해가 어렵다.
+* 실제로 나중에 필요한 코드라도 지금 사용하지 않는다면 삭제 필요
+  * 필요한 경우 git과 같은 버전 관리 툴로 복원
