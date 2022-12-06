@@ -8,4 +8,5 @@
 ## Inline Function (#Shotgun Surgery)
 ## Inline Class (#Shotgun Surgery)
 ## Collapse Hierarchy
-* ...
+* 상속 구조에서 기능 올리기와 기능 내리기를 통해 조율 하다보면 그 차이가 없는 경우 발생하면 그냥 이를 하나로 합친다.
+* 둘 중 이름이 적절한 쪽으로 옮기며 애매한 경우 어느쪽을 선택해도 된다.
