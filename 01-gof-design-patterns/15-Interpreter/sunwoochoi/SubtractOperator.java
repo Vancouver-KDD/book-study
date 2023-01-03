@@ -1,0 +1,20 @@
+/* Subract operator expression */
+public class SubtractOperator implements AbstractExpression{
+  private AbstractExpression left;
+  private AbstractExpression right;
+
+  public SubtractOperator(AbstractExpression left, AbstractExpression right) {
+    this.left = left;
+    this.right = right;
+  }
+  @Override
+  public String getExpression() {
+    
+    return left.getExpression() + " - " + right.getExpression();
+  }
+
+  @Override
+  public int evaluate() {
+    return left.evaluate() - right.evaluate();
+  }
+}
