@@ -1,5 +1,4 @@
-Book Study (Clean Code)
-
+# Book Study (Clean Code)
 
 *다른 언어로 글을 읽어보세요*: [English](README.md), [한국어](README_ko.md)
 
