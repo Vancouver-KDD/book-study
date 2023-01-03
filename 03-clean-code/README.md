@@ -1,6 +1,6 @@
-# Book Study (Clean Code)
+7# Book Study (Clean Code)
 
-*다른 언어로 글을 읽어보세요*: [English](README.md), [한국어](README_ko.md)
+*다른 언어로 글을 읽어보세요*: [English](README_en.md), [한국어](README.md)
 
 ## 📝 목표 
 
@@ -15,7 +15,7 @@
 ## ❓ 진행방식
 - 매 주 2개의 Chapter에 대해 공부합니다.
 - 한 주에 2명씩 공부한 chapter에 대해 발표합니다(발표 해야 할 chapter는 첫 모임에 정합니다)
-- 모든 인원이 공부한 Chapter를 정리한 내용을 포스팅합니다. 
+- 모든 인원이 공부한 Chapter를 정리한 내용을 포스팅합니다.
 - 발표자를 제외한 나머지 인원들은 공부한 내용을 바탕으로 질문 혹은 간단한 정리를 준비합니다.
 - **매주 일요일 23:59:59** 까지 정리한 내용을 commit하고 **pull request**를 만듭니다
 - **발표(모임)** 은 **매주 월요일 오후 8시** 에 진행됩니다
