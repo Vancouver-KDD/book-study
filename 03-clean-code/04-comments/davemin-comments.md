@@ -47,7 +47,19 @@ Pattern timeMatcher = Pattern.compile(
 					
 ### Explanation of Intent				
 또 하나의 주석의 목적은 구현된 코드를 설명하는 것을 넘어, 의사결정에 필요한 의도를 전달하는 역할을 합니다.				
-					
+```java	
+public int compareTo(Object o)
+{
+    if(o instanceof WikiPagePath)
+    {
+        WikiPagePath p = (WikiPagePath) o;
+        String compressedName = StringUtil.join(names, "");
+        String compressedArgumentName = StringUtil.join(p.names, "");
+        return compressedName.compareTo(compressedArgumentName);
+    }
+    return 1; // we are greater because we are the right type.
+}
+```						
 ### Clarification	
     assertTrue(a.compareTo(b) == -1); // a < b
     assertTrue(b.compareTo(a) == 1); // b > a
@@ -72,13 +84,13 @@ built-in function trim 이용 시 첫번째 space가 지워져 다른 리스트�
     new ListItemWidget(this, listItemContent, this.level + 1);
     return buildList(text.substring(match.end()));		
 
-## Bad Comnnets					
+## Bad Comments					
 					
 대부분의 코멘트는 이 카테고리에 속하지 않을까 싶습니다.				
 일반적으로 불충분한 결정에 대한 자기 방어나 변명 혹은 혼잣말등이 주를 이룬다.				
 					
 ### Mumbling				
-단지 수동적고 회사의 코딩 스탠다드에 의해 적는 주석은 unprofeesional하고 crappy한 개발자이다.			
+단지 수동적고 회사의 코딩 스탠다드에 의해 적는 주석은 unprofessional하고 crappy한 개발자이다.			
 주석을 달기로 마음 먹었다면, 시간을 투자해서 명확하게 적는 것이 좋다.			
 저자는 테스트 프레임워크인 FitNesse에서 다음과 같은 코드를 발견했다.			
 
@@ -100,7 +112,8 @@ public void loadProperties()
 분명히 I/Oexception이 일어나면, 기본파일이 업로드 된다는 것입니다. 
 하지만, 누가 그리고 어느 시점에 어떻게 디폴트 파일이 업로드된다는 구체적인 정보가 없는 것은 문제가 됩니다.
 더구나 만약에 개발자 catch 블럭을 비워둔 채로 마음이 편했다면 더 큰 문제라고 보입니다.
-우리가 최종적으로 유일하게 의지할 수 있는 것은 다른 모듈에 가서 무슨일이 있는 지를 보는 것입니다.
+
+더욱이, 프로그래머가 최종적으로 유일하게 의지할 수 있는 것은 다른 모듈에 가서 무슨일이 있는 지를 보는 것입니다.
 허나, 주석이 불분명확하기 때문에 그로 인해 개발자에게 그 의미를 찾도록 강요하는 주석은 가치 없는 주석입니다.
 
 ### Redundant Comments					
@@ -145,7 +158,7 @@ protected Realm realm = null;
 ### Misleading Comments
 때로는 주석이 작성자의 실수로 잘못된 의미를 전달해 다른 개발자로 하여금 혼동을 주기도합니다.
 ```java	
-// Utility method that returns when this.closed is ???true???. Throws an exception
+// Utility method that returns when this.closed is true. Throws an exception
 // if the timeout is reached.
 public synchronized void waitForClose(final long timeoutMillis)
 throws Exception
@@ -158,6 +171,13 @@ throws Exception
     }
 }
 ```
+위에 주석에서는  'when'(x) -> 'If'(O) 로 적어야 오해의 소지를 없게 한다.
+
+    The method does not return when this.closed becomes true. 
+    It returns if this.closed is true; 
+    otherwise, it waits for a blind time-out and then throws an exception 
+    if this.closed is still not true.
+
 ### Mandated Comments					
 주석 필수! 와 같은 규정을 같는 것은 어리석을 수 있습니다. 이는 주석이 도리어 코드를 어수선하게 만들고 혼동을 가져옵니다.
 아래와 같은 주석은 좀 당황스러울 수 있겠네요				
@@ -301,11 +321,14 @@ private void addExceptionAndCloseResponse(Exception e)
 	private String version;	
 	/** The licenceName. */	
 	private String licenceName;	
-	/** The version. */	
+	/** The version. */	<---- ???
 	private String info;
 ```
 #### Don’t Use a Comment When You Can Use a Function or a Variable											
 										
+보통 코드를 간결하고 효율적으로 만들어 Readability를 올리는 데 주력하지만										
+만약 그 간결함과 깔끔함 때문데 도리어 주석이 필요하다면,  차라리 주석을 지울 수 있도록  풀어서 코드를 작성함이 옳다.	
+
 Consider the following stretch of code:	
 ```java	
 	// does the module from the global list <mod> depend on the									
@@ -317,9 +340,7 @@ This could be rephrased without the comment as
 	ArrayList moduleDependees = smodule.getDependSubsystems();									
 	String ourSubSystem = subSysMod.getSubSystem();									
 	if (moduleDependees.contains(ourSubSystem))									
-```					
-보통 코드를 간결하고 효율적으로 만들어 Readability를 올리는 데 주력하지만										
-만약 그 간결함과 깔끔함 때문데 도리어 주석이 필요하다면,  차라리 주석을 지울 수 있도록  풀어서 코드를 작성함이 옳다.										
+```														
 											
 #### Position Markers											
 											
@@ -344,11 +365,11 @@ public class wc {
         int wordCount = 0;
         try {
             while ((line = in.readLine()) != null) {
-            lineCount++;
-            charCount += line.length();
-            String words[] = line.split("\\W");
-            wordCount += words.length;
-        } //while <---
+                lineCount++;
+                charCount += line.length();
+                String words[] = line.split("\\W");
+                wordCount += words.length;
+            } //while <---
             System.out.println("wordCount = " + wordCount);
             System.out.println("lineCount = " + lineCount);
             System.out.println("charCount = " + charCount);
@@ -409,7 +430,7 @@ public class wc {
 ### Nonlocal Information							
 							
 아래 예시와 같이 주석이 특정한 기능에 대해 정보를 주는것이 아닌 시스템 전반에 걸친 설명을 하는 것은 지양해야겠습니다.
-
+Default port 정보를 줄 필요가 없고, 더구나 해당 Funtion은 Defualt정보를 control하기 위함도 아니다.
 	/**					
 	* Port on which fitnesse would run. Defaults to <b>8082</b>.					
 	*					
@@ -417,7 +438,7 @@ public class wc {
 	*/					
 	public void setFitnessePort(int fitnessePort)					
 	{					
-	this.fitnessePort = fitnessePort;					
+	    this.fitnessePort = fitnessePort;					
 	}					
 							
 							
