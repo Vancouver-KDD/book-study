@@ -138,7 +138,7 @@ String outFile = outputDir + "/" + className.replace('.', '/') + ".class";
 FileOutputStream fout = new FileOutputStream(outFile);
 BufferedOutputStream bos = new BufferedOutputStream(fout);
 // VS
-BufferedOutputStream bos = ctxt.createScratchFileStream(classFileName); 
+BufferedOutputStream bos = ctxt.createScratchFileStream(className); 
 ```
 ## Data Transfer Objects
 - a data transfer object or DTO

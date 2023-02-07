@@ -133,11 +133,11 @@ public class Assert {
   - 123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_
 ### 3.1 Horizontal Openness and Density
 ```java
-private void measureLine(String line) { // ...Line( <- no space
+private void measureLine(String line) {
     lineCount++;
     int lineSize = line.length(); // ..Size = line... <- sapce 
     totalChars += lineSize; // ...Cars += line... <- sapce
-    lineWidthHistogram.addLine(lineSize,lineCount);
+    lineWidthHistogram.addLine(lineSize,lineCount); // ...Line( <- no space
     recordWidestLine(lineSize);
 }
 ```
@@ -203,12 +203,11 @@ public class CommentWidget extends TextWidget {
 ```
 ### 3.4 Dummy Scopes
 ```java
-while(dis.read(buf, 0, readBufferSize) != -1)
-    ;
+while(dis.read(buf, 0, readBufferSize) != -1);
 ```
 ```java
-while(dis.read(buf, 0, readBufferSize) != -1) {
-}
+while(dis.read(buf, 0, readBufferSize) != -1)
+    ;
 ```
 ## 4. Team Rules
 - A team of developers should agree upon a single formatting style, and then every member of that team should use that style
