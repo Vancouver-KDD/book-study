@@ -10,7 +10,7 @@
   - size() int – Map
   - ...
 ```java
-Sensor s = (Sensor)sensors.get(sensorId );
+Sensor s = (Sensor)sensors.get(sensorId);
 ```
 ```java
 Map<Sensor> sensors = new HashMap<Sensor>();
@@ -21,9 +21,11 @@ public class Sensors {
     private Map sensors = new HashMap(); 
     
     public Sensor getById(String id) {
-        return (Sensor) sensors.get(id); }
+        return (Sensor) sensors.get(id); 
     }
+    
     // ...
+}
 ```
 - The interface at the boundary (Map) is hidden
   -  The Sensors class can enforce design and business rules.
@@ -47,13 +49,13 @@ public class LogTest {
     public void initialize() {
         logger = Logger.getLogger("logger");
         logger.removeAllAppenders();
-        Logger.getRootLogger().removeAllAppenders();     
-    }     
+        Logger.getRootLogger().removeAllAppenders();
+    }
     
-    @Test     
-    public void basicLogger() {         
-        BasicConfigurator.configure();         
-        logger.info("basicLogger");     
+    @Test
+    public void basicLogger() {
+        BasicConfigurator.configure();
+        logger.info("basicLogger");
     }
     
     @Test

@@ -13,9 +13,9 @@ public class DeviceController {
             retrieveDeviceRecord(handle);       
             // If not suspended, shut down       
             if (record.getStatus() != DEVICE_SUSPENDED) {
-                pauseDevice(handle);         
-                clearDeviceWorkQueue(handle);         
-                closeDevice(handle);       
+                pauseDevice(handle);
+                clearDeviceWorkQueue(handle);
+                closeDevice(handle);
             } else {
                 logger.log("Device suspended.  Unable to shut down");
             }     
@@ -86,7 +86,7 @@ public List<RecordedGrip> retrieveSection(String sectionName) {
 // Refactoring 1
 public List<RecordedGrip> retrieveSection(String sectionName) {
     try {
-        FileInputStream stream = new FileInputStream(sectionName)
+        FileInputStream stream = new FileInputStream(sectionName);
     } catch (Exception e) {
         throw new StorageException("retrieval error", e);
     }
