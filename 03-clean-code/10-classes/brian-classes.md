@@ -32,6 +32,7 @@ private void function2();
 
 - lots of things we don’t need to know right now
 ### Cohesion
+- 클래스 안의 코드는 응집도가 높아야 하지만, 다른 클래스와는 응집도가 낮아야 한다.
 - When cohesion is high, 
   - it means that the methods and variables of the class are co-dependent 
   - and hang together as a logical whole.
@@ -101,8 +102,9 @@ public class InsertSql extends Sql {
     ...
 } 
 ```
-- It supports the SRP. 
-- It also supports another key OO class design principle known as the Open-Closed Principle
+- SOLID Design Principles
+  - It supports the SRP. 
+  - It also supports another key OO class design principle known as the Open-Closed Principle
 
 - But Sql 클래스만 봤을때 바로 기능을 알 수 없고 instance of 를 사용해 각장의 실제 객체를 확인해야 한다.
   - 새로운 개발자가 보기에 코드를 이해하기 어려울 수 있다. 
@@ -111,5 +113,5 @@ public class InsertSql extends Sql {
   - interfaces and abstract classes to help isolate the impact of those details
 - The lack of coupling means that 
   - the elements of our system are better isolated from each other and from change
-- Dependency Inversion Principle (DIP) 
+- Dependency Inversion Principle (DIP) <- SOLID Design Principles 
   - the DIP says that our classes should depend upon abstractions, not on concrete details

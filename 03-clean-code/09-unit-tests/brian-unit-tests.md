@@ -94,16 +94,20 @@ class SerializedPageResponderTest {
     }
 }
 ```
-1. The first part builds up the test data
-2. the second part operates on that test data
-3. the third part checks that the operation yielded the expected results
+- Build-Operate-Check pattern
+  1. Build: The first part builds up the test data
+  2. Operate: the second part operates on that test data
+  3. Check: the third part checks that the operation yielded the expected results
 ```java
 class SerializedPageResponderTest {
-    public void testGetPageHierarchyAsXml() throws Exception {     
+    public void testGetPageHierarchyAsXml() throws Exception {
+        // Build
         makePages("PageOne", "PageOne.ChildOne", "PageTwo");
         
+        // Operate
         submitRequest("root", "type:pages");
         
+        // Check
         assertResponseIsXML();     
         assertResponseContains(       
                 "<name>PageOne</name>", "<name>PageTwo</name>", "<name>ChildOne</name>"     
@@ -139,7 +143,7 @@ class SerializedPageResponderTest {
 ```java
     void makePages(String ... pageNames);
     WikiPage makePage(String pageName);
-    makePageWithContent(String pageName, String contnet);
+    void makePageWithContent(String pageName, String contnet);
 
     void addLinkTo(WikiPage, String ... pageNames);
     
@@ -151,7 +155,7 @@ class SerializedPageResponderTest {
 ```
 ### A Dual Standard
 - those two environment have very different needs
-1. test environment
+1. test environment (not be as efficient as production)
 2. production environment
 ```java
 @Test   
@@ -179,6 +183,7 @@ class MockControlHardware implements EnvironmentControlHardware {
     EnvironmentControlHardware environmentControlHardware;
     // ...
     public String getState() {
+        // StringBuffer? => no need for test
         String state = "";
         state += heater ? "H" : "h";
         state += blower ? "B" : "b";
