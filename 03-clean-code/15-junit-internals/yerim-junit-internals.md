@@ -486,10 +486,13 @@
 - ComparisonCompactor.java (final)
   ```java
   package junit.framework;
+
   public class ComparisonCompactor {
+
     private static final String ELLIPSIS = "...";
     private static final String DELTA_END = "]";
     private static final String DELTA_START = "[";
+
     private int contextLength;
     private String expected;
     private String actual;
@@ -505,7 +508,6 @@
     public String formatCompactedComparison(String message) {
       String compactExpected = expected;
       String compactActual = actual;
-
       if (shouldBeCompacted()) {
         findCommonPrefixAndSuffix();
         compactExpected = compact(expected);
@@ -520,8 +522,78 @@
 
     private boolean shouldNotBeCompacted() {
       return expected == null || actual == null || expected.equals(actual);
-      } private void findCommonPrefixAndSuffix() { findCommonPrefix(); suffixLength = 0; for (; !suffixOverlapsPrefix(); suffixLength++) { if (charFromEnd(expected, suffixLength) != charFromEnd(actual, suffixLength) )break; } } private char charFromEnd(String s, int i) { return s.charAt(s.length() - i - 1); } private boolean suffixOverlapsPrefix() { return actual.length() - suffixLength <= prefixLength || expected.length() - suffixLength <= prefixLength; } private void findCommonPrefix() { prefixLength = 0; int end = Math.min(expected.length(), actual.length()); for (; prefixLength < end; prefixLength++) if (expected.charAt(prefixLength) != actual.charAt(prefixLength)) break; } private String compact(String s) { return new StringBuilder() .append(startingEllipsis()) .append(startingContext()) .append(DELTA_START) .append(delta(s)) .append(DELTA_END) .append(endingContext()) .append(endingEllipsis()) .toString(); } private String startingEllipsis() { return prefixLength > contextLength ? ELLIPSIS : ""; } private String startingContext() { int contextStart = Math.max(0, prefixLength - contextLength); int contextEnd = prefixLength; return expected.substring(contextStart, contextEnd); } private String delta(String s) { int deltaStart = prefixLength; int deltaEnd = s.length() - suffixLength; return s.substring(deltaStart, deltaEnd); } private String endingContext() { int contextStart = expected.length() - suffixLength; int contextEnd = Math.min(contextStart + contextLength, expected.length()); return expected.substring(contextStart, contextEnd); }private String endingEllipsis() { return (suffixLength > contextLength ? ELLIPSIS : ""); }}
+    }
+
+    private void findCommonPrefixAndSuffix() {
+      findCommonPrefix();
+      suffixLength = 0;
+      for (; !suffixOverlapsPrefix(); suffixLength++) {
+        if (charFromEnd(expected, suffixLength) != charFromEnd(actual, suffixLength) )
+          break;
+      }
+    }
+
+    private char charFromEnd(String s, int i) {
+      return s.charAt(s.length() - i - 1);
+    }
+
+    private boolean suffixOverlapsPrefix() {
+      return actual.length() - suffixLength <= prefixLength || expected.length() - suffixLength <= prefixLength;
+    }
+
+    private void findCommonPrefix() {
+      prefixLength = 0;
+      int end = Math.min(expected.length(), actual.length());
+      for (; prefixLength < end; prefixLength++)
+        if (expected.charAt(prefixLength) != actual.charAt(prefixLength))
+          break;
+    }
+
+    private String compact(String s) {
+      return new StringBuilder()
+        .append(startingEllipsis())
+        .append(startingContext())
+        .append(DELTA_START)
+        .append(delta(s))
+        .append(DELTA_END)
+        .append(endingContext())
+        .append(endingEllipsis())
+        .toString();
+    }
+
+    private String startingEllipsis() {
+      return prefixLength > contextLength ? ELLIPSIS : "";
+    }
+
+    private String startingContext() {
+      int contextStart = Math.max(0, prefixLength - contextLength);
+      int contextEnd = prefixLength;
+      return expected.substring(contextStart, contextEnd);
+    }
+
+    private String delta(String s) {
+      int deltaStart = prefixLength;
+      int deltaEnd = s.length() - suffixLength;
+      return s.substring(deltaStart, deltaEnd);
+    }
+
+    private String endingContext() {
+      int contextStart = expected.length() - suffixLength;
+      int contextEnd = Math.min(contextStart + contextLength, expected.length());
+      return expected.substring(contextStart, contextEnd);
+    }
+
+    private String endingEllipsis() {
+      return (suffixLength > contextLength ? ELLIPSIS : "");
+    }
+  }
   ```
+
+- 이 모듈은 분석하는 함수 그룹과 합치는 함수 그룹으로 분리되었다. 위상순서(Topologically sort)대로 각 함수는 호출된 바로 다음에 정의되었다.
+- `formatCompactedComparison` 내에서 캡슐화해서 분리된 메서드들을 다시 돌려놓았다.
+- `shouldNotBeCompacted`을 추가하여 `shouldBeCompacted`에서 사용되도록 만들었다.
+- 이렇게 하나의 리팩토링이 처음에 적용했던 것들을 되돌리는 상황은 전형적으로 자주 발생한다.
+- 리팩토링은 시행착오로 가득찬 상호작용하는 프로세스이며, 결국에는 우리가 전문가로서 가치가 있다고 느끼는 어느부분에 수렴하게 된다.
 
 ### Conclusion
 > 우리 각자는 우리가 코드를 발견했을 때보다 조금 더 나은 상태로 남겨둘 책임이 있다!
