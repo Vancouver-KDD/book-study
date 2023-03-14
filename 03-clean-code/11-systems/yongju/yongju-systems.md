@@ -134,7 +134,7 @@ public abstract class Bank implements javax.ejb.EntityBean {
 - EJB2는 사실 transactional, security 그리고 [persistance](https://en.wikipedia.org/wiki/Persistence_(computer_science)) 같은 영역에서는 separation of concerns를 잘 이행하고 있다. 이런 concern들은 한 오브젝트의 영역을 넘어서서 시스템 전체적으로 같은 방법이 사용되는 경향이 있다. 
 - 이론적으로, 이런 concern들은 encapsulate되어 한 모듈에서 관리될 수 있지만 결국 이 모듈은 한 시스템 안의 많은 오브젝트 내에서 똑같이 사용될 것이다. 우리는 이걸 cross-cutting concerns라고 부른다.
 - 사실, EJB가 cross-cutting concerns를 관리하는 방법은 AOP(Aspect-Oriented Programming)이다.
-- Aspects라고 불리는 모듈 구조는 시스템 안의 어느 지점이 특정한 concern을 해결하기 위해 동작하는 방식을 바뀌어야 하는 지를 정의한다
+- Aspects라고 불리는 모듈 구조는 시스템 안의 어느 지점에서, 특정한 concern을 해결하기 위해 일관성있게 동작하는것을 정의한다
 - 지속성을 예로 들면, 우리는 persistance framework에 지속하기를 원하는 오브젝트나 attributes를 전달하고 해당 framework가 그것을 위임 받아 task를 마무리한다. AOP framework는 target code의 변경 없이 이 작업을 해낸다
 
 아래에서 세 가지 Aspects 혹은 Aspects-like mechanism을 알아보자. 
@@ -292,9 +292,6 @@ Spring AOP나 JBoss AOP가 aspects가 유용하게 사용되는 경우 중 8-90%
 만약 우리가 어플리케이션의 도메인 로직을 code level에서 모든 구조적 concern을 decouple한 채로 POJO를 이용해 작성할 수 있다면 우리의 architecture를 전체적으로 test하는 것이 가능할 것이다. 
 Big Design Up Front(BDUF)는 필요하지 않을뿐더러, 변화를 받아들이는 데에 있어서 보수적이고, 유연하지 못하기 떄문에 오히려 나쁠 수도 있다.
 건물을 짓는 건축가와는 달리 소프트웨어 프로젝트는 작은 것부터 시작해서, 요구사항들을 빠르게 전달해가며 점점 확장시킬 수 있다. 물론, 방향성 없이 프로젝트를 시작하라는 것이 아니라, 항상 상황에 따라 변화할 수 있는 능력을 가지고 있어야 한다.
-초기의 EJB 구조는 
-######################################################################################################
-
 
 > 최적의 시스템 구조는 각각 POJO로 작성된 모듈화가 완료된 domains of concern으로 이루어져 있다. 다른 도메인들은 최소한의 Aspects나 Aspect-like tool을 이용해 결합되어야 한다. 이런 구조는 다른 코드처럼 test-driven될 수 있다.
 
@@ -305,7 +302,7 @@ Big Design Up Front(BDUF)는 필요하지 않을뿐더러, 변화를 받아들�
 - 모듈화된 concern으로 이루어진 POJO 시스템이 주는 신속성은 우리가 가장 최신의 정보를 가지고 최적의, 최선의 결정을 내릴 수 있게 도와준다.
 
 #### Use Standards Wisely, When They Add Demonstrable Value
-- 많은 팀들이 EJB2 architecture를 사용하는 이유는 그 구조가 기준이 되고, 가볍고, 충분할만큼 명확한 디자인을 가지고 있기 때문이다. 
+- 많은 팀들이 더 가볍고, 명확한 디자인이 충분할 수 도 있었음에도 EJB2 architecture를 사용했던 이유는 그 구조가 기준이었기 때문이다. 
 
 > 표준(기준)은 아이디어와 컴포넌트의 재사용, 관련 경험이 있는 사람들의 채용, 좋은 아이디어를 encapsulate하기 쉽게 만들어준다. 하지만, 표준을 세우는 시간은 오래 걸리고, 몇몇 표준들은 본래 전하고자 했던 기능들을 잃고 만다.
 
