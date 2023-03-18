@@ -54,7 +54,7 @@ Single Responsibility Principle는 메소드, 클래스, 혹은 컴포넌트가 
 - 공유되는 data를 피하는 방법은 처음부터 만들지 않는 것이다
   - 오브젝트를 복사해서 read-only로 만들 수도 있고,
   - 오브젝트를 복사한 후, 결과를 multiple threads에서 받은 후 마지막에 한 thread에서 결과를 종합할 수도 있다
-b
+  - 오브젝트를 만들어내는 비용이 비쌀까 걱정이 될 수도 있는데, 당연히 조사해봐야겠지만, 보통은 오브젝트의 복사본을 사용해 synchronizing과 [intrinsic lock](https://docs.oracle.com/javase/tutorial/essential/concurrency/locksync.html#:~:text=A%20thread%20is%20said%20to,attempts%20to%20acquire%20the%20lock.)을 피하는 것이 추가적인 오브젝트 생성이나 garbage collection보다 적은 비용이 들 가능성이 있다
   ###### Corollary: Threads SHould Be as Independent as Possible
 - Thread 코드를 작성할 때에는 각 thread가 분리되어 다른 thread와 공유하는 데이터가 없는 것처럼 작성해라. 그러면 각 쓰레드가 마치 synchronization이 필요하지 않은 채 해당 쓰레드만 존재하게끔 동작하도록 한다
 > Recommendation: 데이터가 독립적인 쓰레드에서, 가능하다면 다른 프로세서에서 필요로 할 수 있도록 하자
