@@ -1,20 +1,20 @@
-# Book Study (Clean Code)
+# Book Study (Test-Driven Development)
 
 *Read this in other languages*: [English](README.md), [한국어](README_ko.md)
 
 ## 📝 Goal 
 
-- Getting knowledge about clean code through a regular reading
+- Getting knowledge about test-driven development through a regular reading
 - Studying effectively by presentations
 - Getting various perspectives from others through discussions
 
 ## 🗓 Period 
-2023.01.16(Mon) - 2023.03.20(Mon) (10 weeks, OT in the first week)  
+2023.04.17(Mon) - 2023.05.12(Mon) (9 weeks, OT in the first week)  
 1 or 2 weeks may be added depends on the process
 
 ## ❓ How to 
-- Study two chapters every week
-- Conduct a presentation about a chapter (2 ppl a week)
+- Study four chapters(20pages-ish) every week
+- Conduct a presentation about two chapters (2 ppl a week)
   - Who presents what will be determined during OT
 - Make a **pull request** by **every Sunday 23:59:59**
 - **Presentations** are given on **8pm every Monday**
@@ -39,7 +39,7 @@
   ~~~
   Name-chapter-name
 
-  (e.g. yongju-clean-code)
+  (e.g. yongju-ch1-multi-currency-money)
   ~~~
 
 - Please add a separate folder for images
