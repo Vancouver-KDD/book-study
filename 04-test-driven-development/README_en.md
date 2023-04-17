@@ -9,7 +9,7 @@
 - Getting various perspectives from others through discussions
 
 ## 🗓 Period 
-2023.04.17(Mon) - 2023.05.12(Mon) (9 weeks, OT in the first week)  
+2023.05.01(Mon) - 2023.06.26(Mon) (9 weeks, OT in the first week)  
 1 or 2 weeks may be added depends on the process
 
 ## ❓ How to 
