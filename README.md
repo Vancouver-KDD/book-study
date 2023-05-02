@@ -5,6 +5,6 @@
 |:---:|:------------------:|:-------------------------:|
 | 1 | Design Patterns | 2022.09.12 - 2022.10.24 |
 | 2 | Refactoring     | 2022.10.31 - 2022.12.12 |
-| 3 | Clean Code      | In progress             |
-| 4 | Test-Driven Development | 2022.04.17 - 2023.05.12 (planned)|
+| 3 | Clean Code      | 2023.01.16 - 2023.03.20  |
+| 4 | Test-Driven Development | 2022.05.01 - 2023.06.26 (In progress)| 
 ||||
