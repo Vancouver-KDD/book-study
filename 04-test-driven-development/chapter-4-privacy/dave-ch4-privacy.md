@@ -77,8 +77,39 @@ hashCode()
 Equal null 
 Equal object
 ```
-주목해야할 것은 Equality Test 여부를 정확하게 확인하지 못하는 경우, Mutuplication Test도 정상작동하는 지 확인을 하기 어려울수 있는 형태에 이르렀다. 이또한 TDD에서 적극적으로 관리하게될 대상이고 Code와 Test에 대해서 계속적으로 언급해 나가면서 발견되는 결함들을 줄여나가도록 앞으로의 챕터들을 통해 배워나갈 것이다.
+주목해야할 것은 아래 코드를 참조해 보면 Equality Test 여부를 정확하게 확인하지 못하는 경우, Mutuplication Test도 정상작동하는 지 확인을 하기 어려울수 있는 형태에 이르렀다. 이또한 TDD에서 적극적으로 관리하게될 대상이고 Code와 Test에 대해서 계속적으로 언급해 나가면서 발견되는 결함들을 줄여나가도록 앞으로의 챕터들을 통해 배워나갈 것이다.
+```java
+public class Dollars {
+    private int amount;
 
+    Dollars(int amount) {
+        this.amount= amount;
+    }
+
+    Dollars times(int multiplier) {
+        return new Dollars(amount * multiplier);
+    }
+
+    public boolean equals(Object object) {
+        Dollars dollar= (Dollars) object;
+        return amount == dollar.amount;
+    }
+}
+
+class DollarsTest {
+    @Test
+    public void testMultiplication() {
+        Dollars five= new Dollars(5);
+        assertEquals(new Dollars(10), five.times(2));
+        assertEquals(new Dollars(15), five.times(3));
+    }
+
+    @Test
+    public void testEquality() {
+        assertTrue(new Dollars(5).equals(new Dollars(5)));
+    }
+}
+```
 
 #### What we`ve done
 
