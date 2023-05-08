@@ -137,6 +137,9 @@ void times(int multiplier) {
 그 다음 '5'를 얻을 수 있는 것을 생각해보면 constructor를 통해서 얻을 수 있고, 얻어진 값을 메소드에 적용하게 되면 아래와 같다. 
 
 ```java
+Dollar(int amount) { 
+    this.amount= amount;
+}
 void times(int multiplier) { 
     amount *= multiplier;
 }
