@@ -2,7 +2,15 @@
 
 ## Chapter 3. Equality for All
 
-현재 적용되고 있는 Value Objects인 Dollar에 관련하여서, 저자는 하나의 제약을 말하는데  Values of the instance variables of object(개체의 인스턴스 변수값)이 Constructor를 통해 설정되면 변경되지 않고, 새로운 값에 대한 니즈가 있다면 값을 변경하는 것이 아니고 새로운 Object를 만든다라고 설명한다.  
+현재 적용되고 있는 Value Objects인 Dollar에 관련하여서, 저자는 Value Objects의 하나의 성질을 말하는데  Values of the instance variables of object(개체의 인스턴스 변수값)이 Constructor를 통해 설정되면 변경되지 않게(preferably immutable)하는 것이 좋다라는 것이고, 새로운 값에 대한 니즈가 있다면 값을 변경하는 것이 아니고 새로운 Object를 만든다라고 설명한다.  
+
+Characteristics of Value Objects - [reference link](https://latteandcode.medium.com/chapter-2-what-i-learned-from-ddd-value-objects-2c6b6bb57d63#:~:text=Examples%20of%20value%20objects%20are,%2C%20dates%2C%20monies%20and%20strings.)
+
+* Two “value objects” are the same if they have the same value, regardless of whether they are different “objects” in memory.
+* The “value objects” are preferably immutable, that is, if we want to modify their value we will create a new one with the result of the operation instead of modifying the internal value of the “value object” that we already have.
+* The “value objects” are replaceable, in the sense that we can replace one value object with another without fear of side effects.
+* The “value objects” can have several properties. A simple example is the “value object” Price, made up of “amount” and “currency” or the “value object” RangeDate made up of the properties “from” and “to”.
+
 
 그와 동시에 그렇게 새로운 Object를 추가적으로 생성하여 사용하므로써, 앨리어싱(aliasing)에 대한 걱정이 없을 것이라고 설명하는데, Aliasing에 대한 설명을 찾아보면, 어떤 포인터의 복사본을 여러 개체 또는 코드에서 갖고 있어 영향을 받는 것을 Aliasing이라고 한다.
 그런데, Value Object를 사용하게 되면, 필요에 따라 새롭게 개체를 생성하여 사용하므로 앨리어싱(aliasing)을 통해 연결된 개체의 변경에 따른 에러버그를 걱정할 필요가 없다는 것이다.
@@ -67,9 +75,9 @@ Money rounding?
 hashCode(
 ```
 Triangulation 방법은 Refactoring 방법에 확신하지 못할때 사용한다.
-만약 Code와Test간에 중복을 제하고 바로 solution을 만들 수 있다면 그냥 진행하면 되지만, 디자인에 대한 아이디어가 떠오르지 않을때 Triangulation 방법을 사용하면 Another approach를 통해 생각할 수 있는 기회를 제공한다. 그러므로 가변점을 다양하게 가져가면 solution을 명확하게 할 수 있다고 저자는 Triangulation 방법에 대해 설명하고 제안한다.
+만약 Code와Test간에 중복을 제거하고 바로 solution을 만들 수 있다면 그냥 진행하면 되지만, 디자인에 대한 아이디어가 떠오르지 않을때 Triangulation 방법을 사용하면 Another approach를 통해 생각할 수 있는 기회를 제공한다. 그러므로 가변점을 다양하게 가져가면 solution을 명확하게 할 수 있다고 저자는 Triangulation 방법에 대해 설명하고 제안한다.
 
-그리고 추가적으로 null과 비교 그리고 other object와의 비교에 대한 테스트도 필요할 수 있으므로 목록에 추가한다. 
+다음으로 추가적으로 null의 비교 그리고 other object의 비교에 대한 테스트도 필요할 수 있으므로 목록에 추가한다. 
 ```
 //To-do List
 $5 + 10 CHF = $10 if rate is 2:1 
