@@ -13,8 +13,9 @@ Equal null
 Equal object
 ```
 
-Equality를 다루었으므로 Test를 Speaking로 만들 수 있다.
-걔념적으로 보면, Dollar.times()가 리턴하는 Dollar를 반환할때 Dollar Object의 variable인 amount를 반환하는 것이 아니라 Dollar Object 자체를 반환하므로 이에 맞게 우리 테스트도 수정되어야 한다. 현재 Test는 아래와 같이 product.amount에 대한 비교확인 테스트이다.
+앞장에서 Equality를 다루었으므로 Test를 좀 더 Speaking 하는 식으로 만들 수 있다. 즉, Test method가 보기에 코드와 코드간의 procedural한 절차식의 코드 진행이 아닌 Assertion한다고 말하듯 보이게 깔끔하게 정리되어질 수 있다. 
+
+걔념적으로 보면, Dollar.times()가 리턴하는 Dollar를 반환할때 Dollar Object의 variable인 amount를 반환하는 것이 아니라 Dollar Object 자체를 반환하므로 이에 맞게 테스트도 value의 비교가 아닌 오브젝트의 비교로 수정되어야 한다. 현재 Test는 아래와 같이 value: product.amount와 value: 10에 대한 비교확인 테스트이다.
 ```java
 public void testMultiplication() { 
     Dollar five= new Dollar(5); 
@@ -56,7 +57,7 @@ public void testMultiplication() {
 이러므로 해당 Test는 우리에게 Speak(말한다)라고 볼수있는데 마치 sequencial한 operation의 느낌이 아닌, assertion of truth를 말하는 것처럼 볼 수 있게 된다.
 
 
-이제 Dollar는 amount라는 instance variable을 쓰는 유일한 class이므로 private화 할 수  있다.
+이제 Dollar class는 amount라는 instance variable을 쓰는 유일한 class이므로 private화 할 수 있다.
 
 ```java
 //Dollar Class
@@ -77,7 +78,7 @@ hashCode()
 Equal null 
 Equal object
 ```
-주목해야할 것은 아래 코드를 참조해 보면 Equality Test 여부를 정확하게 확인하지 못하는 경우, Mutuplication Test도 정상작동하는 지 확인을 하기 어려울수 있는 형태에 이르렀다. 이또한 TDD에서 적극적으로 관리하게될 대상이고 Code와 Test에 대해서 계속적으로 언급해 나가면서 발견되는 결함들을 줄여나가도록 앞으로의 챕터들을 통해 배워나갈 것이다.
+주목해야할 것은 아래 코드를 참조해 보면 Equality Test 여부를 정확하게 확인하지 못하는 경우,   Test도 정상작동하는 지 확인을 하기 어려울 수 있는 형태에 이르렀다. 이 또한 TDD에서 적극적으로 관리하게될 대상이고 Code와 Test에 대해서 계속적으로 언급해 나가면서 발견되는 결함들을 줄여나가도록 앞으로의 챕터들을 통해 배워나갈 것이다.
 ```java
 public class Dollars {
     private int amount;
