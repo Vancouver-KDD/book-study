@@ -40,8 +40,14 @@ public boolean equals(Object object) {
 ```
 이 시점에서 Triangulation라는 가장 보수적인 Test 구현 방식을 소개하는데
 위와 같이 5==5, "amount == 5", "amount == dollar.amount" 라는 명확한 True에다가
-두번째 Test구문으로 $5 != $6 를 추가적인 예시를 더하여서 
-두개 이상의 Test 예에서 실질적인 대상 Method인 Equals()를 generalize하는 순서로 Triangulation 방식을 설명한다.
+두번째 Test구문으로 $5 != $6 를 아래와 같이 추가적인 예시를 더하고
+```java
+public void testEquality() {
+    assertTrue(new Dollar(5).equals(new Dollar(5))); 
+    assertFalse(new Dollar(5).equals(new Dollar(6)));
+}
+```
+두개 이상의 Test 예에서 실질적인 대상 Method인 Equals()를 generalize하는 순서로 Triangulation 방식을 설명하면서 아래의 일반화의 equals() method를 도출해낸다.
 ```java
 public boolean equals(Object object) { 
     Dollar dollar= (Dollar) object; 
@@ -61,7 +67,7 @@ Money rounding?
 hashCode(
 ```
 Triangulation 방법은 Refactoring 방법에 확신하지 못할때 사용한다.
-만약 Code와Test간에 중복을 제고 하고 바로 solutiond을 만들 수 있다면 그냥 진행하면 되지만, 디자인에 대한 아이디어가 떠오르지 않을때 Triangulation 방법을 사용하면 Another approach를 통해 생각할 수 있는 기회를 제공한다. 그러므로 가변점을 다양하게 가져가면 solution을 명확하게 할 수 있다고 저자는 Triangulation 방법에 대해 설명하고 제안한다.
+만약 Code와Test간에 중복을 제하고 바로 solution을 만들 수 있다면 그냥 진행하면 되지만, 디자인에 대한 아이디어가 떠오르지 않을때 Triangulation 방법을 사용하면 Another approach를 통해 생각할 수 있는 기회를 제공한다. 그러므로 가변점을 다양하게 가져가면 solution을 명확하게 할 수 있다고 저자는 Triangulation 방법에 대해 설명하고 제안한다.
 
 그리고 추가적으로 null과 비교 그리고 other object와의 비교에 대한 테스트도 필요할 수 있으므로 목록에 추가한다. 
 ```
