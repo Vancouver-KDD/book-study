@@ -180,6 +180,7 @@ Compare Francs with Dollars
 ```
 
 Check the test running.
+Now there is no difference between Franc.equals()  and Money.equals(), so we delete the redundant implementation in Franc.
 
 <What we've done>
 * Stepwise moved common code from one class (Dollar) to a superclass (Money)
