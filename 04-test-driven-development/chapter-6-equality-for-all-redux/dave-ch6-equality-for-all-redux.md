@@ -160,6 +160,34 @@ public boolean equals(Object object) {
 }
 ```
 
+```
+class Dollar {
+    private int amount;
+    Dollar(int amount) {
+        this.amount = amount;
+    }
+    Dollar times(int multiplier) {
+        return new Dollar(amount * multiplier)
+    }
+    public boolean equals(Object object) {
+        Money money = (Money) object;
+        return amount == money.amount;
+    }
+}
+class Franc {
+    private int amount;
+    Franc(int amount) {
+        this.amount = amount;
+    }
+    Franc times(int multiplier) {
+        return new Franc(amount * multiplier)
+    }
+    public boolean equals(Object object) {
+        Money money = (Money) object;
+        return amount == money.amount;
+    }
+}
+```
 
 ```
 <To-do List>
