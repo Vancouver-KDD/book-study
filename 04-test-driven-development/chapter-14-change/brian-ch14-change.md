@@ -52,6 +52,13 @@ class Money implements Expression {
         return new Money(amount / rate, to);
     }
 }
+
+class Sum implements Expression {
+    public Meony reduce(Bank bank, String to) {
+        int amount = augend.amount + addend.amount;
+        return new Money(amount, to);
+    }
+}
 ```
 
 ## 환율표를 만들어 보자!
