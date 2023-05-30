@@ -24,7 +24,7 @@ class MoneyTest {
 class Money implements Expression {
     public Meony reduce(String to) {
         // Money 가 환율을 안다고?!
-        int rate = (currency.equals("CHF") && to.equals("USB")) ? 2 : 1;
+        int rate = (currency.equals("CHF") && to.equals("USD")) ? 2 : 1;
         return new Money(amount / rate, to);
     }
 }
@@ -38,7 +38,7 @@ class Bank {
     }
     
     int rate(String from, Strin to) {
-        return (currency.equals("CHF") && to.equals("USB")) ? 2 : 1;
+        return (currency.equals("CHF") && to.equals("USD")) ? 2 : 1;
     }
 }
 
@@ -89,7 +89,7 @@ class Bank {
         rates.put(new Pair(from, to), new Integer(rate));
     }
     
-    int rate(String from, String to {
+    int rate(String from, String to){
         if(from.equals(to)) return 1;
         Integer rate = (Integer) rates.get(new Pair(from, to));
         return rate.intValue();
