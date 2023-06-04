@@ -1,9 +1,21 @@
 # Chapter 19. Set the Table
 
 ```python
-from TestCase import TestCase
-from WasRun import WasRun
-
+class TestCase: 
+    def __init__(self, name):
+        self.name= name
+    def run(self):
+        method = getattr(self, self.name) 
+        method()
+        
+class WasRun(TestCase): 
+    def __init__(self, name):
+        self.wasRun= None         
+        TestCase.__init__(self, name)
+    def run(self):
+        method = getattr(self, self.name) 
+        method()       
+        
 class TestCaseTest(TestCase):
     def testRunning(self):
         test= WasRun("testMethod") 
@@ -12,26 +24,6 @@ class TestCaseTest(TestCase):
         assert(test.wasRun)
         
 TestCaseTest("testRunning").run()
-
-```
-```python
-from TestCase import TestCase
-
-class WasRun(TestCase): 
-    def __init__(self, name):
-        self.wasRun= None         
-        TestCase.__init__(self, name)
-    def run(self):
-        method = getattr(self, self.name) 
-        method()    
-```
-```python
-class TestCase: 
-    def __init__(self, name):
-        self.name= name
-    def run(self):
-        method = getattr(self, self.name) 
-        method()
 ```
 
 테스트를 작성 시, 3A라하는 공통된 패턴이있다.
@@ -64,10 +56,10 @@ Report collected results
 
 테스트 간에 tightly coupled는 테스트 결과의 왜곡또한 초래할 수 있으므로, 객체 생성이 충분히 빠르다고 가정하고 테스트 커플링을 피하자. 
 
-테스트를 실행하기 전에 플래그를 false로 설정하기를 원했던 WasRun 에서 위장된 형태를 이미 보았다. 이와 같은 형태를 가져가기위해 먼저 아래 테스트가 필요하다.
+테스트를 실행하기 전에 플래그를 false로 설정하기를 원했던 WasRun 에서 위장된 형태를 이미 보았다. 이와 같은 형태를 가져가기 위해 먼저 아래 테스트가 필요하다.
 
 ```python
-# TestCaseTest class
+# TestCaseTest
 def testSetUp(self):
     test = WasRun("testMethod")
     test.run()
@@ -75,9 +67,6 @@ def testSetUp(self):
 ```
 이를 TestCaseTest class에 추가한다.
 ```python
-from TestCase import TestCase
-from WasRun import WasRun
-
 class TestCaseTest(TestCase):
     def testRunning(self):
         test= WasRun("testMethod") 
@@ -89,20 +78,15 @@ class TestCaseTest(TestCase):
         test.run()
         assert(test.wasSetUp)    
 TestCaseTest("testRunning").run()
-
 ```
 파이썬이 `wasSetUp`attribute의 부재를 알려준다. 수정하자.
-
-
 ```python
-# WasRun class에 추가 
+# WasRun 클래스에 추가 
     def setUp(self):
         self.wasSetUp = 1
 ```
 아래와 같이 추가
 ```python
-from TestCase import TestCase
-
 class WasRun(TestCase): 
     def __init__(self, name):
         self.wasRun= None         
@@ -113,11 +97,9 @@ class WasRun(TestCase):
     def setUp(self):
         self.wasSetUp = 1    
 ```
-
-이제 추가된 `setUp` 메소드를 호출하면 `wasSetUp` 이 설정될 것이다. `setUp` 을 호출하는 것은 `TestCase` 가 할 일이니 그곳을 확인해보자.
-
+이제 추가된 `setUp` 메소드를 호출하면 `wasSetUp` 이 설정될 것이다. `setUp` 을 호출하는 것은 `TestCase` 가 할 일이니 이를 변경한다.
 ```python
-# TestCase class
+# TestCase 
     def setUp(self): # <<- 추가
       pass          # <<- 추가    
     def run(self):
@@ -125,43 +107,36 @@ class WasRun(TestCase):
       method = getattr(self, self.name)
       method()
 ```
-위의 표시된 부분을 기존코드에 추가하면
+위의 표시된 부분을 기존 TestCase 클래스 코드에 추가하면
 ```python
 class TestCase: 
     def __init__(self, name):
         self.name= name
-    def setUp(self): # <<- 추가
+    def setUp(self): 
         pass
     def run(self):
-        self.setUp() # <<-추가 
+        self.setUp()
         method = getattr(self, self.name)
         method()
 ```
 
-위의경우 테스트 케이스 하나를 위해 두단계가 필요하게 설정이 되어져있는데, 이는 좀 더 까다로운 상황을 만나게 되면 좀 과한 편에 속하게 된다. 
+위의 경우 테스트 케이스 하나를 위해 두단계가 필요하게 설정이 되어져있는데, 이는 좀 더 까다로운 상황을 만나게 되면 좀 과한 편에 속하게 된다. 
 하나로 해서 테스트를 성공하는 방법을 찾아보면, 
 
-wasRun의 flag 를 setUp에서 설정하여 `WasRun` 줄일 수 있다.
+wasRun 클래스의 flag 를 setUp에서 설정하여 `WasRun` 줄일 수 있다.
 
 ```python
-# WasRun class
+# WasRun 클래스
     def setUp(self):
       self.wasRun = None
       self.wasSetUp = 1
-
-# 그리고 TestCase에서는 삭제한다.
-class TestCase: 
-    # def setUp(self): 
-        # pass
 ```
-위에 책에 나온 수정된 코드를 기존코드 적용하면,
+위 수정된 코드를 기존코드 적용,
 
 ```python
-from TestCase import TestCase
-
 class WasRun(TestCase): 
     def __init__(self, name):
-        # self.wasRun= None <<- 삭제        
+        self.wasRun= None   
         TestCase.__init__(self, name)
     def run(self):
         method = getattr(self, self.name) 
@@ -170,14 +145,8 @@ class WasRun(TestCase):
         self.wasRun = None
         self.wasSetUp = 1          
 ```
-
-
 테스트를 실행하기 전에 플래그를 검사하지 않도록 TestCaseTest 클래스의 `testRunning` 펑션을 단순화한다.
-
 ```python
-from TestCase import TestCase
-from WasRun import WasRun
-
 class TestCaseTest(TestCase):
     def testRunning(self):
         test= WasRun("testMethod") 
@@ -194,20 +163,16 @@ TestCaseTest("testRunning").run()
 
 이를 `setUp` 에서 생성하고 아래와 같이 테스트 메소드에서 그걸 사용하도록 할 수 있다.
 
-
 ```python
-from TestCase import TestCase
-from WasRun import WasRun
-
 class TestCaseTest(TestCase):
     def setUp(self):
         self.test= WasRun("testMethod")
     def testRunning(self):
-        # test= WasRun("testMethod") 삭제
+        # test= WasRun("testMethod") <<- 삭제
         self.test.run() 
         assert(self.test.wasRun)
     def testSetUp(self):
-        # test = WasRun("testMethod") 삭제
+        # test = WasRun("testMethod") <<- 삭제
         self.test.run()
         assert(self.test.wasSetUp)    
 TestCaseTest("testRunning").run()
@@ -224,8 +189,8 @@ Report collected results
 ```
 
 다음장에서는 테스트 메소드 후 실행될 tearDown()을 구현한다.
-
-- Decided that simplicity of test writing was more important than performance for the moment
-- Tested and implemented `setUp()`
-- Used `setUp()` to simplify the example test case
-- Used `setUp()` to simplify the test cases checking the example test case (I told you this would become like self-brain-surgery.)
+<Review>
+- Decided that simplicity of test writing was more important than performance for the moment - 단순성이 성능보다 더 중요하다고 결정
+- Tested and implemented `setUp()` - setUp() 테스트 및 구현
+- Used `setUp()` to simplify the example test case - 테스트 케이스를 단순화하기 위해 setUp() 사용
+- Used `setUp()` to simplify the test cases checking the example test case - 테스트 케이스의 체크하는 테스트 케이스를 단순화하기 위해 setUp() 사용
