@@ -148,6 +148,11 @@ wasRun의 flag 를 setUp에서 설정하여 `WasRun` 줄일 수 있다.
     def setUp(self):
       self.wasRun = None
       self.wasSetUp = 1
+
+# 그리고 TestCase에서는 삭제한다.
+class TestCase: 
+    # def setUp(self): 
+        # pass
 ```
 위에 책에 나온 수정된 코드를 기존코드 적용하면,
 
