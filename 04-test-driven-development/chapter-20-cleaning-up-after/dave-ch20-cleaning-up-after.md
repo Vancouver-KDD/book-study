@@ -1,38 +1,36 @@
 # Chapter 20. Cleaning Up After
 
 ```python
-class TestCase: 
+class TestCase:
     def __init__(self, name):
-        self.name= name
-    def setUp(self): 
+        self.name = name
+    def setUp(self):
         pass
     def run(self):
-        self.setUp() 
+        self.setUp()
         method = getattr(self, self.name)
         method()
 
-class WasRun(TestCase): 
+class WasRun(TestCase):
     def __init__(self, name):
-        self.wasRun= None      
+        self.wasRun = None
         TestCase.__init__(self, name)
-    def run(self):
-        method = getattr(self, self.name) 
-        method()    
     def setUp(self):
         self.wasRun = None
         self.wasSetUp = 1
+    def testMethod(self):
+        self.wasRun = 1
 
 class TestCaseTest(TestCase):
     def setUp(self):
-        self.test= WasRun("testMethod")
+        self.test = WasRun("testMethod")
     def testRunning(self):
-        self.test.run() 
-        assert(self.test.wasRun)
+        self.test.run()
+        assert self.test.wasRun        
     def testSetUp(self):
         self.test.run()
-        assert(self.test.wasSetUp)    
+        assert self.test.wasSetUp
 TestCaseTest("testRunning").run()
-
 ```
 ```
 <to-do list>
@@ -44,7 +42,11 @@ Run multiple tests
 Report collected results
 ```
 
-때때로 `setUp()` 에서 external resources을 할당할 필요가 있다.  테스트가 loosely-coupled하기  바란다면 external resources가 할당 된 테스트들은 종료되기 전에  `tearDown()` 메소드와 같은 것들을 통해 자원을 다시 반환할 필요가 있다.
+때때로 `setUp()` 에서 external resources을 할당할 필요가 있다.  테스트가 loosely-coupled하기 바란다면 external resources가 할당 된 테스트들은 종료되기 전에  `tearDown()` 메소드와 같은 것들을 통해 자원을 다시 반환할 필요가 있다.
+
+파이썬 unit testing 표준 라이브러리인 unittest에서 예를 들어보면, setUp에는 주로 공통으로 시작하는 부분, 셋팅되어야 하는 부분을 작성하고, tearDown은 close와 같이 정리되는 작업을 작성한다. 
+
+호출되는 프로세스는 예를 들어 테스트 함수가 testcase1, testcase2가 있다면 setUp -> testcase1 -> tearDown -> setUp -> testcase2 -> tearDown 순으로 호출된다.
 
 간단한 de-allocation에 대한 테스트를 작성 approach는 flag를 또 도입하는 것인데 이것이 도리어 메소드의 중요한 측면을 놓치게 할 수 있으므로 (`setUp()` 은 테스트 메소드 실행 전에 호출, 그리고 `tearDown()` 은 테스트 메소드 호출 후 실행되야 한다.) 호출된 메소드의 로그를 간단히 남기는 방식으로 전략을 변경해서 로그를 남김으로써 호출되는 순서를 확인한다.
 
@@ -62,16 +64,14 @@ Log string in WasRun <---
 ```python
 class WasRun(TestCase): 
     def __init__(self, name):
-        self.wasRun= None 
+        self.wasRun = None
         TestCase.__init__(self, name)
-    def run(self):
-        method = getattr(self, self.name) 
-        method()    
     def setUp(self):
         self.wasRun = None
         self.wasSetUp = 1
-        self.log= "setUp " # <<- 추가
-        
+	self.log = "setUp " # <<--추가
+    def testMethod(self):
+        self.wasRun = 1    
 ```
 
 이제 `testSetUp()`를 flag가 아닌 log를 바라보게 한다.
@@ -81,15 +81,15 @@ class TestCaseTest(TestCase):
     def setUp(self):
         self.test= WasRun("testMethod")
     def testRunning(self):
-        self.test.run() 
-        assert(self.test.wasRun)
+        self.test.run()
+        assert self.test.wasRun
     def testSetUp(self):
         self.test.run()
         # assert(self.test.wasSetUp)    <<--변경 전
         assert("setUp " == self.test.log)    # 변경 후
 ```
 
- `wasSetUp` flag를 삭제. 테스트 메소드의 실행을 기록
+WasRun 클래스내 setUp()의  `wasSetUp` flag를 삭제. 그리고 `testMethod`의 실행을 기록
 
 ```python
 class WasRun(TestCase): 
@@ -100,8 +100,8 @@ class WasRun(TestCase):
         method = getattr(self, self.name) 
         method()    
     def setUp(self):
-        self.wasRun = None
-        # self.wasSetUp = 1 삭제
+        # self.wasRun = None  <<- 삭제
+        # self.wasSetUp = 1 <<- 삭제
         self.log= "setUp"
     def testMethod(self):   #<<- 추가
         self.wasRun= 1      #<<- 추가
@@ -121,7 +121,7 @@ def testSetUp(self):
 `testSetUp` -> `testTemplateMethod`로 Rename
 
 ```python
-class TestCaseTest(TestCase):
+class TestCaseTest(TestCase): 	
     def setUp(self):
         self.test= WasRun("testMethod")
     # def testRunning(self): 삭제 
@@ -139,11 +139,10 @@ class TestCaseTest(TestCase):
     def setUp(self):
         self.test= WasRun("testMethod")
     def testTemplateMethod(self):
-        test = WasRun("testMethod") # <<-원위치
-        test.run()                  # <<-원위치
+        test = WasRun("testMethod") 		# <<-원위치
+        test.run()                  		# <<-원위치
         assert("setUp testMethod " == test.log)  # <<-원위치
 ```
- ( 근데, 그렇게 되면 다시 `WasRun` 의 instance가 두군데 만들어지는데..... 물론 `WasRun` 의 instance가 사용 중인 곳(test.run())은 한곳이기 때문에 다시 돌린다는 건데... 사용되는 것 기준으로 왜 구지 되돌리지? 원위치 전으로 setUp 펑션에서 self 파라미터를 이용해 current object를 통해 만들어 놓은것을 공유하는게 더 나은거 아닌가? 타이트 커플링 때문에 그런건가.....?분리해주려고?) 
  
 리팩토링을 수행한 다음 곧 실행 취소해야 하는 것은 매우 일반적이다.  어떤 사람들은 작업 취소를 좋아하지 않기 때문에 리팩토링하기 전에 서너 번 사용할 때까지 기다리지만  저자는 생각의 cycle을 설계에 집중하므로 바로 취소하는 것에 대한 걱정없이 반사적(reflexively)으로 바로 리팩토링한다.
 
@@ -151,7 +150,7 @@ class TestCaseTest(TestCase):
 <to-do list>
 //Invoke test method
 //Invoke setUp first
-Invoke tearDown afterward
+Invoke tearDown afterward <<--
 Invoke tearDown even if the test method fails 
 Run multiple tests
 Report collected results
@@ -161,14 +160,15 @@ Report collected results
 이제 tearDown을 테스트할 준비가 되었습니다.
 
 ```python
-# TestCaseTest class
-def testTemplateMethod(self):
-	test = WasRun("testMethod")
-  test.run()
-  assert("setUp testMethod tearDown" == test.log)
+class TestCaseTest(TestCase):
+    # ...
+    def testTemplateMethod(self):
+        test = WasRun("testMethod")
+        test.run()
+        assert "setUp testMethod tearDown " == test.log
 ```
 
-위에 fail하는 구문을 작동케 해보면,
+실행하면 fail, 이를 실행되도록 하려면 
 ```python
 class TestCase: 
     #...
@@ -192,9 +192,7 @@ class WasRun(TestCase):
       self.log = self.log + "tearDown "
 ```
 
-`TestCaseTest` 에서 에러
-
-why? `TestCase` 에 `tearDown()`의 no-op(무연산) implementation 부재
+`TestCaseTest` 의 에러 -> `TestCase` 에 `tearDown()`의 no-op(무연산) implementation 필요
 
 적용 아래
 ```python
@@ -210,3 +208,39 @@ class TestCase:
 * Tested and implemented tearDown() using the new log - 새 로그를 사용하여 tearDown() 테스트 및 구현
 * Found a problem and, daringly, fixed it instead of backing up - 문제를 발견, 과감하게 수정
 
+```python
+class TestCase:
+    def __init__(self, name):
+        self.name = name
+    def setUp(self):
+        pass
+    def run(self):
+        self.setUp()
+        method = getattr(self, self.name)
+        method()
+        self.tearDown()
+    def tearDown(self):
+        pass
+
+class WasRun(TestCase):
+    def __init__(self, name):
+        self.wasRun = None
+        TestCase.__init__(self, name)
+    def setUp(self):
+        self.log = "setUp "
+    def testMethod(self):
+        self.log = self.log + "testMethod "    
+    def tearDown(self):
+        self.log = self.log + "tearDown "
+
+class TestCaseTest(TestCase):
+    def setUp(self):
+        self.test = WasRun("testMethod")
+       
+    def testTemplateMethod(self):        
+        test = WasRun("testMethod") 
+        test.run()
+        print(test.log)
+        assert("setUp testMethod tearDown " == test.log)
+TestCaseTest("testTemplateMethod").run()
+```	
