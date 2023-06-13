@@ -45,10 +45,10 @@ it will print out `None`
 ```
 class WasRun:
     def __init__(self, name);
-    self.wasRun = None
+        self.wasRun = None
 
     def testMethod(self):
-    self.wasRun =1
+        self.wasRun =1
 ```
 
 5. need real interface `run()` instead of calling the test method directly -> test will change to
