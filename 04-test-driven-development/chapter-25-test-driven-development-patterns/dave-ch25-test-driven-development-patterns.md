@@ -27,13 +27,14 @@ How do you test your software? Write an automated test.
 
 
 
-## Isolated Test
+## Isolated Test (중요!)
 
-First, make the tests so fast to run that I can run hem myself, and run them often.
+First, make the tests so fast to run that I can run them myself, and run them often.
 Second, the main lesson I took was that tests should be able to ignore one another completely.
 One convenient implication of isolated tests is that the tests are order independent.
-Isolating tests encourages you to compose solutions out of many highly cohesive, loosely 
-coupled objects. 
+Isolating tests encourage you to compose solutions out of many highly cohesive, loosely coupled objects. 
+매우 중요 모든 테스트가 각자 독립되게 테스트를 돌려야한다.모든 테스트가 Isolated하기 적용되서 서로에게 절대 영향을 주면 안된다. 독립되게 하라!
+물론 효율은 떨어진다. 새로운 테스트마다 필드값을 재 메모리 할당을 해야 하기 때문에 느려지기 때문에 build시 엄청나게 느려질 수 밖에 없다. 하지만, 그 느려짐을 안고 가더라도 매우 중요!!
 
 ## Test List
 
@@ -53,7 +54,7 @@ coupled objects.
 
 ## Test First
 
-프로그래머로서의 목표는 기능을 실행하는 것입니다
+코딩 를 작성하기 전에 테스트는 진행되어져야 한다!
 However, you need a way to think about design, you need a method for scope control.
 What if we adopted the rule that we would always test first? Then we could invert the diagram and get a virtuous cycle: Test-First above negatively connected to Stress below, negatively connected to Test-First.
 
@@ -62,9 +63,9 @@ When we test first, we reduce the stress, which makes us more likely to test. Th
 
 ## Assert First
 
-When should you write the asserts? Try writing them first. Don't you just love selfsimilarity?
-* Where should you start building a system? With stories you want to be able to tell about the finished system.
-* Where should you start writing a bit of functionality? With the tests you want to pass with the finished code.
+When should you write the asserts? Try writing them first. Don't you just love self-similarity?
+* Where should you start building a system? With stories, you want to be able to tell about the finished system.
+* Where should you start writing a bit of functionality? With the tests, you want to pass with the finished code.
 * Where should you start writing a test? With the asserts that will pass when it is done.
 
 When you are writing a test, you are solving several problems at once, even if you no longer have to think about the implementation.
@@ -117,8 +118,7 @@ testCompleteTransaction() {
 
 ## Test Data
 
->What data do you use for test-first tests? Use data that makes the tests easy to read and 
-follow!
+>What data do you use for test-first tests? Use data that makes the tests `easy to read and follow!`
 
 The alternative to Test Data is Realistic Data, in which you use data from the real world. 
 Realistic Data is useful when:
@@ -128,6 +128,7 @@ Realistic Data is useful when:
  - You are refactoring a simulation and expect precisely the same answers when you are finished, particularly if floating point accuracy may be a problem
 
 ## Evident Data
+테스트상의 구문에서 무엇을 할지 명확하게 의도를 나타내라!! 예상되는 결과와 실제 결과를 반영해서 그 반영에 대해 명백히 나타내라!!
 Include expected and actual results in the test itself, and try to make their relationship apparent.
 
 여기에 예가 있습니다. 한 통화에서 다른 통화로 변환하면 거래에 대해 1.5%의 수수료를 받습니다. USD와 GBP의 환율이 2:1이면 $100 를 교환하면 50GBP 1.5% = 49.25GBP가 됩니다. 이 테스트를 다음과 같이 작성할 수 있습니다.
@@ -139,7 +140,12 @@ bank.commission(STANDARD_COMMISSION);
 Money result= bank.convert(new Note(100, "USD"), "GBP"); 
 assertEquals(new Note(49.25, "GBP"), result);
 ```
-in order to elaboate
+in order to elaborate
+아래 '2'와 같은 magic number 즉 하드코드된 부분은 전혀 의도를 알 수 없으므로 변수를 의미있는 네이밍해서 적용하면 보다 의미를 전달 할 수 있는게 통상적임.
+허나 아래상황에서는 magic number가 지양되야하지만 single 메소드의 범위내에서 숫자들의 관계를 알 수 있으므로 상수를 가져다 쓴 경우
+아래 테스트를 보변 숫자와 예상되는 결과 사이에 관계를 알 수 있게 된다.
+의미 있는 테스팅 코드는 프로그래밍을 쉽게 해주게 된다.
+assertion 부분에 수식을 통해 이후에 진행되어져야 방향을 알 수 있다.
 ```java
 Bank bank= new Bank();
 bank.addRate("USD", "GBP", 2); 
