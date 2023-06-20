@@ -113,4 +113,45 @@ method.)
 We want to test sum(new int[] {5, 7}) next. First we add a parameter to sum(), taking an 
 array of values:
 
+```java
+public void testSum() {
+    assertEquals(5, sum(5, new int[] {5})); 
+}
+private int sum(int value, int[] values) { 
+    return value;
+}
 
+```
+We can look at this step as an example of Isolate Change. Once we add the parameter in the 
+test case, we are free to change the implementation without affecting the test case.
+
+use the collection
+```java
+private int sum(int value, int[] values) { 
+    int sum= 0;
+    for (int i= 0; i<values.length; i++) 
+    sum += values[i];
+    return sum; 
+}
+```
+
+delete the unused single parameter:
+```java
+public void testSum() {
+    assertEquals(5, sum(new int[] {5})); 
+}
+private int sum(int[] values) { 
+    int sum= 0;
+    for (int i= 0; i<values.length; i++) 
+    sum += values[i];
+    return sum; 
+}
+
+```
+
+an example of Isolate Change, where we change the code so we can change the test cases without affecting the code. 
+```java
+public void testSum() {
+    assertEquals(12, sum(new int[] {5, 7})); 
+}
+```
