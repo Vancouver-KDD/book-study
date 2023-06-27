@@ -10,7 +10,7 @@
 
 ### Reconcile Differences (차이 조정)
 - 비슷해 보이는 코드를 통합하는 방법?
-- examine the control flows and datavalues carefully
+- examine the control flows and data values carefully 해야 한다.
 - loops / 조건문의 branches / methods / classes 의 모든 level에서 refactoring이 가능하다. 동일하게 만들어 하나를 제거.
 - backward 방향으로도 가능하다. 
   - subclass 를 완전히 비우기 -> 메서드와 field를 super class와 동일하게 만들어 subclass에 아무런 내용이 없게 만들자 -> subclass의 참조를 super class로 대체
@@ -18,7 +18,7 @@
 ### Isolate Change (변경해야 할 부분 격리)
 - 여러 파트로 구성된 method나 object의 한 부분을 어떻게 변경할 것인가에 대한 내용
 - 수술할 때 그 부위만 보이게 다른 부분을 덮어놓는 것처럼, 변경해야 할 부분을 격리한다.
-- 만약 findRate()에서 실제로 필요한 것이 인스턴스 변수를 반환하는 것이라면, findRate()를 사용하는 모든 곳에서 이를 인라인으로 처리하고 해당 메서드를 삭제하는 것을 고려해볼 수 있습니다
+- 만약 findRate()에서 실제로 필요한 것이 인스턴스 변수를 반환하는 것이라면, findRate()를 사용하는 모든 곳에서 이를 인라인으로 처리하고 해당 메서드를 삭제하는 것을 고려해볼 수 있다. ****
 
   
 ```java
@@ -38,14 +38,14 @@ double currentRate = rate;
 
 
 ### Migrate Data
+- 데이터 구조를 개선하여 시스템이 새로운 형식을 지원하고 데이터 호환성을 유지할 수 있게 하기 위해
 - How
- - Add an instance variable in the new format.
- - Set the new format variable everywhere you set the old format.
- - Use the new format variable everywhere you use the old format.
- - Delete the old format.
- - Change the external interface to reflect the new format.
-- ??
-
+ - 새로운 형식의 인스턴스 변수를 추가.
+ - 기존 형식을 설정하는 곳마다 새로운 형식 변수를 설정
+ - 기존 형식을 사용하는 곳마다 새로운 형식 변수를 사용
+ - 기존 형식을 삭제
+ - 외부 인터페이스를 새로운 형식에 맞게 변경
+  
 
 ### Extract Method
 - 메서드의 일부를 분리하여 새로운 메서드로 만들고, 새로운 메서드를 호출하는 방법
@@ -136,9 +136,10 @@ int area= bounds.area();
 ```
 
 ### Method Object
-- 코드 블록에서 일부를 추출하려고 할 때마다 다섯 개나 여섯 개의 임시 변수와 매개변수를 전달해야 함
-- 복잡한 several parameter와 local variable가 필요한 복잡한 메서드를 어떻게 표현? 해당 메서드를 객체로.
-- ??
+- 코드 블록에서 일부를 추출하려고 할 때마다 여러개의 parameter를 전달해야 함
+- 해당 메서드를 object로 만들면 메서드 호출 시 필요한 parameter와 local variables를 method object가 내부적으로 처리함 (this를 사용하여 매번 전달하지 않아도 됨)
+  
+
 
 ### Add Parameter
 - 파라미터를 추가하는 것은 종종 확장 단계일 때
@@ -160,7 +161,8 @@ public void printMessage(String message, int count) {
 - 이전에는 단순히 메시지를 출력하는 역할만 수행했지만, 추가된 파라미터 count를 활용하여 메시지를 여러 번 출력하도록 변경
 
 ### Method Parameter to Constructor Parameter
-
+- constructor에 parameter를 추가하고, 초기화하며 method에서 this.data를 이용하여 작업을 수행하면,
+- method를 사용할 때마다 parameter를 전달하는 대신 constructor를 통해 한번만 전달하면 됨
 
 ```java
 // 이동 전 메서드
