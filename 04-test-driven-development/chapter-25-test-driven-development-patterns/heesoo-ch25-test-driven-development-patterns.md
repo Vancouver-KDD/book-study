@@ -21,7 +21,7 @@ Basic strategic questions
 - 각각의 테스트는 서로에게 전혀 영향을 주지 않아야 한다
 - 테스트는 순서에서 독립적이여야 함
 - 문제를 작은 단위로 쪼개서 각각 테스트의 셋업을 쉽고 빠르게 해야함
-- 독립적인 테스트는 many highly cohesive, loosely coupled objects 로 soluntion 을 만들수 있도록 도와줌
+- 독립적인 테스트는 결과적으로 응집도는 높고 서로 결합도는 낮은 여러 객체들로 soluntion 을 만들수 있도록 도와줌
 
 ### Test List
 
