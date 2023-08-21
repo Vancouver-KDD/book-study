@@ -1,4 +1,5 @@
 # Book Study (Pragmatic Programmer)
+신청 링크 : https://forms.gle/EvPoiiaAc8ZqDAPy6
 
 ## 📝 목표
 
