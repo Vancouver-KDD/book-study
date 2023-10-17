@@ -70,10 +70,10 @@ user_path  PATCH  /users/:id       UserController.update/2
 ```
 
 ## Trade-Offs Between Internal and External Languages
-|              | Internal                             | External                       | 
-|--------------|--------------------------------------|--------------------------------|
-| Advantage    | more powerful than the host language | dependent on the host language |
-| Disadvantage | no restrict                          | hard to create a parser        |
+|              | Internal                             | External                | 
+|--------------|--------------------------------------|-------------------------|
+| Advantage    | more powerful than the host language | no restrict             |
+| Disadvantage | dependent on the host language       | hard to create a parser |
 
 ## Challenges
 - Could some of the requirements of your current project be expressed in a domain-specific language? 
