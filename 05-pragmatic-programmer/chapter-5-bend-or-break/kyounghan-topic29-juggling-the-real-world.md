@@ -82,7 +82,9 @@ end
 - We might need to extract all of the string in a source file
 - A string is text between quotes, but a backslash in a string escapes the next character, so "Ignore \\"quotes\\"" is a single string
 - Here's an FSM that does this
+
 ![event_string_fsm](images/event_string_fsm.png)
+
 - This time, each transition has two labels
 - The top one is the event that triggers it, the bottom one is the action to take as we move between states. 
   
