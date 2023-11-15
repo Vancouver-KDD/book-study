@@ -36,7 +36,7 @@
 ### Key to solving puzzle
 - To recongnize the constraints
 - To recognize the degrees of freedom you do have
-- Challenge any preconceived notions and evaluate whether or not they are real, hard-and-fst constraints.
+- Challenge any preconceived notions and evaluate whether or not they are real, hard-and-fast constraints.
 - The problem lies in finding the box
   - It's not whether you think inside the box or outside the box.
   - Identifying the real contraints
