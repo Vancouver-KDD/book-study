@@ -22,7 +22,7 @@ public void applyDiscount(Percentage discount)
 ```
 
 ```
-fib.fib(n)
+Fib.fib(n)
 // =>
 Fib.of(n) // or
 Fib.nth(n)
