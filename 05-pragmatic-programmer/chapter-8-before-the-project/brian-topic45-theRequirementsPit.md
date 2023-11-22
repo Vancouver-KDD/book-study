@@ -51,7 +51,7 @@
 > Tip 79 - Policy Is Metadata
 
 ## REQUIREMENTS VS. REALITY 
-- The interface to the new music mixing board didn’t leverage off those abilities. 
+- ㅅThe interface to the new music mixing board didn’t leverage off those abilities. 
 - Instead, it forced its users to type on a keyboard or click a mouse.
 
 ## DOCUMENTING REQUIREMENTS 
