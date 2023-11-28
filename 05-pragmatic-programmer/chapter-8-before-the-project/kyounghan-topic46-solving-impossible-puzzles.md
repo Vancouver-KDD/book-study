@@ -29,14 +29,14 @@
 ## Degrees of Freedom
 ### Popular buzz-phrase "thinking outside the box"
 - Encourage us to recognize constraints that might not be applicable and to ignore them
-- But that is the box?
+- But what is the box?
 - If the "box" is the boundary of constraints and conditions, then the trick is to find the box
-- Whihch may be considertably larger than you think.  
+- Which may be considertably larger than you think.  
 
 ### Key to solving puzzle
 - To recongnize the constraints
 - To recognize the degrees of freedom you do have
-- Challenge any preconceived notions and evaluate whether or not they are real, hard-and-fst constraints.
+- Challenge any preconceived notions and evaluate whether or not they are real, hard-and-fast constraints.
 - The problem lies in finding the box
   - It's not whether you think inside the box or outside the box.
   - Identifying the real contraints
