@@ -1,5 +1,7 @@
 # Book Study (System Design Interview)
-신청 링크 : https://forms.gle/EvPoiiaAc8ZqDAPy6
+스터디 신청 링크: https://forms.gle/VpFqrq3Smc3FPRdWA
+
+책 소개: [System Design Interview by Alex Xu](https://www.amazon.ca/System-Design-Interview-insiders-Second/dp/B08CMF2CQF)
 
 ## 📝 목표
 
