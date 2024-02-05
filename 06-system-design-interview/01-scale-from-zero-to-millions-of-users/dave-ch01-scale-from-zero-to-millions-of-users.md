@@ -89,7 +89,6 @@ But, Serious limitations
 - called  “scale-out”
 - more servers into your pool of resources
 - ✔ More Desirable for Large-Scale Applications( Due to the Vertical Scaling limit)
-- SQL join operations(O)
 ```
 
 In the single server design(users -> the web server directly),
@@ -97,7 +96,8 @@ In the single server design(users -> the web server directly),
  case 1. Web server offline -> No user access
  
  case 2. Many users access simultaneously ->  Web server’s Load Limit -> Lower Response or Fail Response
-
+ 
+To address this issue? Answer: **Load balancer.**
  
 ## (4) Load balancer
 
