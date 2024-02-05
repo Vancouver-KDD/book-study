@@ -36,8 +36,79 @@ The traffic to your webserver는 두개의 sources(web application and mobile ap
 ###### JSON format 예시
  ![fg1-2.1](image_dave/fg1-2.1.jpg)
 
+## (2) Database (multiple server case)
 
+Say multiple servers are needed with the growth of the user base now.
 
+Separating web/mobile traffic (web tier) and database (data tier)을 이용한 독립적 확장
+
+![fg1-2.1](image_dave/fg1-2.1.jpg)
+
+Which databases to use(Relational database vs Non-relational database)?
+
+#### *Relational database*
+```
+- called RDBMS(Relational database management system) or SQL database
+- i.e.) MySQL, Oracle database, PostgreSQL, etc.
+- data in tables and rows
+- SQL join operations(O)
+
+When to use?
+ All cases except for the NoSQL database cases below
+```
+
+#### *Non-relational database*
+```
+- called NoSQL databases
+- i.e.) CouchDB, Neo4j, Cassandra, HBase, Amazon DynamoDB, etc.
+- four categories: key-value stores, graph stores, column stores, and document stores
+- join operations(SQL) across different database tables
+- SQL join operations(X)
+
+When to use?
+• Your application requires super-low latency(minimal delay).
+• Your data are unstructured, or you do not have any relational data.
+• You only need to serialize and deserialize data (JSON, XML, YAML, etc.).
+• You need to store a massive amount of data.
+```
+
+## (3) Vertical scaling vs horizontal scaling
+#### *Vertical Scaling*👎
+```
+- called “scale up”
+- more power (CPU, RAM, etc.) to your servers
+- When traffic is low
+
+But, Serious limitations
+ • No unlimited CPU and memory to a single server.
+ • No failover(장애조치) and redundancy(서버다중화). i.e. Server down😴 -> Website/App down😱
+```
+
+#### *horizontal Scaling*👍
+```
+- called  “scale-out”
+- more servers into your pool of resources
+- ✔ More Desirable for Large-Scale Applications( Due to the Vertical Scaling limit)
+- SQL join operations(O)
+```
+
+In the single server design(users -> the web server directly),
+
+ case 1. Web server offline -> No user access
+ 
+ case 2. Many users access simultaneously ->  Web server’s Load Limit -> Lower Response or Fail Response
+
+ 
+## (4) Load balancer
+
+## (4) Database replication
+## (5) Cache
+## (6) Content delivery network (CDN)
+## (7) Stateless web tier
+## (8) Data centers
+## (9) Message queue
+## (10) Logging, metrics, automation
+## (11) Database scaling
 
 
 
