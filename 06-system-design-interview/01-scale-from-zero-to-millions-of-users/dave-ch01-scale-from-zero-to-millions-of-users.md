@@ -27,11 +27,8 @@ The traffic to your webserver는 두개의 sources(web application and mobile ap
  - server-side languages(Java, Python, etc) to handle business logic, storage, etc
  - front-side languages(HTML and JavaScript) for presentation
 
-2. mobile application(API): HTTP protocol은 통신규약(communication protocol)로써 mobile app과 web server에 대함이다.
- - JSON(JavaScript Object Notation)이 가장 널리쓰이는 API response format to transfer data인데 이는 simplicity 때문이다.
-
-
-  
+2. mobile application: HTTP protocol은 통신규약(communication protocol)로써 mobile app과 web server에 대함이다.
+ - JSON(JavaScript Object Notation)이 가장 널리쓰이는 API response format to transfer data인데 이는 simplicity 때문이다. 
 ```
 ###### JSON format 예시
  ![fg1-2.1](image_dave/fg1-2.1.jpg)
@@ -100,6 +97,7 @@ In the single server design(users -> the web server directly),
 To address this issue? Answer: **Load balancer.**
  
 ## (4) Load balancer
+
 
 ## (4) Database replication
 ## (5) Cache
