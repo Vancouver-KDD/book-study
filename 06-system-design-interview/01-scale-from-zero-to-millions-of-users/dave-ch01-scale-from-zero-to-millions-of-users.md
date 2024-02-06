@@ -193,7 +193,11 @@ Although some other replication methods like multi-masters and circular replicat
 ```
 
 ## (6) Cache
-Purpose: To improve the load/response time, add a cache layer and shift static content (JavaScript/CSS/image/video files) to the content delivery network (CDN).
+Purpose: To improve the load/response time, 
+```
+1. add a cache layer and 
+2. shift static content (JavaScript/CSS/image/video files) to the content delivery network (CDN).
+```
 
 > A cache is a temporary storage area that stores the result of expensive responses or frequently accessed data in memory so that subsequent requests are served more quickly.
 ```
@@ -263,15 +267,19 @@ Memcached: Unlike databases that store data on disk or SSDs, Memcached keeps its
 ```
 
 ## (7) Content delivery network (CDN)
-Purpose: To improve the load/response time, add a cache layer and shift static content (JavaScript/CSS/image/video files) to the content delivery network (CDN).
-
+Purpose: To improve the load/response time, 
+```
+1. add a cache layer and 
+2. shift static content (JavaScript/CSS/image/video files) to the content delivery network (CDN).
+```
 > A CDN is a network of geographically dispersed servers used to deliver static content. CDN servers cache static content like images, videos, CSS, JavaScript files, etc.
-
+(CDN: 사용자에게 웹 콘텐츠를 효율적으로 제공할 수 있는 서버의 분산 네트워크)
+> 
 #### How to use CDN to cache static content?
 ```
  - when a user visits a website, a CDN server closest to the user will deliver static content.
  - Intuitively, the further users are from CDN servers, the slower the website loads.
- For example, if CDN servers are in San Francisco, users in Los Angeles will get content faster than users in Europe. 
+   (Example) if CDN servers are in San Francisco, users in Los Angeles will get content faster than users in Europe. 
 ```
 
 Figure 1-9 is a great example that shows how CDN improves load time.
@@ -279,6 +287,9 @@ Figure 1-9 is a great example that shows how CDN improves load time.
 
 ```
 1. User A tries to get image.png by using an image URL. The URL’s domain is provided by the CDN provider.
+   (Example) Two image URLs
+      • https://mysite.cloudfront.net/logo.jpg
+      • https://mysite.akamai.com/image-manager/img/logo.jpg
 2. If the CDN server does not have image.png in the cache,
    the CDN server requests the file from the origin, which can be a web server or online storage like Amazon S3.
 3. The origin returns image.png to the CDN server,
@@ -288,6 +299,7 @@ Figure 1-9 is a great example that shows how CDN improves load time.
 5. User B sends a request to get the same image.
 6. The image is returned from the cache as long as the TTL has not expired.
 ```
+
 #### *Considerations of using a CDN* 
 ```
 • Cost:
@@ -297,19 +309,22 @@ Figure 1-9 is a great example that shows how CDN improves load time.
   The cache expiry time should neither be too long nor too short.
    - Too long, no longer be fresh.
    - Too short, repeatedly reloading content from origin servers to the CDN.
-• CDN fallback:
+• CDN fallback(고장조치):
   You should consider how your website/application copes with CDN failure.
   If there is a temporary CDN outage, clients should be able to detect the problem and request resources from the origin.
-• Invalidating files:
+• Invalidating files(파일제거/파일무효화):
   You can remove a file from the CDN before it expires by performing one of the following operations:
-   - Invalidate the CDN object using APIs provided by CDN vendors.
-   - Use object versioning to serve a different version of the object. To version an object,
-     you can add a parameter to the URL, such as a version number.
-     For example, version number 2 is added to the query string: image.png?v=2
+   - Invalidate the CDN object using APIs provided by CDN vendors. (API를 이용 무효화)
+   - Use object versioning to serve a different version of the object. (버져닝을 통한 공급)
+     (Example) To version an object, you can add a parameter to the URL, such as a version number.
+               In short, version number 2 is added to the query string: image.png?v=2
 ```
 Figure 1-11 shows the design after the CDN and cache are added.
 ![fg1-11](image_dave/fg1-11.jpg)
+
+
 ```
+[Summary]
 1. Static assets (JS, CSS, images, etc.,) are no longer served by web servers.
    They are fetched from the CDN for better performance.
 2. The database load is lightened by caching data.
@@ -317,11 +332,12 @@ Figure 1-11 shows the design after the CDN and cache are added.
 
 
 ## (8) Stateless web tier - scaling the web tier horizontally
-State (for instance user session data) should be moved out of the web tier.
+What's the state?
+State ((Example) - user session data) should be moved out of the web tier.
 
 A good practice is to store session data in persistent storage such as a relational database or NoSQL. 
 
-Each web server in the cluster can access state data from databases, called 'stateless web tier'.
+Each web server in the cluster can access state data from databases, called 'stateless web tier'🙆‍♂️.
 
 #### Key Difference - Stateful vs Stateless server
 ```
@@ -329,7 +345,7 @@ Stateful server: remembers client data (state) from one request to the next.
 Stateless server: keeps no state information.
 ```
 
-### Stateful architecture
+### Stateful Architecture
 ![fg1-12](image_dave/fg1-12.jpg)
 ```
 (Figure 1-12)
@@ -340,23 +356,27 @@ Stateless server: keeps no state information.
  Similarly, For User B, HTTP requests -> Server 2.
             For User C, HTTP requests -> Server 3.
  The issue is that every request from the same client must be routed to the same server.
- This can be done with sticky sessions in most load balancers; however, this adds the overhead💥
+ This can be done with 'sticky sessions' in most load balancers; however, this adds the overhead💥
  Adding or removing servers is much more difficult with this approach.
  It is also challenging to handle server failures. 
 ```
 
-### Stateless architecture
+### Stateless Architecture
+> The point is that 공유데이터저장소(a shared data store)에 state(user session)정보를 보관 및 공유한다.
+
 ![fg1-13](image_dave/fg1-13.jpg)
 ```
 (Figure 1-13)
-                         route
-      HTTP requests(users) -> Server 1 or 2 or 3.
-Then,   [user state data]  <- [shared data store]
-                        fetched
+                          route                       fetched
+      HTTP requests(users) --> [Server 1 or 2 or 3] --> <-- [shared state data store]
+Then,   [user state data]  <------------/
+                               return
 
 In a nutshell, State data is stored in a shared data store and kept out of web servers.
 A stateless system is simpler, more robust, and scalable.
 ```
+
+그래서 stateless server achitecture를 what we've done에 붙이면, 아래 다이어그램과 같다.
 ![fg1-14](image_dave/fg1-14.jpg)
 ```
 (Figure 1-14)
@@ -372,6 +392,8 @@ auto-scaling of the web tier is easily achieved by adding or removing servers ba
  To improve availability and provide a better user experience,
  -> Multiple data centers is crucial.
 ```
+
+
 ## (9) Data centers
 ![fg1-15](image_dave/fg1-15.jpg)
 ```
@@ -406,6 +428,8 @@ To further scale our system, we need to decouple different components of the sys
 - Scalability - Independence가 Core
 > Messaging queue is a key strategy!! It is employed by many real-world distributed systems for decoupled components.
 
+
+
 ## (10) Message queue
 A message queue is 
 ```
@@ -437,6 +461,8 @@ The consumer can read messages from the queue even when the producer is unavaila
      (However, if the queue is empty most of the time, the number of workers can be reduced)
 ```
 ![fg1-18](image_dave/fg1-18.jpg)
+
+
 
 ## (11) Logging, metrics, automation
 A website to serve a large business? 
@@ -471,6 +497,8 @@ Due to the space constraint, only one data center is shown in the figure.
 ![fg1-19](image_dave/fg1-19.jpg)
 
 As the data grows every day, your database gets more overloaded. It is time to scale the *Data Tier*.
+
+
 
 ## (12) Database scaling
 #### Two broad approaches for database scaling
