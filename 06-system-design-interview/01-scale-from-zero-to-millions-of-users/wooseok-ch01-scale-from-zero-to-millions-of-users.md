@@ -10,6 +10,29 @@
   - NOSQL
     - https://blog.teamtreehouse.com/should-you-go-beyond-relational-databases
     - http://highscalability.com/blog/2010/12/6/what-the-heck-are-you-actually-using-nosql-for.html
+
+### Ex. Attribute table
+
+#### Products Table:
+
+| ProductID | ProductName |
+|-----------|-------------|
+| 1         | T-shirt     |
+| 2         | Jeans       |
+
+#### Attributes Table:
+
+| ProductID | AttributeName | AttributeValue |
+|-----------|---------------|----------------|
+| 1         | Color         | Red            |
+| 1         | Size          | M              |
+| 2         | Color         | Blue           |
+| 2         | Size          | L              |
+
+SELECT p.ProductID, p.ProductName, MAX(CASE WHEN a.AttributeName = 'Color' THEN a.AttributeValue END) AS Color, MAX(CASE WHEN a.AttributeName = 'Size' THEN a.AttributeValue END) AS Size 
+FROM Products p LEFT JOIN Attributes a ON p.ProductID = a.ProductID GROUP BY p.ProductID, p.ProductName;
+
+
 Scaling
   - Vertical
     - Pros: simple
