@@ -543,7 +543,7 @@ Here is an article that covers many use cases of NoSQL [14].
 ```
 ![fg1-23](image_dave/fg1-23.jpg)
 
-#### (13) Millions of users and beyond
+## (12) Millions of users and beyond
 ```
 Scaling a system is an iterative process. 
 Iterating on what we have learned in this chapter could get us far. 
