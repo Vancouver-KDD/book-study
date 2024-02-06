@@ -69,7 +69,7 @@ When to use?
 • You need to store a massive amount of data.
 ```
 
-## (3) Vertical scaling vs horizontal scaling
+## Vertical scaling vs horizontal scaling
 #### *Vertical Scaling*👎
 ```
 - called “scale up”
@@ -96,7 +96,7 @@ In the single server design(users -> the web server directly),
  
 To address this issue? Answer: **Load balancer.**
  
-## (4) Load balancer - Web tier
+## (3) Load balancer - Web tier
 : To distribute incoming traffic among web servers
 
 ![fg1-4](image_dave/fg1-4.jpg)
@@ -120,7 +120,7 @@ one more server and load balancer(Web tier) -> no failover issue
 
 >One database does not support failover and redundancy. Database replication is a common technique to address those problems.
 
-## (5) Database replication(DB복제) - data tier
+## (4) Database replication(DB복제) - data tier
 Database replication can be used in many database management systems. 
 
 A representative case is a master/slave relationship between the original (master) and the copies (slaves).
@@ -192,7 +192,7 @@ Although some other replication methods like multi-masters and circular replicat
 • A web server routes any data-modifying operations to the master database(write/update/delete operations).
 ```
 
-## (6) Cache
+## (5) Cache
 Purpose: To improve the load/response time, add a cache layer and shift static content (JavaScript/CSS/image/video files) to the content delivery network (CDN).
 
 > A cache is a temporary storage area that stores the result of expensive responses or frequently accessed data in memory so that subsequent requests are served more quickly.
@@ -262,7 +262,7 @@ Memcached: Unlike databases that store data on disk or SSDs, Memcached keeps its
 
 ```
 
-## (7) Content delivery network (CDN)
+## (6) Content delivery network (CDN)
 Purpose: To improve the load/response time, add a cache layer and shift static content (JavaScript/CSS/image/video files) to the content delivery network (CDN).
 
 > A CDN is a network of geographically dispersed servers used to deliver static content. CDN servers cache static content like images, videos, CSS, JavaScript files, etc.
@@ -316,7 +316,7 @@ Figure 1-11 shows the design after the CDN and cache are added.
 ```
 
 
-## (8) Stateless web tier - scaling the web tier horizontally
+## (7) Stateless web tier - scaling the web tier horizontally
 State (for instance user session data) should be moved out of the web tier.
 
 A good practice is to store session data in persistent storage such as a relational database or NoSQL. 
@@ -372,7 +372,7 @@ auto-scaling of the web tier is easily achieved by adding or removing servers ba
  To improve availability and provide a better user experience,
  -> Multiple data centers is crucial.
 ```
-## (9) Data centers
+## (8) Data centers
 ![fg1-15](image_dave/fg1-15.jpg)
 ```
 (Figure 1-15) - An example setup with two data centers
@@ -406,7 +406,7 @@ To further scale our system, we need to decouple different components of the sys
 - Scalability - Independence가 Core
 > Messaging queue is a key strategy!! It is employed by many real-world distributed systems for decoupled components.
 
-## (10) Message queue
+## (9) Message queue
 A message queue is 
 ```
  - a durable component,
@@ -438,7 +438,7 @@ The consumer can read messages from the queue even when the producer is unavaila
 ```
 ![fg1-18](image_dave/fg1-18.jpg)
 
-## (11) Logging, metrics, automation
+## (10) Logging, metrics, automation
 A website to serve a large business? 
 
 Then, Multiple servers / Logging / Metrics / Automation support is essential🙆‍♂️.
@@ -472,7 +472,7 @@ Due to the space constraint, only one data center is shown in the figure.
 
 As the data grows every day, your database gets more overloaded. It is time to scale the *Data Tier*.
 
-## (12) Database scaling
+## (11) Database scaling
 #### Two broad approaches for database scaling
 > Vertical scaling / Horizontal scaling
 ```
@@ -543,7 +543,7 @@ Here is an article that covers many use cases of NoSQL [14].
 ```
 ![fg1-23](image_dave/fg1-23.jpg)
 
-#### Millions of users and beyond
+#### (13) Millions of users and beyond
 ```
 Scaling a system is an iterative process. 
 Iterating on what we have learned in this chapter could get us far. 
