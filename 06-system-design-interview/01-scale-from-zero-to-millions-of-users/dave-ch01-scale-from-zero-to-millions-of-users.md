@@ -388,9 +388,11 @@ Autoscaling means adding or removing web servers automatically based on the traf
 
 After the state data is removed out of web servers,
 auto-scaling of the web tier is easily achieved by adding or removing servers based on traffic load.
- If Your website grows rapidly & a significant number of users internationally,
- To improve availability and provide a better user experience,
- -> Multiple data centers is crucial.
+
+Next,
+If Your website grows rapidly & a significant number of users internationally,
+To improve availability and provide a better user experience,
+ -> Multiple data centers are crucial.
 ```
 
 
@@ -398,12 +400,16 @@ auto-scaling of the web tier is easily achieved by adding or removing servers ba
 ![fg1-15](image_dave/fg1-15.jpg)
 ```
 (Figure 1-15) - An example setup with two data centers
+
+[geoDNS-routing(지리적 라우팅)]
 In normal operation, users are geoDNS-routed (also known as geo-routed) to the closest data center,
 with a split traffic of x% in US-East and (100 – x)% in US-West.
 geoDNS is a DNS service that allows domain names to be resolved to IP addresses based on the location of a user.
 ```
 
 ![fg1-16](image_dave/fg1-16.jpg)
+
+#### Benefits for Multi-data center setup with geoDNS-routing(지리적 라우팅)
 ```
 Data center outage -> All traffic is directed to a healthy data center.
 (Figure 1-16) - Data center 2 (US-West) is offline/ 100% of the traffic routed to data center 1 (US-East)
@@ -411,7 +417,7 @@ Data center outage -> All traffic is directed to a healthy data center.
 #### Several technical challenges for Multi-data center setup
 ```
 • Traffic redirection:
-  Effective tools to direct traffic to the correct data center. 
+  Effective tools 필요 to direct traffic to the correct data center. 
    - GeoDNS is good to direct traffic to the nearest data center depending on where a user is located.
 • Data synchronization(동기화이슈):
   Users from different regions could use different local databases or caches.
@@ -423,7 +429,7 @@ Data center outage -> All traffic is directed to a healthy data center.
   Automated deployment tools are vital to keep services consistent through all the data centers.
 ```
 
-
+Next,
 To further scale our system, we need to decouple different components of the system so they can be scaled independently.
 - Scalability - Independence가 Core
 > Messaging queue is a key strategy!! It is employed by many real-world distributed systems for decoupled components.
@@ -439,19 +445,25 @@ A message queue is
 ```
 
 ```
-It serves as a buffer and distributes asynchronous requests.
-The basic architecture of a message queue is simple.
- - Input services(called producers/publishers) -> create messages -> publish them to a message queue.
- - Other services or servers(called consumers/subscribers) -> connect to the queue -> perform actions defined by the messages. 
+It distributes asynchronous requests. (비동기 요청 분산화)
+
+Basic Architecture
+ - Input services(called producers/publishers):  create messages -> publish them to a message queue.
+ - Other services or servers(called consumers/subscribers): connect to the queue -> perform actions defined by the messages. 
 The model is shown in Figure 1-17.
 ```
 ![fg1-17](image_dave/fg1-17.jpg)
 
+#### Benefits for Message queue
 ```
-🙌 Decoupling makes the message queue a preferred architecture for building a scalable and reliable application.
-With the message queue, the producer can post a message to the queue when the consumer is unavailable to process it.
-The consumer can read messages from the queue even when the producer is unavailable.
- case:
+📧 Message queue  -> 🙌 Decoupling -> 👍 Scalable and Reliable Application
+
+Why?
+With the message queue,
+1. The Producer can post a message to the queue / when the Consumer is unavailable.
+2. The Consumer can read messages from the queue / when the Producer is unavailable.
+
+ (Example)
    - your application supports photo customization, including cropping, sharpening, blurring, etc.
    - Those customization tasks take time to complete.
    (In Figure 1-18, web servers publish photo processing jobs to the message queue)
@@ -506,87 +518,101 @@ As the data grows every day, your database gets more overloaded. It is time to s
 ```
 - Vertical scaling (Scaling up)
   : adding more power (CPU, RAM, DISK, etc.) to an existing machine.
-    There are some powerful database servers. According to Amazon Relational Database Service (RDS),
+    
+    (Example) There are some powerful database servers. According to Amazon Relational Database Service (RDS),
     you can get a database server with 24 TB of RAM for lots of data.
       For example, stackoverflow.com in 2013 had over 10 million monthly unique visitors,
       but it only had 1 master database.
-    However, vertical scaling comes with some serious drawbacks:
+
+   🤷‍♂️However, vertical scaling comes with some serious drawbacks:
      • Hardware limits. Large user base -> a single server(X).
      • Greater risk of single point of failures.
      • The overall cost of vertical scaling is high. Powerful servers are much more expensive.
 
+![fg1-20](image_dave/fg1-20.jpg)
+
 - Horizontal scaling (sharding)
  : adding more servers.
   Figure 1-20 compares vertical scaling with horizontal scaling.
-```
-![fg1-20](image_dave/fg1-20.jpg)
 
-```
+  요약: sharding은 커다란 DB를 작은 구성화. 데이터는 각DB별로 담당 데이터에 따라 다르지만 같은 schma를 이룬다.
+        Data는 user id의 해싱을 통해서 shard DB에 분산 할당한다.
+
   Sharding separates large databases into smaller, more easily managed parts called shards. 
-  Each shard shares the same schema, though the actual data on each shard is unique to the shard.
-  (Figure 1-21: an example of sharded databases)
-  User data is allocated to a database server based on user IDs.
-  Anytime you access data, a hash function is used to find the corresponding shard.
-  In our example, user_id % 4 is used as the hash function.
-  If the result equals to 0, shard 0 is used to store and fetch data.
-  If the result equals to 1, shard 1 is used. 
-  The same logic applies to other shards.
+  Each shard shares the same schema, though the actual data on each shard is unique to the shard. 
+ 
+  (Example) - Figure 1-21: an example of sharded databases
+    User data is allocated to a database server based on user IDs.
+    Anytime you access data, a hash function is used to find the corresponding shard.
+    In our example, user_id % 4 is used as the hash function.
+    If the result equals to 0, shard 0 is used to store and fetch data.
+    If the result equals to 1, shard 1 is used. 
+    The same logic applies to other shards.
 ```
 ![fg1-21](image_dave/fg1-21.jpg)
 
 Figure 1-22 - user table in sharded databases.
 
 ![fg1-22](image_dave/fg1-22.jpg)
+
+#### *Considerations of using sharded databases* 
 ```
-The most important factor to consider when implementing a sharding strategy is the choice of the sharding key.
-Sharding key (known as a partition key) consists of one or more columns that determine how data is distributed.
-As shown in Figure 1-22, “user_id” is the sharding key.
-A sharding key allows you to retrieve and modify data efficiently by routing database queries to the correct database.
-When choosing a sharding key, one of the most important criteria is to choose a key that can evenly distributed data.
-Sharding is a great technique to scale the database but it is far from a perfect solution.
+🙋‍♂️Sharding key:
+ Sharding key (known as a partition key)
+ - consists of one or more columns that determine how data is distributed. /하나 혹은 여러 컬럼으로 분산 방식을 결정
+ - Figure 1-22, “user_id” -> sharding key.
+ - To retrieve and modify data efficiently by routing database queries to the correct database./ 효율적 데이터 검색 및 수정
+ - Choose a key that can evenly distributed data/ 고른 데이터분산 가능한 Sharding key 방식 결정할 것
+ - Not a perfect solution but, good for scalability. / 확장성 up
 
-It introduces complexities and new challenges to the system:
+```
 
-Resharding data:
- Resharding data is needed
-  when 1) a single shard could no longer hold more data due to rapid growth.
-       2) Certain shards might experience shard exhaustion faster than others due to uneven data distribution.
- When shard exhaustion happens, it requires updating the sharding function and moving data around.
- Consistent hashing, which will be discussed in Chapter 5, is a commonly used technique to solve this problem.
 
-Celebrity problem:
- This is also called a hotspot key problem.
- Excessive access to a specific shard could cause server overload.
- Imagine data for Katy Perry, Justin Bieber, and Lady Gaga all end up on the same shard.
- For social applications, that shard will be overwhelmed with read operations.
- To solve this problem, we may need to allocate a shard for each celebrity.
- Each shard might even require further partition.
+### *Resharding data*
+```
+Resharding data: 
+when 1) a single shard could no longer hold more data due to rapid growth./ 싱글샤딩으로 데이터 추가 불가 시
+     2) Certain shards might experience shard exhaustion faster than others due to uneven data distribution./ 고른 데이터 분산 실패로 일부 샤딩이 최고점에 이른경우
+When shard exhaustion happens, it requires updating the sharding function and moving data around./샤딩 소진이 발생 시 sharding update 필요
+해당 이슈에 대해 ch5. Consistent hashing에서 대해 다룬다.
+
+Celebrity problem: (called a hotspot key problem)
+ Excessive access to a specific shard could cause server overload./ 특정 샤드에 대한 과도한 액세스는 서버 과부하를 유발
+ (Example) 
+     Imagine data for Katy Perry, Justin Bieber, and Lady Gaga all end up on the same shard.
+     For social applications, that shard will be overwhelmed with read operations.
+ To solve this problem, 1. a specific shard for each celebrity.
+                        2. further partition.
 
 Join and de-normalization:
- Once a database has been sharded across multiple servers, it is hard to perform join operations across database shards.
- A common workaround is to de-normalize the database so that queries can be performed in a single table.
- In Figure 1-23, we shard databases to support rapidly increasing data traffic.
-At the same time, some of the non-relational functionalities are moved to a NoSQL data store to reduce the database load.
-Here is an article that covers many use cases of NoSQL [14].
+ it is hard to perform join operations across database shards.
+  A common workaround is de-normalization to be performed in a single table.
+   Normalization : 데이터 중복 제거/조인 늘림
+   De-normalization : 데이터 중복 허용/조인 줄임
 ```
 ![fg1-23](image_dave/fg1-23.jpg)
 
-#### Millions of users and beyond
-```
-Scaling a system is an iterative process. 
-Iterating on what we have learned in this chapter could get us far. 
-More fine-tuning and new strategies are needed to scale beyond millions of users. 
-For example, you might need to optimize your system and decouple the system to even smaller services. 
-All the techniques learned in this chapter should provide a good foundation to tackle new challenges. 
-To conclude this chapter, we provide a summary of how we scale our system to support millions of users:
-• Keep web tier stateless
-• Build redundancy at every tier
-• Cache data as much as you can
-• Support multiple data centers
-• Host static assets in CDN
-• Scale your data tier by sharding
-• Split tiers into individual services
-• Monitor your system and use automation tools
-```
+### Millions of users and beyond
+'Chapter 1. Scale From zero to Milions of Users' provides a good foundation to tackle new challenges. 
+
+
+#### < Summary >
+
+• Keep web tier **stateless** 
+
+• Build  **redundancy** at every tier
+
+• **Cache data** as much as you can
+
+• Support  **multiple data centers**
+
+• Host static assets in  **CDN**
+
+• Scale your data tier by  **sharding**
+
+• **Split tiers** into individual services
+
+• **Monitor** your system and use automation tools
+
 
 #### Reference from 'System Design Interview' written by Alex Xu
