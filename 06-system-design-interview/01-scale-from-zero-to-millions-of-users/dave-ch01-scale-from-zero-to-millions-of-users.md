@@ -368,23 +368,197 @@ Autoscaling means adding or removing web servers automatically based on the traf
 
 After the state data is removed out of web servers,
 auto-scaling of the web tier is easily achieved by adding or removing servers based on traffic load.
- If Your website grows rapidly & a significant number of users internationally.
+ If Your website grows rapidly & a significant number of users internationally,
  To improve availability and provide a better user experience,
  -> Multiple data centers is crucial.
 ```
 ## (9) Data centers
+![fg1-15](image_dave/fg1-15.jpg)
+```
+(Figure 1-15) - An example setup with two data centers
+In normal operation, users are geoDNS-routed (also known as geo-routed) to the closest data center,
+with a split traffic of x% in US-East and (100 – x)% in US-West.
+geoDNS is a DNS service that allows domain names to be resolved to IP addresses based on the location of a user.
+```
 
+![fg1-16](image_dave/fg1-16.jpg)
+```
+Data center outage -> All traffic is directed to a healthy data center.
+(Figure 1-16) - Data center 2 (US-West) is offline/ 100% of the traffic routed to data center 1 (US-East)
+```
+#### Several technical challenges for Multi-data center setup
+```
+• Traffic redirection:
+  Effective tools to direct traffic to the correct data center. 
+   - GeoDNS is good to direct traffic to the nearest data center depending on where a user is located.
+• Data synchronization(동기화이슈):
+  Users from different regions could use different local databases or caches.
+  예를 들어, In failover(시스템대체작동/장애대응작동) cases, traffic might be routed to a data center where data is unavailable. 
+  A common strategy is to replicate data across multiple data centers.
+  A previous study shows how Netflix implements asynchronous multi-data center replication.
+• Test and deployment:
+  With a multi-data center setup, it is important to test your website/application at different locations.
+  Automated deployment tools are vital to keep services consistent through all the data centers.
+```
+
+
+To further scale our system, we need to decouple different components of the system so they can be scaled independently.
+- Scalability - Independence가 Core
+> Messaging queue is a key strategy!! It is employed by many real-world distributed systems for decoupled components.
 
 ## (10) Message queue
+A message queue is 
+```
+ - a durable component,
+ - stored in memory,
+ - that supports asynchronous communication.
+```
+
+```
+It serves as a buffer and distributes asynchronous requests.
+The basic architecture of a message queue is simple.
+ - Input services(called producers/publishers) -> create messages -> publish them to a message queue.
+ - Other services or servers(called consumers/subscribers) -> connect to the queue -> perform actions defined by the messages. 
+The model is shown in Figure 1-17.
+```
+![fg1-17](image_dave/fg1-17.jpg)
+
+```
+🙌 Decoupling makes the message queue a preferred architecture for building a scalable and reliable application.
+With the message queue, the producer can post a message to the queue when the consumer is unavailable to process it.
+The consumer can read messages from the queue even when the producer is unavailable.
+ case:
+   - your application supports photo customization, including cropping, sharpening, blurring, etc.
+   - Those customization tasks take time to complete.
+   (In Figure 1-18, web servers publish photo processing jobs to the message queue)
+   - Photo processing workers pick up jobs from the message queue and asynchronously perform photo customization tasks.
+   - The producer and the consumer can be scaled independently.
+   - When the size of the queue becomes large, more workers are added to reduce the processing time. 
+     (However, if the queue is empty most of the time, the number of workers can be reduced)
+```
+![fg1-18](image_dave/fg1-18.jpg)
+
 ## (11) Logging, metrics, automation
+A website to serve a large business? 
+
+Then, Multiple servers / Logging / Metrics / Automation support is essential🙆‍♂️.
+```
+Logging:
+ Monitoring error logs -> to identify errors and problems in the system.
+  • You can monitor error logs at per server level.
+  • You can use tools to aggregate them to a centralized service for easy search and viewing.
+
+Metrics (System metrics/Measurement types in systems):
+ Collecting different types of metrics helps us to gain business insights and understand the health status of the system.
+  Some of the following metrics are useful:
+   • Host level metrics: CPU, Memory, disk I/O, etc.
+   • Aggregated level metrics: Performance - entire database tier, cache tier, etc.
+   • Key business metrics: daily active users, retention, revenue, etc.
+
+Automation:
+ Big and Complex systems -> Automation tools to improve productivity.
+  Continuous integration: each code check-in is verified through automation, allowing teams to detect problems early.
+  (Additional effect from automating(build, test, deploy process, etc.)-> higher developer productivity significantly)
+```
+
+#### Adding message queues and different tools
+```
+Figure 1-19: Updated design
+Due to the space constraint, only one data center is shown in the figure.
+ 1. A message queue - Loosely coupled system and failure-resilient.
+ 2. Logging, monitoring, metrics, and automation tools are included.
+```
+![fg1-19](image_dave/fg1-19.jpg)
+
+As the data grows every day, your database gets more overloaded. It is time to scale the *Data Tier*.
+
 ## (12) Database scaling
+#### Two broad approaches for database scaling
+> Vertical scaling / Horizontal scaling
+```
+- Vertical scaling (Scaling up)
+  : adding more power (CPU, RAM, DISK, etc.) to an existing machine.
+    There are some powerful database servers. According to Amazon Relational Database Service (RDS),
+    you can get a database server with 24 TB of RAM for lots of data.
+      For example, stackoverflow.com in 2013 had over 10 million monthly unique visitors,
+      but it only had 1 master database.
+    However, vertical scaling comes with some serious drawbacks:
+     • Hardware limits. Large user base -> a single server(X).
+     • Greater risk of single point of failures.
+     • The overall cost of vertical scaling is high. Powerful servers are much more expensive.
 
+- Horizontal scaling (sharding)
+ : adding more servers.
+  Figure 1-20 compares vertical scaling with horizontal scaling.
+```
+![fg1-20](image_dave/fg1-20.jpg)
 
+```
+  Sharding separates large databases into smaller, more easily managed parts called shards. 
+  Each shard shares the same schema, though the actual data on each shard is unique to the shard.
+  (Figure 1-21: an example of sharded databases)
+  User data is allocated to a database server based on user IDs.
+  Anytime you access data, a hash function is used to find the corresponding shard.
+  In our example, user_id % 4 is used as the hash function.
+  If the result equals to 0, shard 0 is used to store and fetch data.
+  If the result equals to 1, shard 1 is used. 
+  The same logic applies to other shards.
+```
+![fg1-21](image_dave/fg1-21.jpg)
 
+Figure 1-22 - user table in sharded databases.
 
+![fg1-22](image_dave/fg1-22.jpg)
+```
+The most important factor to consider when implementing a sharding strategy is the choice of the sharding key.
+Sharding key (known as a partition key) consists of one or more columns that determine how data is distributed.
+As shown in Figure 1-22, “user_id” is the sharding key.
+A sharding key allows you to retrieve and modify data efficiently by routing database queries to the correct database.
+When choosing a sharding key, one of the most important criteria is to choose a key that can evenly distributed data.
+Sharding is a great technique to scale the database but it is far from a perfect solution.
 
+It introduces complexities and new challenges to the system:
 
+Resharding data:
+ Resharding data is needed
+  when 1) a single shard could no longer hold more data due to rapid growth.
+       2) Certain shards might experience shard exhaustion faster than others due to uneven data distribution.
+ When shard exhaustion happens, it requires updating the sharding function and moving data around.
+ Consistent hashing, which will be discussed in Chapter 5, is a commonly used technique to solve this problem.
 
+Celebrity problem:
+ This is also called a hotspot key problem.
+ Excessive access to a specific shard could cause server overload.
+ Imagine data for Katy Perry, Justin Bieber, and Lady Gaga all end up on the same shard.
+ For social applications, that shard will be overwhelmed with read operations.
+ To solve this problem, we may need to allocate a shard for each celebrity.
+ Each shard might even require further partition.
 
+Join and de-normalization:
+ Once a database has been sharded across multiple servers, it is hard to perform join operations across database shards.
+ A common workaround is to de-normalize the database so that queries can be performed in a single table.
+ In Figure 1-23, we shard databases to support rapidly increasing data traffic.
+At the same time, some of the non-relational functionalities are moved to a NoSQL data store to reduce the database load.
+Here is an article that covers many use cases of NoSQL [14].
+```
+![fg1-23](image_dave/fg1-23.jpg)
 
-Reference from 'System Design Interview' written by Alex Xu
+#### Millions of users and beyond
+```
+Scaling a system is an iterative process. 
+Iterating on what we have learned in this chapter could get us far. 
+More fine-tuning and new strategies are needed to scale beyond millions of users. 
+For example, you might need to optimize your system and decouple the system to even smaller services. 
+All the techniques learned in this chapter should provide a good foundation to tackle new challenges. 
+To conclude this chapter, we provide a summary of how we scale our system to support millions of users:
+• Keep web tier stateless
+• Build redundancy at every tier
+• Cache data as much as you can
+• Support multiple data centers
+• Host static assets in CDN
+• Scale your data tier by sharding
+• Split tiers into individual services
+• Monitor your system and use automation tools
+```
+
+#### Reference from 'System Design Interview' written by Alex Xu
