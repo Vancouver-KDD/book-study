@@ -303,8 +303,8 @@ Figure 1-9 is a great example that shows how CDN improves load time.
 #### *Considerations of using a CDN* 
 ```
 • Cost:
-  CDNs are run by third-party providers, and you are charged for data transfers in and out of the CDN.
-  Caching infrequently used assets provides no significant benefits so you should consider moving them out of the CDN.
+   CDNs are run by third-party providers, and you are charged for data transfers in and out of the CDN.
+   Caching infrequently used assets provides no significant benefits so you should consider moving them out of the CDN.
 • Setting an appropriate cache expiry:
   The cache expiry time should neither be too long nor too short.
    - Too long, no longer be fresh.
@@ -526,7 +526,7 @@ As the data grows every day, your database gets more overloaded. It is time to s
 
    🤷‍♂️However, vertical scaling comes with some serious drawbacks:
      • Hardware limits. Large user base -> a single server(X).
-     • Greater risk of single point of failures.
+     • Greater risk of 'single point of failure'.
      • The overall cost of vertical scaling is high. Powerful servers are much more expensive.
 ```
 ![fg1-20](image_dave/fg1-20.jpg)
@@ -563,18 +563,16 @@ Figure 1-22 - user table in sharded databases.
  - Figure 1-22, “user_id” -> sharding key.
  - To retrieve and modify data efficiently by routing database queries to the correct database./ 효율적 데이터 검색 및 수정
  - Choose a key that can evenly distributed data/ 고른 데이터분산 가능한 Sharding key 방식 결정할 것
- - Not a perfect solution but, good for scalability. / 확장성 up
-
 ```
 
 
-### *Resharding data*
+### *Complexities and Challenges of using sharded databases*
 ```
 Resharding data: 
-when 1) a single shard could no longer hold more data due to rapid growth./ single sharding으로 데이터 추가 불가 시
-     2) Certain shards might experience shard exhaustion faster than others due to uneven data distribution./ 고른 데이터 분산 실패로 일부 sharding이 최고점에 이른경우
-When shard exhaustion happens, it requires updating the sharding function and moving data around./sharding 소진이 발생 시 sharding update 필요
-해당 이슈에 대해 ch5. Consistent hashing에서 대해 다룬다.
+ when 1) a single shard could no longer hold more data due to rapid growth./ single sharding으로 더이상 데이터추가 불가
+      2) Certain shards might experience shard exhaustion faster than others due to uneven data distribution./고른 데이터 분산 실패로 일부 sharding이 최고치 도달
+  When shard exhaustion happens, it requires updating the sharding function and moving data around./sharding 다 써버림이 발생 시 sharding update 필요
+  해당 이슈에 대해 ch5. Consistent hashing에서 대해 다룬다.
 
 Celebrity problem: (called a hotspot key problem)
  Excessive access to a specific shard could cause server overload./ 특정 샤드에 대한 과도한 액세스는 서버 과부하를 유발
@@ -589,6 +587,12 @@ Join and de-normalization:
   A common workaround is de-normalization to be performed in a single table.
    Normalization : 데이터 중복 제거/조인 늘림
    De-normalization : 데이터 중복 허용/조인 줄임
+```
+
+Fg 1-23: 
+```
+1. Added sharded databases to support rapidly increasing data traffic
+2. some of the non-relational functionalities are moved to a NoSQL data store to reduce the database load
 ```
 ![fg1-23](image_dave/fg1-23.jpg)
 
