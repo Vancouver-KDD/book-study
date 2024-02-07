@@ -368,8 +368,8 @@ Stateless server: keeps no state information.
 ```
 (Figure 1-13)
                           route                       fetched
-      HTTP requests(users) --> [Server 1 or 2 or 3] --> <-- [shared state data store]
-Then,   [user state data]  <------------/
+      HTTP requests(users) --> [Server 1 or 2 or 3] ---------->  [shared state data store]
+Then,           Response  <----  Authentication OK  <----- [user state data] <-----/        
                                return
 
 In a nutshell, State data is stored in a shared data store and kept out of web servers.
