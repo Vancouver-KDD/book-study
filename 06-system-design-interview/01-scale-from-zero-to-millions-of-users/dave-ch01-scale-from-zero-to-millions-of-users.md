@@ -193,7 +193,11 @@ Although some other replication methods like multi-masters and circular replicat
 ```
 
 ## (6) Cache
-Purpose: To improve the load/response time, add a cache layer and shift static content (JavaScript/CSS/image/video files) to the content delivery network (CDN).
+Purpose: To improve the load/response time, 
+```
+1. add a cache layer and 
+2. shift static content (JavaScript/CSS/image/video files) to the content delivery network (CDN).
+```
 
 > A cache is a temporary storage area that stores the result of expensive responses or frequently accessed data in memory so that subsequent requests are served more quickly.
 ```
@@ -263,15 +267,19 @@ Memcached: Unlike databases that store data on disk or SSDs, Memcached keeps its
 ```
 
 ## (7) Content delivery network (CDN)
-Purpose: To improve the load/response time, add a cache layer and shift static content (JavaScript/CSS/image/video files) to the content delivery network (CDN).
-
+Purpose: To improve the load/response time, 
+```
+1. add a cache layer and 
+2. shift static content (JavaScript/CSS/image/video files) to the content delivery network (CDN).
+```
 > A CDN is a network of geographically dispersed servers used to deliver static content. CDN servers cache static content like images, videos, CSS, JavaScript files, etc.
-
+(CDN: 사용자에게 웹 콘텐츠를 효율적으로 제공할 수 있는 서버의 분산 네트워크)
+> 
 #### How to use CDN to cache static content?
 ```
  - when a user visits a website, a CDN server closest to the user will deliver static content.
  - Intuitively, the further users are from CDN servers, the slower the website loads.
- For example, if CDN servers are in San Francisco, users in Los Angeles will get content faster than users in Europe. 
+   (Example) if CDN servers are in San Francisco, users in Los Angeles will get content faster than users in Europe. 
 ```
 
 Figure 1-9 is a great example that shows how CDN improves load time.
@@ -279,6 +287,9 @@ Figure 1-9 is a great example that shows how CDN improves load time.
 
 ```
 1. User A tries to get image.png by using an image URL. The URL’s domain is provided by the CDN provider.
+   (Example) Two image URLs
+      • https://mysite.cloudfront.net/logo.jpg
+      • https://mysite.akamai.com/image-manager/img/logo.jpg
 2. If the CDN server does not have image.png in the cache,
    the CDN server requests the file from the origin, which can be a web server or online storage like Amazon S3.
 3. The origin returns image.png to the CDN server,
@@ -288,28 +299,32 @@ Figure 1-9 is a great example that shows how CDN improves load time.
 5. User B sends a request to get the same image.
 6. The image is returned from the cache as long as the TTL has not expired.
 ```
+
 #### *Considerations of using a CDN* 
 ```
 • Cost:
-  CDNs are run by third-party providers, and you are charged for data transfers in and out of the CDN.
-  Caching infrequently used assets provides no significant benefits so you should consider moving them out of the CDN.
+   CDNs are run by third-party providers, and you are charged for data transfers in and out of the CDN.
+   Caching infrequently used assets provides no significant benefits so you should consider moving them out of the CDN.
 • Setting an appropriate cache expiry:
   The cache expiry time should neither be too long nor too short.
    - Too long, no longer be fresh.
    - Too short, repeatedly reloading content from origin servers to the CDN.
-• CDN fallback:
+• CDN fallback(고장조치):
   You should consider how your website/application copes with CDN failure.
   If there is a temporary CDN outage, clients should be able to detect the problem and request resources from the origin.
-• Invalidating files:
+• Invalidating files(파일제거/파일무효화):
   You can remove a file from the CDN before it expires by performing one of the following operations:
-   - Invalidate the CDN object using APIs provided by CDN vendors.
-   - Use object versioning to serve a different version of the object. To version an object,
-     you can add a parameter to the URL, such as a version number.
-     For example, version number 2 is added to the query string: image.png?v=2
+   - Invalidate the CDN object using APIs provided by CDN vendors. (API를 이용 무효화)
+   - Use object versioning to serve a different version of the object. (버져닝을 통한 공급)
+     (Example) To version an object, you can add a parameter to the URL, such as a version number.
+               In short, version number 2 is added to the query string: image.png?v=2
 ```
 Figure 1-11 shows the design after the CDN and cache are added.
 ![fg1-11](image_dave/fg1-11.jpg)
+
+
 ```
+[Summary]
 1. Static assets (JS, CSS, images, etc.,) are no longer served by web servers.
    They are fetched from the CDN for better performance.
 2. The database load is lightened by caching data.
@@ -317,11 +332,12 @@ Figure 1-11 shows the design after the CDN and cache are added.
 
 
 ## (8) Stateless web tier - scaling the web tier horizontally
-State (for instance user session data) should be moved out of the web tier.
+What's the state?
+State ((Example) - user session data) should be moved out of the web tier.
 
 A good practice is to store session data in persistent storage such as a relational database or NoSQL. 
 
-Each web server in the cluster can access state data from databases, called 'stateless web tier'.
+Each web server in the cluster can access state data from databases, called 'stateless web tier'🙆‍♂️.
 
 #### Key Difference - Stateful vs Stateless server
 ```
@@ -329,7 +345,7 @@ Stateful server: remembers client data (state) from one request to the next.
 Stateless server: keeps no state information.
 ```
 
-### Stateful architecture
+### Stateful Architecture
 ![fg1-12](image_dave/fg1-12.jpg)
 ```
 (Figure 1-12)
@@ -340,23 +356,27 @@ Stateless server: keeps no state information.
  Similarly, For User B, HTTP requests -> Server 2.
             For User C, HTTP requests -> Server 3.
  The issue is that every request from the same client must be routed to the same server.
- This can be done with sticky sessions in most load balancers; however, this adds the overhead💥
+ This can be done with 'sticky sessions' in most load balancers; however, this adds the overhead💥
  Adding or removing servers is much more difficult with this approach.
  It is also challenging to handle server failures. 
 ```
 
-### Stateless architecture
+### Stateless Architecture
+> The point is that 공유데이터저장소(a shared data store)에 state(user session)정보를 보관 및 공유한다.
+
 ![fg1-13](image_dave/fg1-13.jpg)
 ```
 (Figure 1-13)
-                         route
-      HTTP requests(users) -> Server 1 or 2 or 3.
-Then,   [user state data]  <- [shared data store]
-                        fetched
+                          route                       fetched
+      HTTP requests(users) --> [Server 1 or 2 or 3] ---------->  [shared state data store]
+Then,           Response  <----  Authentication OK  <----- [user state data] <-----/        
+                               return
 
 In a nutshell, State data is stored in a shared data store and kept out of web servers.
 A stateless system is simpler, more robust, and scalable.
 ```
+
+그래서 stateless server achitecture를 what we've done에 붙이면, 아래 다이어그램과 같다.
 ![fg1-14](image_dave/fg1-14.jpg)
 ```
 (Figure 1-14)
@@ -368,20 +388,28 @@ Autoscaling means adding or removing web servers automatically based on the traf
 
 After the state data is removed out of web servers,
 auto-scaling of the web tier is easily achieved by adding or removing servers based on traffic load.
- If Your website grows rapidly & a significant number of users internationally,
- To improve availability and provide a better user experience,
- -> Multiple data centers is crucial.
+
+Next,
+If Your website grows rapidly & a significant number of users internationally,
+To improve availability and provide a better user experience,
+ -> Multiple data centers are crucial.
 ```
+
+
 ## (9) Data centers
 ![fg1-15](image_dave/fg1-15.jpg)
 ```
 (Figure 1-15) - An example setup with two data centers
+
+[geoDNS-routing(지리적 라우팅)]
 In normal operation, users are geoDNS-routed (also known as geo-routed) to the closest data center,
 with a split traffic of x% in US-East and (100 – x)% in US-West.
 geoDNS is a DNS service that allows domain names to be resolved to IP addresses based on the location of a user.
 ```
 
 ![fg1-16](image_dave/fg1-16.jpg)
+
+#### Benefits for Multi-data center setup with geoDNS-routing(지리적 라우팅)
 ```
 Data center outage -> All traffic is directed to a healthy data center.
 (Figure 1-16) - Data center 2 (US-West) is offline/ 100% of the traffic routed to data center 1 (US-East)
@@ -389,7 +417,7 @@ Data center outage -> All traffic is directed to a healthy data center.
 #### Several technical challenges for Multi-data center setup
 ```
 • Traffic redirection:
-  Effective tools to direct traffic to the correct data center. 
+  Effective tools 필요 to direct traffic to the correct data center. 
    - GeoDNS is good to direct traffic to the nearest data center depending on where a user is located.
 • Data synchronization(동기화이슈):
   Users from different regions could use different local databases or caches.
@@ -401,10 +429,12 @@ Data center outage -> All traffic is directed to a healthy data center.
   Automated deployment tools are vital to keep services consistent through all the data centers.
 ```
 
-
+Next,
 To further scale our system, we need to decouple different components of the system so they can be scaled independently.
-- Scalability - Independence가 Core
+- Scalability - Independency가 Core
 > Messaging queue is a key strategy!! It is employed by many real-world distributed systems for decoupled components.
+
+
 
 ## (10) Message queue
 A message queue is 
@@ -415,19 +445,25 @@ A message queue is
 ```
 
 ```
-It serves as a buffer and distributes asynchronous requests.
-The basic architecture of a message queue is simple.
- - Input services(called producers/publishers) -> create messages -> publish them to a message queue.
- - Other services or servers(called consumers/subscribers) -> connect to the queue -> perform actions defined by the messages. 
+Message queue distributes asynchronous requests. (Message queue: 비동기 요청 분산화)
+
+Basic Architecture
+ - Input services(called producers/publishers):  create messages -> publish them to a message queue.
+ - Other services or servers(called consumers/subscribers): connect to the queue -> perform actions defined by the messages. 
 The model is shown in Figure 1-17.
 ```
 ![fg1-17](image_dave/fg1-17.jpg)
 
+#### Benefits for Message queue
 ```
-🙌 Decoupling makes the message queue a preferred architecture for building a scalable and reliable application.
-With the message queue, the producer can post a message to the queue when the consumer is unavailable to process it.
-The consumer can read messages from the queue even when the producer is unavailable.
- case:
+📧 Message queue  -> 🙌 Decoupling -> 👍 Scalable and Reliable Application
+
+Why?
+With the message queue,
+1. The Producer can post a message to the queue / when the Consumer is unavailable.
+2. The Consumer can read messages from the queue / when the Producer is unavailable.
+
+ (Example)
    - your application supports photo customization, including cropping, sharpening, blurring, etc.
    - Those customization tasks take time to complete.
    (In Figure 1-18, web servers publish photo processing jobs to the message queue)
@@ -437,6 +473,8 @@ The consumer can read messages from the queue even when the producer is unavaila
      (However, if the queue is empty most of the time, the number of workers can be reduced)
 ```
 ![fg1-18](image_dave/fg1-18.jpg)
+
+
 
 ## (11) Logging, metrics, automation
 A website to serve a large business? 
@@ -461,7 +499,7 @@ Automation:
   (Additional effect from automating(build, test, deploy process, etc.)-> higher developer productivity significantly)
 ```
 
-#### Adding message queues and different tools
+#### Now, Adding message queues and different tools
 ```
 Figure 1-19: Updated design
 Due to the space constraint, only one data center is shown in the figure.
@@ -472,93 +510,113 @@ Due to the space constraint, only one data center is shown in the figure.
 
 As the data grows every day, your database gets more overloaded. It is time to scale the *Data Tier*.
 
+
+
 ## (12) Database scaling
 #### Two broad approaches for database scaling
 > Vertical scaling / Horizontal scaling
 ```
 - Vertical scaling (Scaling up)
   : adding more power (CPU, RAM, DISK, etc.) to an existing machine.
-    There are some powerful database servers. According to Amazon Relational Database Service (RDS),
+    
+    (Example) There are some powerful database servers. According to Amazon Relational Database Service (RDS),
     you can get a database server with 24 TB of RAM for lots of data.
       For example, stackoverflow.com in 2013 had over 10 million monthly unique visitors,
       but it only had 1 master database.
-    However, vertical scaling comes with some serious drawbacks:
-     • Hardware limits. Large user base -> a single server(X).
-     • Greater risk of single point of failures.
-     • The overall cost of vertical scaling is high. Powerful servers are much more expensive.
 
+   🤷‍♂️However, vertical scaling comes with some serious drawbacks:
+     • Hardware limits. Large user base -> a single server(X).
+     • Greater risk of 'single point of failure'.
+     • The overall cost of vertical scaling is high. Powerful servers are much more expensive.
+```
+![fg1-20](image_dave/fg1-20.jpg)
+```
 - Horizontal scaling (sharding)
  : adding more servers.
   Figure 1-20 compares vertical scaling with horizontal scaling.
-```
-![fg1-20](image_dave/fg1-20.jpg)
 
-```
+  요약: sharding은 커다란 DB를 작은 DB들로 분산 구성화. 데이터는 각DB별로 할당된 데이터에 따라 다르게 구성되지만 같은 schema를 이룬다.
+        Data는 user id의 해싱을 통해서 shard DB에 분산 할당한다.
+
   Sharding separates large databases into smaller, more easily managed parts called shards. 
-  Each shard shares the same schema, though the actual data on each shard is unique to the shard.
-  (Figure 1-21: an example of sharded databases)
-  User data is allocated to a database server based on user IDs.
-  Anytime you access data, a hash function is used to find the corresponding shard.
-  In our example, user_id % 4 is used as the hash function.
-  If the result equals to 0, shard 0 is used to store and fetch data.
-  If the result equals to 1, shard 1 is used. 
-  The same logic applies to other shards.
+  Each shard shares the same schema, though the actual data on each shard is unique to the shard. 
+ 
+  (Example) - Figure 1-21: an example of sharded databases
+    User data is allocated to a database server based on user IDs.
+    Anytime you access data, a hash function is used to find the corresponding shard.
+    In our example, user_id % 4 is used as the hash function.
+    If the result equals to 0, shard 0 is used to store and fetch data.
+    If the result equals to 1, shard 1 is used. 
+    The same logic applies to other shards.
 ```
 ![fg1-21](image_dave/fg1-21.jpg)
 
 Figure 1-22 - user table in sharded databases.
 
 ![fg1-22](image_dave/fg1-22.jpg)
+
+#### *Considerations of using sharded databases* 
 ```
-The most important factor to consider when implementing a sharding strategy is the choice of the sharding key.
-Sharding key (known as a partition key) consists of one or more columns that determine how data is distributed.
-As shown in Figure 1-22, “user_id” is the sharding key.
-A sharding key allows you to retrieve and modify data efficiently by routing database queries to the correct database.
-When choosing a sharding key, one of the most important criteria is to choose a key that can evenly distributed data.
-Sharding is a great technique to scale the database but it is far from a perfect solution.
+🙋‍♂️Sharding key:
+ Sharding key (known as a partition key)
+ - consists of one or more columns that determine how data is distributed. /하나 혹은 여러 컬럼으로 분산 방식을 결정
+ - Figure 1-22, “user_id” -> sharding key.
+ - To retrieve and modify data efficiently by routing database queries to the correct database./ 효율적 데이터 검색 및 수정
+ - Choose a key that can evenly distributed data/ 고른 데이터분산 가능한 Sharding key 방식 결정할 것
+```
 
-It introduces complexities and new challenges to the system:
 
-Resharding data:
- Resharding data is needed
-  when 1) a single shard could no longer hold more data due to rapid growth.
-       2) Certain shards might experience shard exhaustion faster than others due to uneven data distribution.
- When shard exhaustion happens, it requires updating the sharding function and moving data around.
- Consistent hashing, which will be discussed in Chapter 5, is a commonly used technique to solve this problem.
+### *Complexities and Challenges of using sharded databases*
+```
+Resharding data: 
+ when 1) a single shard could no longer hold more data due to rapid growth./ single sharding으로 더이상 데이터추가 불가
+      2) Certain shards might experience shard exhaustion faster than others due to uneven data distribution./고른 데이터 분산 실패로 일부 sharding이 최고치 도달
+  When shard exhaustion happens, it requires updating the sharding function and moving data around./sharding 다 써버림이 발생 시 sharding update 필요
+  해당 이슈에 대해 ch5. Consistent hashing에서 대해 다룬다.
 
-Celebrity problem:
- This is also called a hotspot key problem.
- Excessive access to a specific shard could cause server overload.
- Imagine data for Katy Perry, Justin Bieber, and Lady Gaga all end up on the same shard.
- For social applications, that shard will be overwhelmed with read operations.
- To solve this problem, we may need to allocate a shard for each celebrity.
- Each shard might even require further partition.
+Celebrity problem: (called a hotspot key problem)
+ Excessive access to a specific shard could cause server overload./ 특정 샤드에 대한 과도한 액세스는 서버 과부하를 유발
+ (Example) 
+     Imagine data for Katy Perry, Justin Bieber, and Lady Gaga all end up on the same shard.
+     For social applications, that shard will be overwhelmed with read operations.
+ To solve this problem, 1. a specific shard for each celebrity.
+                        2. further partition.
 
 Join and de-normalization:
- Once a database has been sharded across multiple servers, it is hard to perform join operations across database shards.
- A common workaround is to de-normalize the database so that queries can be performed in a single table.
- In Figure 1-23, we shard databases to support rapidly increasing data traffic.
-At the same time, some of the non-relational functionalities are moved to a NoSQL data store to reduce the database load.
-Here is an article that covers many use cases of NoSQL [14].
+ it is hard to perform join operations across database shards.
+  A common workaround is de-normalization to be performed in a single table.
+   Normalization : 데이터 중복 제거/조인 늘림
+   De-normalization : 데이터 중복 허용/조인 줄임
+```
+
+Fg 1-23: 
+```
+1. Added sharded databases to support rapidly increasing data traffic
+2. some of the non-relational functionalities are moved to a NoSQL data store to reduce the database load
 ```
 ![fg1-23](image_dave/fg1-23.jpg)
 
-#### Millions of users and beyond
-```
-Scaling a system is an iterative process. 
-Iterating on what we have learned in this chapter could get us far. 
-More fine-tuning and new strategies are needed to scale beyond millions of users. 
-For example, you might need to optimize your system and decouple the system to even smaller services. 
-All the techniques learned in this chapter should provide a good foundation to tackle new challenges. 
-To conclude this chapter, we provide a summary of how we scale our system to support millions of users:
-• Keep web tier stateless
-• Build redundancy at every tier
-• Cache data as much as you can
-• Support multiple data centers
-• Host static assets in CDN
-• Scale your data tier by sharding
-• Split tiers into individual services
-• Monitor your system and use automation tools
-```
+### Millions of users and beyond
+'Chapter 1. Scale From zero to Milions of Users' provides a good foundation to tackle new challenges. 
+
+
+#### < Summary >
+
+• Keep web tier **stateless** 
+
+• Build  **redundancy** at every tier
+
+• **Cache data** as much as you can
+
+• Support  **multiple data centers**
+
+• Host static assets in  **CDN**
+
+• Scale your data tier by  **sharding**
+
+• **Split tiers** into individual services
+
+• **Monitor** your system and use automation tools
+
 
 #### Reference from 'System Design Interview' written by Alex Xu
