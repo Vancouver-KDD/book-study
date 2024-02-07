@@ -1,10 +1,11 @@
-## SCALE FROM ZERO TO MILLIONS OF USERS
+# SCALE FROM ZERO TO MILLIONS OF USERS
 
-### Single server set up
+## Single server set up
 
 - Web app + database + cache all on on server
+- https://m.blog.naver.com/PostView.naver?blogId=cmw1728&logNo=222158613750&categoryNo=46&proxyReferer=
 
-#### DNS (Domain name system)
+### DNS (Domain name system)
 
 - the phonebook of the Internet
 - converts a hostname into a computer-friendly IP address to find the internet device
@@ -21,7 +22,7 @@
 - HTTP requests sent to the web server
 - returns HTML or JSON
 
-### Database
+## Database
 
 - As user grows, we need a separate server for the database
 - Scale independently by separating web traffic and database traffic
@@ -39,7 +40,7 @@
     3. Only need serailize/deserialize
     4. Not massive amount of data
 
-#### Vertical scaling vs horizontal scaling
+## Vertical scaling vs horizontal scaling
 
 - Vertical scaling: Adding more power of servers (CPU, RAM)
   - When traffic is low
@@ -48,23 +49,23 @@
 - Horizontal scaling: Adding more servers
   - Large scale applications
 
-### Load balancer (for web tier)
+## Load balancer (for web tier)
 
 - Event distributes traffics among servers
 - Load balancer gets the public ip while servers get private ip (only reachable by load balancer directly now)
 
-### Database replication (for database tier)
+## Database replication (for database tier)
 
 - A master database (only writes) + slave databases(only reads)
 - Better performance due to separated responsibilties in parallel
 - Reliability (replicated data is preserved when a database is destroyed)
 - High availability (replicated data is available when a database is down)
 
-### Cache
+## Cache
 
 - A cache is a temporary storage for the results of expensive/frequent operations for quicker response
 
-#### Cache tier
+### Cache tier
 
 - a temporary data store layer
 - can be scaled independently
@@ -78,7 +79,7 @@
 - multiple cache servers across different data centers are recommended to avoid SPOF (single point of failure)
 - cache eviction, when cache is full storing new data will delete other data. Least-recently-used is the mos popular policy but Least-frequently-used or First-In-First-out are also used.
 
-#### Content delivery network (CDN)
+### Content delivery network (CDN)
 
 - Network of interconnected servers that speeds up webpage loading for data-heavy applications
 - Cache static content like images, vidoes, css, js
@@ -95,64 +96,90 @@
   - Invalidate files by using api or versioning
 - Examples: live screaming, high-speed content, supporting concurrent users, Amazon cloud front
 
-### Stateless web tier
+===============================================================================================================================================================================
 
-#### Sateful server
+## Stateless web tier
+
+### Sateful server
 
 - server stores state data (session) in each server
 - if a server is stateful, the state is not shared between servers but state data in database is
 - defeats the purpose of database replication
 - can direct requests from same client to the same server using balance loader but costly
+- restoration after a crash may not be as smoooth since the state is lost
 
-#### Stateless server
+![staeful server](./images/stateful_server.png)
+
+### Stateless server
 
 - stores state data in database
 - requests from the same client does not need to be directed to the same server
+- load balancer can easily evenly distribute requests
 - easier to scale horizontally (having more servers)
 - Simple, robust, scalable
 - auto-scaling can be achieved
 
-### Data centers
+![staeful server](./images/stateless_server.png)
+
+![staeful server](./images/auto-scale.png)
+
+## Data centers
 
 - Data center is a physical location that stores the computing machines
-- On-premises data center: highest secuirty + customization vs costly
+- On-premises data center: highest secuirty + customization vs costly + low scalability
 - Collocation: share a location to manage hardware, closer to end users but hard for global users
 - Cloud data centers: rent both space and equipment, available for global users
 - Modern data centers: cloud data centers like AWS
 - geoDNS allows domain names to be resolved to an IP addresses of the web servers based on the user's location
-- Challenges on multip data center
-  - Traffic redirection: effective is needed like geoDNS
+- Challenges on multiple data center
+  - Traffic redirection: geoDNS is needed to correctly redirect
   - Data Sync: difference in cache (data replication is needed)
-  - Test and deploy
+  - Test and deploy to keep the sync
 
-### Message queue
+![data-center](./images/data-center.png)
 
-- support async communication
-- pubsub
+## Message queue
+
+- support async service-to-service communication
 - producers (web servers) publishes tasks in a message queue when regardless of availaibility of consumers at the time
 - consumer (workers) consumes tasks regardless of produceres at that time
 - efficiently distirbuted workload
+- smooth out spiky workload, buffer heavyweight processing
 - decoupling and independently scaling
 - when the size of the queue becomes too large (too much work is left unpicked up), increase number of workers
+- duplicated task issue?
+- if messaging queue is introduced, it is importatnt to have all services to subscribe to the queue instead of some of them communicating with each other
 
-### Logging, metrics, automation
+![message-queue](./images/message-queue.png)
+
+- different from pub/sub messaging (in pub/sub all subscribers gets a copy of a message and respond in parrallel while in queue, only one subscriber react to one message, one-to-one, or point-to-point, communications)
+
+![pub sub](./images/pub-sub.png)
+
+reference: https://aws.amazon.com/message-queue/
+
+## Logging, metrics, automation
 
 - Logging: monitoring per server or central logging
 - Metrics: gain business insight (daily active user count, rentention, revenue) and health of the system (CPU, Memory use)
 - Automation: improve productivity, automating tets, build, deployment
 
-### Database scaling
+## Database scaling
 
-#### Vertical scaling
+![scaling](./images/scaling.png)
+
+### Vertical scaling
 
 - adding more power (CPU, RAM, DISK) to an existing machine, ex) RDS can go up to 24TB
-- Lack of redundancy => single point of failures
+- no logic change needed
 - Physical limitation cap of upgrades
-- Can be expensive
+- Lack of redundancy => single point of failures
+- Lower availability in different regions
 
-#### Horizontal scaling (sharding)
+### Horizontal scaling (sharding)
 
 - adding more server
+- logic is broken into smaller pieces and executed in parallel across multiple devices so code change is needed
 - Sharding: storing a large database across multiple machines by splitting data into more managable sizes called "shards" but share the same schema
 - Faster response time: faster than searching through many rows in a single database set up
 - Avoid single point of failure along with data replication
@@ -167,7 +194,11 @@
 - Join & denormalization: hard to do joins on shards so denormalized it
 - Could also use NoSQL for storing non-relational data
 
-### Millions of users and beyond
+![shard](./images/shard.png)
+
+reference: https://www.clickittech.com/devops/vertical-vs-horizontal-scaling/amp
+
+## Millions of users and beyond
 
 - Keep web tier stateless
 - Build redundancy at every tier
