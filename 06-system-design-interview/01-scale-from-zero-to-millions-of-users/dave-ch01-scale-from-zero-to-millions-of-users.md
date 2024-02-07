@@ -431,7 +431,7 @@ Data center outage -> All traffic is directed to a healthy data center.
 
 Next,
 To further scale our system, we need to decouple different components of the system so they can be scaled independently.
-- Scalability - Independence가 Core
+- Scalability - Independency가 Core
 > Messaging queue is a key strategy!! It is employed by many real-world distributed systems for decoupled components.
 
 
@@ -445,7 +445,7 @@ A message queue is
 ```
 
 ```
-It distributes asynchronous requests. (비동기 요청 분산화)
+Message queue distributes asynchronous requests. (Message queue: 비동기 요청 분산화)
 
 Basic Architecture
  - Input services(called producers/publishers):  create messages -> publish them to a message queue.
@@ -499,7 +499,7 @@ Automation:
   (Additional effect from automating(build, test, deploy process, etc.)-> higher developer productivity significantly)
 ```
 
-#### Adding message queues and different tools
+#### Now, Adding message queues and different tools
 ```
 Figure 1-19: Updated design
 Due to the space constraint, only one data center is shown in the figure.
@@ -528,14 +528,14 @@ As the data grows every day, your database gets more overloaded. It is time to s
      • Hardware limits. Large user base -> a single server(X).
      • Greater risk of single point of failures.
      • The overall cost of vertical scaling is high. Powerful servers are much more expensive.
-
+```
 ![fg1-20](image_dave/fg1-20.jpg)
-
+```
 - Horizontal scaling (sharding)
  : adding more servers.
   Figure 1-20 compares vertical scaling with horizontal scaling.
 
-  요약: sharding은 커다란 DB를 작은 구성화. 데이터는 각DB별로 담당 데이터에 따라 다르지만 같은 schma를 이룬다.
+  요약: sharding은 커다란 DB를 작은 DB들로 분산 구성화. 데이터는 각DB별로 할당된 데이터에 따라 다르게 구성되지만 같은 schema를 이룬다.
         Data는 user id의 해싱을 통해서 shard DB에 분산 할당한다.
 
   Sharding separates large databases into smaller, more easily managed parts called shards. 
@@ -571,9 +571,9 @@ Figure 1-22 - user table in sharded databases.
 ### *Resharding data*
 ```
 Resharding data: 
-when 1) a single shard could no longer hold more data due to rapid growth./ 싱글샤딩으로 데이터 추가 불가 시
-     2) Certain shards might experience shard exhaustion faster than others due to uneven data distribution./ 고른 데이터 분산 실패로 일부 샤딩이 최고점에 이른경우
-When shard exhaustion happens, it requires updating the sharding function and moving data around./샤딩 소진이 발생 시 sharding update 필요
+when 1) a single shard could no longer hold more data due to rapid growth./ single sharding으로 데이터 추가 불가 시
+     2) Certain shards might experience shard exhaustion faster than others due to uneven data distribution./ 고른 데이터 분산 실패로 일부 sharding이 최고점에 이른경우
+When shard exhaustion happens, it requires updating the sharding function and moving data around./sharding 소진이 발생 시 sharding update 필요
 해당 이슈에 대해 ch5. Consistent hashing에서 대해 다룬다.
 
 Celebrity problem: (called a hotspot key problem)
