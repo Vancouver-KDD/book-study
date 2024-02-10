@@ -14,8 +14,6 @@
 - Ask relevant questions, avoid over-engineering, and prioritize simplicity.
 - Be open to feedback and adapt design based on input.
 
-![](https://cdn.pixabay.com/photo/2018/05/18/06/03/job-interview-3410427_1280.jpg)
-
 <br/><br/>
 
 ## A 4-step process for effective system design interview
@@ -52,7 +50,7 @@ we aim to develop a high-level design and reach an agreement with the interviewe
 - Things should not be discussed
   - Too much detailed tasks
 
-![](./dohun/High level design.png)
+![](./steve/High-level-design.png)
 
 Remember that give high level design first before diving into all the details!
 
@@ -69,8 +67,8 @@ Remember that give high level design first before diving into all the details!
 - Had some initial ideas about areas to focus on in deep dive based on their feedback
   - Give the answers what they want to hear!
 
-![](./dohun/Deep dive design 1.png)
-![](./dohun/Deep dive design 2.png)
+![](./steve/Deep-dive-design-1.png)
+![](./steve/Deep-dive-design-2.png)
 
 #### Tech stacks? Why?
 - Database

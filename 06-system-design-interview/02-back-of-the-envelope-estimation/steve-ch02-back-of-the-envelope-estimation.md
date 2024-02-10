@@ -25,7 +25,7 @@ Understanding data volume units is crucial, often leveraging the power of two fo
 ## Latency Numbers Every Programmer Should Know
 These numbers offer insights into the relative speed of various computer operations, aiding in system design decisions:
 
-![](./steve/Latency numbers.png)
+![](./steve/Latency-numbers.png)
 
 ## Availability Numbers
 High availability refers to a system's ability to remain operational for extended periods. Service Level Agreements (SLAs) often formalize uptime commitments:
