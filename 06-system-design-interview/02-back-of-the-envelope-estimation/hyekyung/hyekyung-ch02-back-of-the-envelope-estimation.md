@@ -14,6 +14,7 @@
 - 1 ns = 10^-9 seconds
 - 1 μs = 10^-6 seconds = 1,000 ns
 - 1 ms = 10^-3 seconds = 1,000 μs = 1,000,000 ns
+
 | Operation name                 | Time               |
 |--------------------------------|--------------------|
 | L1 cache reference             | 0.5 ns       |
