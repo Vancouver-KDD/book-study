@@ -42,6 +42,7 @@
 - Most services fall between 99% and 100%
 
 | Availability % | Downtime per day | Downtime per week | Downtime per month | Downtime per year|
+|----------------|------------------|-------------------|--------------------|------------------|
 | 99% | 14.40 minutes | 1.68 hours | 7.31 hours | 3.65 days |
 | 99.9% | 1.44 minutes | 10.08 minutes | 43.83 minutes | 8.77 hours |
 | 99.99% | 8.64 seconds | 1.01 minutes | 4.38 minutes | 52.60 minutes |
