@@ -116,3 +116,112 @@ Figure 3-1 and Figure 3-2 present high-level designs for feed publishing and new
 ```
 
 ![Figure3-1](image/fg3-1.jpg)
+![Figure3-2](image/fg3-2.jpg)
+
+#### Step 3 - Design deep dive
+At this step, you and your interviewer should have already achieved the following objectives:
+```
+• Agreed on the overall goals and feature scope
+• Sketched out a high-level blueprint for the overall design
+• Obtained feedback from your interviewer on the high-level design
+• Had some initial ideas about areas to focus on in deep dive based on her feedback
+```
+#### You shall work with the interviewer to identify and prioritize components in the architecture.
+```
+It is worth stressing that every interview is different.
+Sometimes, the interviewer may give off hints that she likes focusing on high-level design.
+Sometimes, for a senior candidate interview, the discussion could be on the system performance characteristics,
+likely focusing on the bottlenecks and resource estimations.
+
+😀 In most cases, the interviewer may want you to dig into details of some system components.
+
+For URL shortener, it is interesting to dive into the hash function design that converts a long URL to a short one.
+For a chat system, how to reduce latency and how to support online/offline status are two interesting topics.
+
+Time management is essential as it is easy to get carried away with minute details that do not demonstrate your abilities.
+You must be armed with signals to show your interviewer.
+
+🥵🙅🏻‍♂️ Try not to get into unnecessary details.
+For example, talking about the EdgeRank algorithm of Facebook feed ranking in detail is not ideal
+during a system design interview as this takes much precious time and does not prove your ability in designing a scalable system.
+```
+
+```
+<Example>
+At this point, we have discussed the high-level design for a news feed system, and the interviewer is happy with your proposal.
+Next, we will investigate two of the most important use cases:
+ 1. Feed publishing
+ 2. News feed retrieval
+Figure 3-3 and Figure 3-4 show the detailed design for the two use cases, which will be explained in detail in Chapter 11.
+```
+![Figure3-3](image/fg3-3.jpg)
+
+![Figure3-4](image/fg3-4.jpg)
+
+#### Step 4 - Wrap up
+
+In this final step, the interviewer might ask you a few follow-up questions or give you the freedom to discuss other additional points. 
+
+Here are a few directions to follow:
+```
+• System bottlenecks / Potential improvements.
+  Never say your design is perfect and nothing can be improved. There is always something to improve upon.  
+  This is a great opportunity to show your critical thinking and leave a good final impression.
+
+• Recap of your design.
+  This is particularly important if you suggested a few solutions.
+  Refreshing your interviewer’s memory can be helpful after a long session.
+
+• Error cases (server failure, network loss, etc.) are interesting to talk about.
+
+• Operation issues are worth mentioning.
+  How do you monitor metrics and error logs? How to roll out the system?
+
+• How to handle the next scale curve is also an interesting topic.
+  For example, if your current design supports 1 million users, what changes do you need to make to support 10 million users?
+
+• Propose other refinements you need if you had more time.
+```
+
+#### Dos / Don’ts
+```
+To wrap up, we summarize a list of the Dos and Don’ts. 
+😉 Dos
+• Always ask for clarification. Do not assume your assumption is correct.
+• Understand the requirements of the problem.
+• There is neither the right answer nor the best answer.
+  A solution designed to solve the problems of a young startup is different from that of an established company with millions of users.
+  Make sure you understand the requirements.
+• Let the interviewer know what you are thinking. Communicate with your interview.
+• Suggest multiple approaches if possible.
+• Once you agree with your interviewer on the blueprint, go into details on each component.
+  Design the most critical components first.
+• Bounce ideas off the interviewer. A good interviewer works with you as a teammate.
+• Never give up
+
+🥵 Don’ts
+• Don't be unprepared for typical interview questions.
+• Don’t jump into a solution without clarifying the requirements and assumptions.
+• Don’t go into too much detail on a single component in the beginning. Give the high-level design first then drills down.
+• If you get stuck, don't hesitate to ask for hints.
+• Again, communicate. Don't think in silence.
+• Don’t think your interview is done once you give the design.
+  You are not done until your interviewer says you are done. Ask for feedback early and often.
+```
+
+#### Time allocation on each step
+```
+System design interview questions are usually very broad, and 45 minutes or an hour is not enough to cover the entire design.
+
+Time management is essential.
+
+How much time should you spend on each step?
+The following is a very rough guide on distributing your time in a 45-minute interview session.
+Please remember this is a rough estimate, and the actual time distribution depends on the scope of the problem and the requirements from the interviewer.
+
+Step 1 Understand the problem and establish design scope: 3 - 10 minutes
+Step 2 Propose high-level design and get buy-in: 10 - 15 minutes
+Step 3 Design deep dive: 10 - 25 minutes
+Step 4 Wrap: 3 - 5 minutes
+```
+
