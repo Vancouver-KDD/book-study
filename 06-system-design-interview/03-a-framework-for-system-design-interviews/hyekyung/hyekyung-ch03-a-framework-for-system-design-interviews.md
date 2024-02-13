@@ -12,11 +12,11 @@ No one expects you to design a real-world system in an hour. The system design i
 - Should we include API endpoints and databae shema here? -> It depends on the problem.
 - High-level design example - A news feed system
     - Design is divided into 2 flows
-        - Feed publishing  (질문: v1/me/feed? 이런표현은 어디서 온 표현일까?, News feed cache 는 각 follower또는 friends 들 별로 가지고 있는 news feed cache 인건가???)
-        ![figure-3-1.jpg](images/figure-3-1.jpg)
+		- Feed publishing  (질문: v1/me/feed? 이런표현은 어디서 온 표현일까?, News feed cache 는 각 follower또는 friends 들 별로 가지고 있는 news feed cache 인건가???)
+		![figure-3-1.jpg](images/figure-3-1.jpg)
 		
-        - Neewsfeed building
-        ![figure-3-2.jpg](images/figure-3-2.jpg)
+		- Neewsfeed building
+		![figure-3-2.jpg](images/figure-3-2.jpg)
 		
 #### 3. Step 3 - Design deep dive
 - At this step, already achieved the following objectives:
