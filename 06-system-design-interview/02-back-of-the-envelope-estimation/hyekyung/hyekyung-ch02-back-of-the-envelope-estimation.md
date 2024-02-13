@@ -57,7 +57,7 @@
 	- Users post 2 tweets per day on average 
 		- 150 million*2 = 300 million tweets per day
 		- Tweets QPS(Query per second) = 300 million % 24 hour % 60 min % 60 sec = ~3500
-		- Peak QPS = 2* QPS <-- 질문 : 왜 2배를 곱한거지??
+		- Peak QPS = 2* QPS <span style="color:red"><-- 질문 : 왜 2배를 곱한거지??</span>
 	- 10% of tweets contain media
 		- 300 million * 0.1 = 30 million media per day
 	- Data is stored for 5 years
