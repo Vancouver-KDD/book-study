@@ -1,11 +1,13 @@
 ## A 4-step process for effective system design interview
 
 - 최종 design보다 과정 중요
+- 기술적 디자인 능력, 문제 해결 능력, 의사소통 능력, 협업 능력 평가
+- over-engineering 지양
 
 ### Step 1 - Understand the problem and establish design scope
 
-- system design interview에서는 빠르게 답변하는 것 중요 X
-- 문제를 이해하고 질문을 통해 요구 사항과 가정을 명확히 하는 것이 중요 -> 최종 디자인을 결정하기 전에 필요한 정보를 수집하는 과정
+- 빠르게 답변하는 것 중요 X
+- 문제를 이해하고 질문을 통해 요구 사항과 가정을 명확히 하는 것이 중요
 
 #### List of questions to help you get started:
 
