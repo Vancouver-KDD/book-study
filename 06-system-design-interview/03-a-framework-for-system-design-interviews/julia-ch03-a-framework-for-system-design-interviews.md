@@ -11,36 +11,32 @@
 
 #### List of questions to help you get started:
 
-- 구축할 기능이 무엇인가요?
-- 얼마나 많은 사용자가 있나요?
-- 3개월, 6개월, 1년 후의 예상 scale은 어떻게 되나요?
-- 회사의 기술 스택은 무엇인가요? 디자인을 단순화하기 위해 활용할 수 있는 기존 서비스는 무엇인가요?
+- What specific features are we going to build?
+- How many users does the product have?
+- How fast does the company anticipate to scale up? What are the anticipated scales in 3 months, 6 months, and a year?
+- What is the company's technology stack? What existing services you might leverage to simplify the design?
 
 #### Example
 
-뉴스 피드 시스템을 설계하라는 요청을 받았을 때, 요구 사항을 명확히 하는 데 도움이 되는 질문
-- 모바일 앱 / 웹 앱 / 둘 다?
-- 제품의 핵심 기능?
-- 뉴스 피드의 정렬 방식?
-- 사용자 한 명당 친구 수?
-- traffic의 양? (ex. 10 million DAU)
-- 피드에 포함될 수 있는 콘텐츠 유형? (ex. 미디어 파일 - 이미지, 비디오)
--> 시스템의 요구사항을 이해하고, 설계 과정에서 필요한 정보를 수집할 수 있음
+뉴스 피드 시스템을 설계하라
+- Mobile app / web app / both?
+- Most important features?
+- News feed sorted order?
+- How many friends can a user have?
+- What is the traffic volume? (ex. 10 million DAU)
+- Can feed contain images, videos, or just text? (ex. 미디어 파일 - 이미지, 비디오)
 
 ### Step 2 - Propose high-level design and get buy-in
 
-initial blueprint (초기 설계안)을 만들고
--> interviewer와 협력하여 feedback 요청
+initial blueprint (초기 설계안) 만들기  
+-> feedback 요청  
 -> back-of-the-envelope 계산을 통해 설계안이 규모에 맞는지 평가
 
-- high-level design을 위한 use cases를 고려
-- API endpoint / database schema를 포함할지 여부 결정
-  - API endpoint : 웹 기반 서비스와 상호작용하기 위해 네트워크를 통해 접근할 수 있는 URL의 일부, 클라이언트는 API endpoint를 통해 서버에 데이터를 요청하거나 보낼 수 있음, RESTful API - HTTP 메서드 (GET, POST, PUT, DELETE 등)와 결합되어 사용됨 (ex. 소셜 미디어 플랫폼의 API에는 사용자 프로필을 가져오는 엔드포인트, 사용자가 새로운 게시물을 작성할 때 사용하는 엔드포인트 등)
+- API endpoint / database schema를 포함할지 여부?
+  - API endpoint : 클라이언트가 API endpoint를 통해 서버에 데이터를 요청하거나 보낼 수 있음
   - Database schema : 데이터베이스 구조를 정의하는 틀이나 청사진, 데이터베이스에 저장되는 데이터의 조직, 형식, 관계 등 설명, 테이블, 칼럼, 데이터 유형, 인덱스, 외래 키 등 포함
 
 #### Example
-
-뉴스 피드 시스템 설계는 피드 게시와 뉴스 피드 구축의 두 가지 흐름으로 나눌 수 있음
 
 1. Feed publishing : 사용자가 게시물을 작성하면 해당 데이터가 cache/database에 기록되고 친구의 뉴스 피드에 게시물이 나타남
 2. Newsfeed building : 친구들의 게시물을 역순으로 집계하여 만들어짐
@@ -49,10 +45,9 @@ initial blueprint (초기 설계안)을 만들고
 
 ##### Feed publishing
 
-사용자가 웹 브라우저나 모바일 앱을 통해 요청을 보내면 DNS를 거쳐 Load balancer로 이동한 후 웹 서버로 전달되는 구조
 웹 서버의 3가지 주요 서비스
-1. Post service : 게시물과 관련된 로직 처리, post cache로 cache -> post DB에 저장
-2. Fanout service : 사용자의 뉴스피드를 구성할 때, 해당 사용자의 친구들의 게시물을 뉴스피드 cache에 빠르게 배포하는 기능 담당
+1. Post service : 게시물과 관련된 로직 처리
+2. Fanout service : 사용자의 뉴스피드를 구성할 때, 사용자의 친구들의 게시물을 뉴스피드 cache에 빠르게 배포하는 기능 담당
 3. Notification service : 사용자가 새 게시물을 올릴 때, 친구들에게 알림 보내는 서비스
 
 각 서비스는 자체 cache 계층을 가질 수 있음 -> 시스템의 성능 향상, 데이터베이스에 가하는 부하 줄임
