@@ -50,47 +50,40 @@ initial blueprint (초기 설계안) 만들기
 2. Fanout service : 사용자의 뉴스피드를 구성할 때, 사용자의 친구들의 게시물을 뉴스피드 cache에 빠르게 배포하는 기능 담당
 3. Notification service : 사용자가 새 게시물을 올릴 때, 친구들에게 알림 보내는 서비스
 
-각 서비스는 자체 cache 계층을 가질 수 있음 -> 시스템의 성능 향상, 데이터베이스에 가하는 부하 줄임
-
 ![스크린샷 2024-02-12 오후 8 36 44](https://github.com/jylee2033/book-study/assets/85793553/15efc7f8-395a-44e5-a67b-ed289abecfd8)
 
-##### News feed building flows
-
-사용자가 뉴스 피드를 요청할 때
+##### Newsfeed building
 
 ### Step 3 - Design deep dive
 
 #### Achieved following objectives:
 
-- interviewer와 overall goals와 feature scope (기능 범위)에 대한 합의
-- high-level blueprint 완성
-- feedback from interviewer
+- Agreed on the overall goals and feature scope
+- Sketched out a high-level blueprint for the overall design
+- Obtained feedback from your interviewer on the high-level design
 
-여기서는 interviewer와 협력하여 architecture 내의 구성 요소를 identify하고 우선순위를 정함
+-> architecture 내의 구성 요소를 identify하고 우선순위를 정함  
 -> high-level design에 집중하거나 일부 세부 사항에 집중
 
-중요한 것 : 세부 사항 (ex. Facebook의 EdgeRank 알고리즘)에 너무 몰두하지 않고, interviewer에게 능력을 증명할 수 있는 signal을 보내는 것
+중요한 것 : 세부 사항에 너무 몰두하지 않기
 
 #### Example
 
-1. Feed publishing
+#### Feed publishing
 
 ![스크린샷 2024-02-12 오후 9 23 34](https://github.com/jylee2033/book-study/assets/85793553/9162414b-bbfc-4873-ae21-223c9f636582)
 
 ##### News feed system의 전체 architecture
 
-- 사용자 요청은 웹 브라우저나 모바일 앱을 통해 DNS로 라우팅되고, Load balanceer로 전송됨
 - Web servers : 인증과 속도 제한 기능 처리
-- Post Service : 게시물 관련 작업 처리 (Post Cache와 Post DB로 구성)
 - Fanout Service : Message Queue와 Fanout Workers를 통해 사용자의 뉴스 피드 구성
 - Graph DB : 사용자 간의 관계 관리
-- Notification Service : 사용자에게 알림 제공
 
-2. News feed retrieval
+#### News feed retrieval
 
 ![스크린샷 2024-02-12 오후 9 24 18](https://github.com/jylee2033/book-study/assets/85793553/6cdc351c-7f88-43e3-afb1-57a5e3d5dd95)
 
-#### News feed 구축 과정에 초점을 맞춤
+#### News feed building 과정에 초점을 맞춤
 
 - 사용자 요청은 CDN(Content Delivery Network)을 통해 처리될 수 있음
 - News Feed Service : User와 Post DB 사이의 상호작용 관리
@@ -98,12 +91,10 @@ initial blueprint (초기 설계안) 만들기
 
 ### Step 4 - Wrap up
 
-system design 인터뷰의 마지막 단계에서 follow-up 질문을 할 수 있으며, 추가적인 포인트에 대해 discuss할 수 있음
-- 시스템의 bottlenecks (병목 현상)을 식별하고 개선점 논의
+추가적인 point
+- 시스템의 bottlenecks
 - design을 요약하여 기억 refresh
 - server failure, network loss 등의 오류 사례
-- operation issues에 대해 논의
-- system 확장 방법에 대해 논의
 
 #### Dos
 
@@ -115,13 +106,13 @@ system design 인터뷰의 마지막 단계에서 follow-up 질문을 할 수 �
 #### Don'ts
 
 - requirements와 assumptions를 명확히 하지 않고 solution에 뛰어들지 않음
-- single component에 대해 너무 많은 detail에 초점을 맞추기 않음
+- single component에 대해 너무 많은 detail에 초점을 맞추지 않음
 - 막혔을 때 도움 요청하는 것을 주저하지 않음
-- design을 마친 후 인터뷰가 끝났다고 생각하지 않음 -> feedback 자주 요청
+- design을 마친 후 인터뷰가 끝났다고 생각하지 않음
 
 #### Time allocation on each step
 
-- Step 1 문제 이해하고 design 범위 설정 : 3 - 10 min
-- Step 2 high-level design 제안 : 10 - 15 minutes
-- Step 3 design deep dive: 10 - 25 minutes
-- Step 4 wrap: 3 - 5 minutes
+- Step 1 : 3 - 10 min
+- Step 2 : 10 - 15 minutes
+- Step 3 : 10 - 25 minutes
+- Step 4 : 3 - 5 minutes
