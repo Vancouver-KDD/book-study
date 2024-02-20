@@ -3,6 +3,8 @@
 ## Intro
 > To **achieve horizontal scaling**, it is important to distribute requests/data efficiently and evenly across servers. Consistent hashing is a commonly used technique to achieve this goal. But first, let us take an in-depth look at the problem.
 
+## Disclaimer
+- I won't focus on consistent hashing, rather.. 
 
 ## Example
 ### Context
@@ -10,47 +12,56 @@
 
 You work for Netflix. Your team manages storage system : store movie files, serve movie files when Frontend/App requests movie files. 
 
-**In 2010**, Netflix had 1000 movie titles. 
+####  **In 2010**, we have 1000 movie titles. 
 ```
 File size of each movie is 1GB
+Total file size : 1000 * 1GB = 1TB
+```
+You started with 1 storage server with 10TB capacity. 
+
+```
 Total file size : 1TB
-```
-So- You started with 1 server with 10 TB hard drive. 
-
-
-**In 2011**, we have 5000 movie titles.
-5TB-> Now we need to prepare for scenario you'd have more than 10000 movie titles.
-```
-5000 titles, in total 5TB
-Hard disk capacity : 10TB
-Hard disk usage : 50%
+Storage capacity : 10TB
+Storage usage : 10%
 ```
 
-  - Option 1 : Purchase 40TB hard drive, replace. 
+
+
+#### **In 2011**, we have 5000 movie titles.
+```
+Total file size : 5TB
+Storage capacity : 10TB
+Storage usage : 50%
+```
+
+  - Option 1 : Purchase 40TB Storage server, replace. 
 (2000$) - Vertical 
-  - Option 2 : Purchase 10TB hard drive (250$) - Horizontal
+  - Option 2 : Purchase 10TB Storage server (250$), run 2 servers
+
 
 We got $100M from investors, so let's use expensive hardware. 
 ```
-5000 titles, in total 5TB
-Hard disk capacity : 40TB
-Hard disk usage : 12.5%
+Total file size : 5TB
+Storage capacity : 10TB -> 40TB
+Storage usage : 50%     -> 12.5%
 ```
 
 **In 2012**, now we have 35000 movie titles.
 ```
-35000 titles, in total 35TB
-Hard disk usage : 87.5%
+Total file size : 35TB
+Storage capacity : 40TB
+Storage usage : 87.5% (!!)
 ```
-- Option 1 : Purchase 160TB hard drive, replace (10000$)
-- Option 2 : Purchase 40TB*3 hard drives (1500$*3 = 6000$) - Horizontal
+- Option 1 : Purchase 160TB Storage server, replace (10000$)
+- Option 2 : Purchase 40TB*3 Storage servers (2000$*3 = 6000$) - Horizontal
 
-Now we have decided to use multiple hard disks-but how do we know which file is in where? 
+Now that we've decided to use multiple hard disks, how do we figure out where each file is stored?
+
 
 
 ```
 
-
+ |              Option 1 : Vertical scaling
  │                                           ┌───────────┐
  │                                           │           │
  │                                           │           │
@@ -66,7 +77,7 @@ Now we have decided to use multiple hard disks-but how do we know which file is 
  │                                              (160TB)
  │
  │--------------------------------------------------------------
- │
+ |              Option 2 : Horizontal scaling 
  │
  │                                             server A (40TB)
  │                                           ┌───────────┐
@@ -87,8 +98,9 @@ Now we have decided to use multiple hard disks-but how do we know which file is 
  │                                           │ movie 4   │
  │                                           └───────────┘
  │
- ├─--------------------------------------------------------------
- │
+ │---------------------------------------------------------------
+ |              Option 2 : Horizontal scaling + Routing service
+ |
  │                                             server A (40TB)
  │                                           ┌───────────┐
  │                                           │ .....     │
@@ -114,16 +126,12 @@ Now we have decided to use multiple hard disks-but how do we know which file is 
 
 ```
 
-### Product requirement
-Design a service that tells which file is in which server. 
-- Non-func Requirement에 대해서도 고려. 
-  - scalability 
-  - no hot spot
+## Product requirement
 
 
 #### Algorithm : How to distribute files? 
 Assumption : 4 servers. 
-1. Based on movie title
+1. Based on movie title (Key-ranged based)
 
 - Server 0 : Movie title starts with A-G (7)
 - Server 1 : Movie title starts with H-N (7)
@@ -142,7 +150,9 @@ G  :  32    N  :  21
 
 356         270         511         77
 29%	        22%	        42%	        6%
+                        Skewed (Hotspot)
 ```
+
 2. Hash-based 
 - Server 0 : movie_id%4 == 0 
 - Server 1 : movie_id%4 == 1 
@@ -205,9 +215,42 @@ Server 3->4 : 60
 971 out of 1214 moved. (80%)
 ```
 
+### What happens if...
+- When one server goes down
+- When # of node changes, we need to re-distribute most of keys. 
+
+
+
+
+
+## Consistent hashing
+- Pre-requsite : What is **hash**
+- Conclusion first                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
 - MD5 해시를 해야하는 이유
     - 지금 index가 1200개 밖에 없는데 언제까지 클지 모르니까. evenly distribute
 - 
+
+
+# Library analogy
+- hashing을 설명하기 위해
+- 도서관에서 책 찾는 법 (컴퓨터 없이!)
+    - 책 분야에 따라 층 수 먼저 결정. 
+    - 자기계발, 과학/공학, 소설만 있다고 칩시다.
+        - 당연한 예 아닌가요?
+            - 모든 책을 종류 분류 없이 가나다순으로 꽂아둘수도 있죠.
+            - 모든 책을 출간 연도 순으로 꽂아둘수도 있습니다. 
+            - 그게 '유용할까요?'
+
+
+
+
+# Consistent hashing
+Phase 1 : MD5(val) 
+    
+
+
+- 이 책 어디다 둘까요? == 이 책 어디에 꽂혀 있나요? 는 같은 말입니다.
 
 
 ### Hidden cost of option 2:
@@ -215,6 +258,10 @@ We need one more server to remember in which server titles are stored.
 
 
 
+
+### Note
+1. Key-based partitioning 도 장단이 많이 있음. 
+Consistent: 나중에 나올 Eventual consistency
 
 
 
