@@ -46,11 +46,11 @@ You can implement a rate limiter at either client or server-side.
 
 - A rate limiter placed on the server-side
 
-![4-1.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/a9c4bb22-cbaf-40b9-8b2f-9c9ab54db7ec/60b47fa7-c938-4437-9b31-779bb3006c48/4-1.png)
+![4-1.png](./images/4-1.png)
 
 - Instead of putting a rate limiter at the API servers, we create a rate limiter **middleware**, which throttles requests to your APIs. (Status code 429). Cloud microservices have become widely popular and rate limiting is usually implemented within a component called **API gateway.** API gateway is a fully managed service that supports rate limiting, SSL termination, authentication, IP whitelisting, servicing static content, etc. For now, we only need to know that the API gateway is a middleware that supports rate limiting.
 
-![4-2.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/a9c4bb22-cbaf-40b9-8b2f-9c9ab54db7ec/41784007-0ff7-43bc-b01c-58df02f8e04f/4-2.png)
+![4-2.png](./images/4-2.png)
 
 **Things to consider when designing a rate limiter:**
 
@@ -71,7 +71,7 @@ Rate limiting can be implemented using different algorithms, and each of them ha
 
 **1) Token Bucket**
 
-[4-1](./images/4-1.png)
+![token](./images/token-bucket.png)
 
 **Pros:**
 
@@ -87,6 +87,8 @@ Rate limiting can be implemented using different algorithms, and each of them ha
 be challenging to tune them properly.
 
 **2) Leaking bucket**
+
+![leaking-bucket](./images/leaking-bucket.png)
 
 Leaking bucket algorithm takes the following two parameters:
 
@@ -111,7 +113,7 @@ Shopify, an ecommerce company, uses leaky buckets for rate-limiting
 
 **3) Fixed window counter algorithm**
 
-![fixed window.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/a9c4bb22-cbaf-40b9-8b2f-9c9ab54db7ec/9bc18a63-c8d0-4762-a660-30bfc71d3116/fixed_window.png)
+![fixed window](./images/fixed%20window.png)
 
 **Pros:**
 
@@ -151,3 +153,49 @@ Pros
 Cons
 
 - It only works for not-so-strict look back window. It is an approximation of the actual rate because it assumes requests in the previous window are evenly distributed. However, this problem may not be as bad as it seems. According to experiments done by Cloudflare, only 0.003% of requests are wrongly allowed or rate limited among 400 million requests.
+
+## Step 3. Design deep dive
+
+Two questions unanswered from high level design
+
+- How are rate limiting rules created? Where are the rules stored?
+- How to handle requests that are rate limited?
+
+## Detailed design
+
+- Rules are stored on the disk and cached.
+- Rate limiter middleware loads rules from the cache. If fetches counters and last request timestamp from Redis cache.
+
+### Rate limiter in a distributed environment
+
+- Race condition
+- Sync issue
+
+### Race condition
+
+- Lock, lus script, sorted set
+
+### Sync issue
+
+- Using in memory DB
+
+### Performance optimization
+
+- Multi-data center setup
+- Eventual consistency
+
+### Monitoring
+
+- Effectiveness of the algorithm
+- Effectiveness of the rules
+
+# Step 4 - Wrap up
+
+- Hard vs soft rate limiting
+- Rate limiting at different levels
+  - HTTP, IP, etc
+- Avoid being rate limited
+  - Client cache
+  - Client not sending too many requests
+  - Catch exceptions and handel well
+  - Back off
