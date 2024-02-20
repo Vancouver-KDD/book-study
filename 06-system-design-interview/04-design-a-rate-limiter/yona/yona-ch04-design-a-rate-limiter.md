@@ -143,3 +143,31 @@
         - EXPIRE: sets a timeout for the counter. If the timeout expires, the counter is automatically deleted
 
 <img title="Request Flow" src="./resources/high-level-architecture.png">
+
+## Step 3: Design Deep Dive
+- How are rate limiting rules created? Where are the rules stored?
+- How to handle requests that are rate limited?
+
+- Hard vs soft rate limiting
+    - Hard: the number of requests cannot exceed the threshold
+    - Soft: requests can exceed the threshold for a short period
+- Rate limiting at different levels. 
+    - Rate limiting at the application level (HTTP: layer 7)
+    - possible to apply rate limiting at other layers:
+        - by IP addresses using Iptables (IP: layer 3)
+
+- OSI model (Open Systems Interconnection model) has 7 layers
+    - Layer 1: Physical layer
+    - Layer 2: Data link layer
+    - Layer 3: Network layer
+    - Layer 4: Transport layer
+    - Layer 5: Session layer
+    - Layer 6: Presentation layer
+    - Layer 7: Application layer
+
+- Avoid being rate limited. Design your client with best practices:
+    - Use client cache to avoid making frequent API calls
+    - Understand the limit and do not send too many requests in a short time frame
+    - Include code to catch exceptions or errors so your client can gracefully recover from exceptions
+    - Add sufficient back off time to retry logic
+    
