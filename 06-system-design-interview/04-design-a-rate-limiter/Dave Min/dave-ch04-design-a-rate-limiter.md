@@ -433,3 +433,4 @@ In another example, we notice our rate limiter becomes ineffective when there is
 In this scenario, we may replace the algorithm to support burst traffic.
 Token bucket is a good fit here.
 ```
+![fg4-17](Image/fg4-17.jpg)
