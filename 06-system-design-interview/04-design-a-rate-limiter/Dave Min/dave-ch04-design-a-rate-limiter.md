@@ -107,7 +107,7 @@ Rate limiter on the server-side or in a gateway?
     If you do not have enough engineering resources to implement a rate limiter, a commercial API gateway is a better option.
 ```
 
-## 5 Algorithms for rate limiting
+## Five Algorithms for rate limiting
 #### Token bucket algorithm 
 - Amazon and Stripe use this algorithm to throttle their API requests
 ```
