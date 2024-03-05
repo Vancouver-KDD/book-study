@@ -65,8 +65,8 @@ Generally speaking, client is an unreliable place to enforce rate limiting!
 ![fg4-1](Image/fg4-1.jpg)
 ```
 Besides the client and server-side implementations, there is an alternative way.
-Instead of putting a rate limiter at the API servers, we create a rate limiter middleware,
-which throttles requests to your APIs as shown in Figure 4-2.
+Instead of putting a rate limiter at the API servers, we create a rate limiter middleware(a Server),
+  which throttles requests to your APIs as shown in Figure 4-2.
 ```
 ![fg4-2](Image/fg4-2.jpg)
 
@@ -107,7 +107,7 @@ Rate limiter on the server-side or in a gateway?
     If you do not have enough engineering resources to implement a rate limiter, a commercial API gateway is a better option.
 ```
 
-## 5 Algorithms for rate limiting
+## Five Algorithms for rate limiting
 #### Token bucket algorithm 
 - Amazon and Stripe use this algorithm to throttle their API requests
 ```
