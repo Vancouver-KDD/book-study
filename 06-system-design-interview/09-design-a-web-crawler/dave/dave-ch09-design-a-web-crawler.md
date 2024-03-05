@@ -1,57 +1,72 @@
 # CHAPTER 9: DESIGN A WEB CRAWLER
 
-A web crawler is known as a robot or spider.  
+A web crawler is known as `A robot or spider`.  
+```
+웹상의 다양한 정보를 자동으로 검색하고 색인(indexing)하기 위해 검색 엔진을 운영하는 사이트에서 사용하는 소프트웨어.
+사람들이 일일이 해당 사이트의 정보를 검색하는 것이 아니라
+컴퓨터 프로그램에 미리 입력된 방식에 따라 끊임없이 새로운 웹 페이지를 찾아 종합하고,
+찾아진 결과를 이용하여 다시 새로운 정보를 찾아 색인(indexing)을 추가하는 작업을 반복 수행한다.)
+```
+🙋‍♂️It is a widely used software by search engines to discover new or updated content(a web page, an image, a video, a PDF file, etc) on the web. 
 
-It is widely used by search engines to discover new or updated content(a web page, an image, a video, a PDF file, etc) on the web. 
-
-A web crawler starts by collecting a few web pages and then follows links on those pages to collect new content.(Figure 9-1)
+A web crawler ->> collecting a few web pages ->> follows links(on those pages) to collect new content.(Figure 9-1)
 
 ![f9-1](img/fg9-1.jpg)
 
-#### Purpose
+#### 🙋‍♂️**Purpose**
 ```
 • Search engine indexing:
+   (A crawler는 웹페이지를 수집해서 검색엔진을 위한 로컬 인덱스를 생성 )
    This is the most common use case. A crawler collects web pages to create a local index for search engines.
     (For example) Googlebot is the web crawler behind the Google search engine.
 • Web archiving:
+   (future use를 위해 장기보관용 정보를 모으는 과정)
    This is the process of collecting information from the web to preserve data for future uses.
-    (For example) many national libraries run crawlers to archive web sites. Notable examples are the US Library of Congress [1] and the EU web archive [2].
+    (For example) many national libraries run crawlers to archive web sites.
+     Notable examples are the US Library of Congress [1] and the EU web archive [2].
 • Web mining:
+   (인터넷에서 유용한 지식 도출)
    The explosive growth of the web presents an unprecedented opportunity for data mining.
    Web mining helps to discover useful knowledge from the internet.
     (For example) top financial firms use crawlers to download shareholder meetings and annual reports to learn key company initiatives.
 • Web monitoring.
+   (인터넷서 저작원과 사용권 침혜 모니터링)
    The crawlers help to monitor copyright and trademark infringements over the Internet.
     (For example) Digimarc [3] utilizes crawlers to discover pirated works and reports.
 ```
 
-The complexity of developing a web crawler depends on the scale we intend to support. 
-It could be either a small school project, 
-  which takes only a few hours to complete or a gigantic project that requires continuous improvement from a dedicated engineering team. 
+The `Complexity` of developing a web crawler depends on the scale we intend to support. 
+It could be either 
+```
+   A small school project, which takes only a few hours to complete 
+            or 
+   A gigantic project that requires continuous improvement from a dedicated engineering team. 
+```
 Thus, we will explore the scale and features to support below.
 
 ## Step 1 - Understand the problem and establish design scope
 
-The basic algorithm of a web crawler:
+#### 🙋‍♂️**The basic algorithm of a web crawler:**
 ```
 1. Given a set of URLs, download all the web pages addressed by the URLs.
 2. Extract URLs from these web pages
 3. Add new URLs to the list of URLs to be downloaded. Repeat these 3 steps.
 ```
 
-To understand the requirements and establish design scope:
-• Functionalities:
-- The main purpose of the crawler? search engine indexing? data mining? something else?
-- How many web pages does the web crawler collect per month?
-- What content types? HTML only, PDFs and images.
-- Newly added or edited web pages? 
-- Do we need to store HTML pages crawled from the web?
-- Duplicate content?
+#### - Requirements & Design scope:
+```
+• Functionalities: 
+  The main purpose of the crawler? search engine indexing? data mining? something else?
+  How many web pages does the web crawler collect per month?
+  What content types? HTML only, PDFs and images.
+  Newly added or edited web pages? 
+  Do we need to store HTML pages crawled from the web?
+  Duplicate content?
 
 • Scalability: 
   The web is very large. There are billions of web pages out there. 
   Web crawling should be extremely efficient using parallelization.
-• Robustness: 
+• Robustness:(안정성) 
   The web is full of traps. 
   Bad HTML, unresponsive servers, crashes, malicious links, etc. are all common. 
   The crawler must handle all those edge cases.
@@ -60,85 +75,108 @@ To understand the requirements and establish design scope:
 • Extensibility: 
   The system is flexible so that minimal changes are needed to support new content types. 
     For example, if we want to crawl image files in the future, we should not need to redesign the entire system.  
+```
+### - Back of the envelope estimation
 
-### Back of the envelope estimation
-
-• Estimations(assumptions)
+• Assumptions
+```
   - Assume 1 billion web pages are downloaded every month.
-  - QPS: 1,000,000,000 / 30 days / 24 hours / 3600 seconds = ~400 pages per second.
-  - Peak QPS = 2 * QPS = 800
   - Assume the average web page size is 500k.
-  - 1-billion-page x 500k = 500 TB storage per month. If you are unclear about digital storage units, go through “Power of 2” section in Chapter 2 again.
-  - Assuming data are stored for five years, 500 TB * 12 months * 5 years = 30 PB. A 30 PB storage is needed to store five-year content.
+  - Assuming data are stored for five years.
+```
+• Estimations
+```
+Query per second (QPS) estimate:
+  - QPS: 1,000,000,000 / 30 days / 24 hours / 3600 seconds = ~400 pages per second.
+  - Peak QPS = 2 * QPS = 800  
+  - 1-billion-page x 500k = 500 TB storage per month. 
+  - 500 TB * 12 months * 5 years = 30 PB storage.(five-year content)
+```
 
-## Step 2 - Propose high-level design and get buy-in
+## Step 2 - Propose high-level design and get buy-in(동의)
 ![f9-2](img/fg9-2.jpg)
 
+### - Design components and their functionalities
 #### Seed URLs
-seed URLs = a starting point for the crawl process
-
-The general strategy
-1. locality : Different countries may have different popular websites.
-2. topics : shopping, sports, healthcare, etc
+```
+ - Seed URLs = a starting point for the crawl process
+ - A crawler can utilize to traverse as many links as possible
+ - The general strategy
+   1. locality : Different countries may have different popular websites.
+   2. topics : shopping, sports, healthcare, etc
+```
    
-#### URL Frontier
-The component that stores URLs to be downloaded is called the URL Frontier.
-
+#### URL Frontier(미수집 URL 저장소)
+```
+The component that stores URLs to be downloaded is called the URL Frontier.( as a First-in-First-out (FIFO) queue.)
+```
 #### HTML Downloader
-The HTML downloader downloads web pages from the internet. Those URLs are provided by the URL Frontier.
+```
+HTML downloader - downloads web pages from the internet. 
+(Those URLs are provided by the URL Frontier.)
+```
+
 #### DNS Resolver
-To download a web page, a URL must be translated into an IP address. 
+```
+URL -(translated)-> IP address. 
 The HTML Downloader calls the DNS Resolver to get the corresponding IP address for the URL. 
   For instance, URL www.wikipedia.org is converted to IP address 198.35.26.96 as of 3/5/2019.
-  
+```
+
 #### Content Parser
 ```
-After a web page is downloaded, it must be parsed and validated
-because malformed web pages could provoke problems and waste storage space. 
-Implementing a content parser in a crawl server will slow down the crawling process.
-Thus, the content parser is a separate component.
+After a web page is downloaded, it must be parsed and validated( 파싱과 검증절차를 거친다.)
+   because malformed web pages could provoke problems and waste storage space. 
+   Implementing a content parser in a crawl server will slow down the crawling process.
+   Thus, the content parser is a separate component.
 ```
-#### Content Seen?
+
+#### Content Seen?(중복 컨텐츠?)
 ```
-Online research [6] reveals that 29% of the web pages are duplicated contents,
-which may cause the same content to be stored multiple times. 
-We introduce the “Content Seen?” data structure to eliminate data redundancy and shorten processing time. 
-It helps to detect new content previously stored in the system. 
-To compare two HTML documents, we can compare them character by character. 
-However, this method is slow and time-consuming, especially when billions of web pages are involved. 
-An efficient way to accomplish this task is to compare the hash values of the two web pages [7].
+- 29% of the web pages are duplicate
+- “Content Seen?” data structure to eliminate data redundancy and shorten processing time. 
+- To compare two HTML documents, we can compare them character by character. 
+- However, this method is slow and time-consuming, especially when billions of web pages are involved. 
+- An efficient way to accomplish this task is to compare the hash values of the two web pages.
 ```
 #### Content Storage
 ```
-It is a storage system for storing HTML content. 
-The choice of storage system depends on factors such as data type, data size, access frequency, life span, etc. 
+- a storage system for storing HTML content. 
+- The choice of storage system depends on factors such as data type, data size, access frequency, life span, etc. 
+
 Both disk and memory are used.
 • Most of the content is stored on disk because the data set is too big to fit in memory.
 • Popular content is kept in memory to reduce latency.
 ```
+
 #### URL Extractor
 ```
-URL Extractor parses and extracts links from HTML pages.
-Figure 9-3 shows an example of a link extraction process.
-Relative paths are converted to absolute URLs by adding the “https://en.wikipedia.org” prefix.
+URL Extractor parses and extracts links from HTML pages. ex) Figure 9-3
 ```
 ![f9-3](img/fg9-3.jpg)
+
 #### URL Filter
-The URL filter excludes certain content types, file extensions, error links and URLs in “blacklisted” sites.
-#### URL Seen?
 ```
-“URL Seen?” is a data structure that keeps track of URLs that are visited before or already in the Frontier.
-“URL Seen?” helps to avoid adding the same URL multiple times as this can increase server load and cause potential infinite loops.
-Bloom filter and hash table are common techniques to implement the “URL Seen?” component.
-We will not cover the detailed implementation of the bloom filter and hash table here.
-For more information, refer to the reference materials [4] [8].
+ - Certain content types,
+ - file extensions,
+ - error links and
+ - URLs in “blacklisted” sites.
 ```
+
+#### URL Seen? (방문URL)
+```
+- A data structure: visited before? or  already in the Frontier?
+- prevent server load and potential infinite loops.
+- Bloom filter and hash table are common techniques to implement the “URL Seen?” component.
+```
+
 #### URL Storage
 ```
-URL Storage stores already visited URLs. So far, we have discussed every system component. 
-Next, we put them together to explain the workflow.
+URL Storage stores already visited URLs. 
 ```
-#### Web crawler workflow
+
+
+### - Web crawler workflow
 ```
 To better explain the workflow step-by-step, sequence numbers are added in the design diagram as shown in Figure 9-4.
 ```
@@ -181,64 +219,57 @@ Two common graph traversal algorithms
 
 <Two problems of BFS>
 • Most links from the same web page are linked back to the same host.
-In Figure 9-5, all the links in wikipedia.com are internal links, making the crawler busy processing URLs from the same host (wikipedia.com).
-When the crawler tries to download web pages in parallel, Wikipedia servers will be flooded with requests.
-This is considered as “impolite”.
+ example) Figure 9-5, 
+   “impolite”: When the crawler tries to download web pages in parallel,  the same host (wikipedia.com) servers will be flooded with requests.
 
 • Standard BFS does not take the priority of a URL into consideration.
-The web is large and not every page has the same level of quality and importance.
-Therefore, we may want to prioritize URLs according to their page ranks, web traffic, update frequency, etc.
+   The web is large and *NOT* every page has the same level of quality and importance.
+   Therefore, we may want to prioritize URLs according to their page ranks, web traffic, update frequency, etc.
 ```
 
 ![f9-5](img/fg9-5.jpg)
-### (2) URL frontier
+### (2) URL frontier -  URLs storage to be downloaded
 ```
-URL frontier helps to address these problems
-(The web is large and not every page has the same level of quality and importance. 
-  Therefore, we may want to prioritize URLs according to their page ranks, web traffic, update frequency, etc). 
-A URL frontier is a data structure that stores URLs to be downloaded. 
-The URL frontier is an important component to ensure politeness, URL prioritization, and freshness.
+URL frontier to address these problems(politeness/URL prioritization/freshness)
 ```
-##### Politeness
+
+##### a. Politeness
 ```
-Generally, a web crawler should avoid sending too many requests to the same hosting server within a short period.
-Sending too many requests is considered as “impolite” or even treated as denial-of-service (DOS) attack.
-   For example, without any constraint, the crawler can send thousands of requests every second to the same website.
-   This can overwhelm the web servers.
-The general idea of enforcing politeness is to dow   nload one page at a time from the same host.
-A delay can be added between two download tasks.
-The politeness constraint is implemented by maintain a mapping from website hostnames to download (worker) threads. 
-Each downloader thread has a separate FIFO queue and only downloads URLs obtained from that queue.
-Figure 9-6 shows the design that manages politeness.
+The general idea
+ - For the same host, downloading one page at a time 
+ - For the same host, a delay can be added between two download tasks.
+ - Each downloader(worker) thread has a separate FIFO queue and only downloads URLs obtained from that queue(Same host).
+Figure 9-6
 ```
 ![f9-6](img/fg9-6.jpg)
 ```
-• Queue router: It ensures that each queue (b1, b2, … bn) only contains URLs from the same host.
-• Mapping table: It maps each host to a queue.
-• FIFO queues b1, b2 to bn: Each queue contains URLs from the same host.
-• Queue selector: Each worker thread is mapped to a FIFO queue,
-   and it only downloads URLs from that queue. The queue selection logic is done by the Queue selector.
-• Worker thread 1 to N. A worker thread downloads web pages one by one from the same host.
-   A delay can be added between two download tasks.
+• Queue router: It ensures that each queue (b1, b2, … bn) only contains URLs from the same host. 같은 호스트 같은 큐 보장역할
+• Mapping table: It maps each host to a queue. 관계보관테이블
 ```
 ![t9-1](img/t9-1.jpg)
-##### Priority
 ```
-A random post from a discussion forum about Apple products carries very different weight 
-than posts on the Apple home page. Even though they both have the “Apple” keyword, it is 
-sensible for a crawler to crawl the Apple home page first.
+• FIFO queues b1, b2 to bn: Each queue contains URLs from the same host. 즉, 같은 호스트 같은 큐
+• Queue selector: Each worker thread is mapped to a FIFO queue, and it only downloads URLs from that queue.
+                  The queue selection logic is done by the Queue selector.
+                  큐들을 순회하면서 URL을 꺼내서 해당 URL을 다운로드하도록 지정된 작업 스레드에 전달   
+• Worker thread 1 to N: A worker thread downloads web pages one by one from the same host.(A delay can be added) 다운로드 작업수행
+```
+
+##### b. Priority
+```
+“Prioritizer” is the component that handles URL prioritization.
 We prioritize URLs based on usefulness, which can be measured by PageRank [10], website 
-traffic, update frequency, etc. “Prioritizer” is the component that handles URL prioritization. 
-Refer to the reference materials [5] [10] for in-depth information about this concept. 
-Figure 9-7 shows the design that manages URL priority.
+traffic, update frequency, etc.
+Figure 9-7 
 
 • Prioritizer: It takes URLs as input and computes the priorities.
 • Queue f1 to fn: Each queue has an assigned priority. Queues with high priority are selected with higher probability.
-• Queue selector: Randomly choose a queue with a bias towards queues with higher priority.
+                  우선순위별로 큐 하나씩 할당. 우선순위 up, 선택될 확률 up
+• Queue selector: Randomly choose a queue with a bias towards queues with higher priority.임의 큐에서 처리할 URL을 꺼내는 역할
 ```
 ![f9-7](img/fg9-7.jpg)
 
-Figure 9-8 presents the URL frontier design, and it contains two modules:
+Figure 9-8 URL frontier design
 ```
 • Front queues: manage prioritization
 • Back queues: manage politeness
@@ -247,70 +278,71 @@ Figure 9-8 presents the URL frontier design, and it contains two modules:
 ![f9-8](img/fg9-8.jpg)
 
 
-##### Freshness
+##### c. Freshness
 ```
-Web pages are constantly being added, deleted, and edited. A web crawler must periodically 
-recrawl downloaded pages to keep our data set fresh.
-Recrawl all the URLs is time-consuming and resource intensive.
+Web pages are constantly being added, deleted, and edited.
+A web crawler must periodically recrawl downloaded pages to keep our data set fresh.
+But, Recrawl all the URLs is time-consuming and resource intensive.
 
-Few strategies to optimize freshness are listed as follows:
-• Recrawl based on web pages’ update history.
-• Prioritize URLs and recrawl important pages first and more frequently.
+Strategies for the freshness:
+• Recrawl based on web pages’ update history.(변경 이력 활용)
+• Prioritize URLs and recrawl important pages first and more frequently.(우선순위를 활용 - 해당건 자주 수집)
 ```
-##### Storage for URL Frontier
+
+
+##### d. Storage for URL Frontier(미수집 URL저장소용 storage)
 ```
-In real-world crawl for search engines, the number of URLs in the frontier could be hundreds of millions [4].
-Putting everything in memory is neither durable nor scalable.
-Keeping everything in the disk is undesirable neither because the disk is slow; and it can easily become a bottleneck for the crawl.
-We adopted a hybrid approach.
-The majority of URLs are stored on disk, so the storage space is not a problem.
-To reduce the cost of reading from the disk and writing to the disk, we maintain buffers in memory for enqueue/dequeue operations.
-Data in the buffer is periodically written to the disk.
+- The majority of URLs are stored on disk
+- To reduce the cost of reading from the disk and writing to the disk, we maintain buffers in memory for enqueue/dequeue operations.
+  Data in the buffer is periodically written to the disk.
 ```
+
 ### (3) HTML Downloader
 ```
-The HTML Downloader downloads web pages from the internet using the HTTP protocol. 
-Before discussing the HTML Downloader, we look at Robots Exclusion Protocol first.
-```
-#### Robots.txt
-```
-Robots.txt, called Robots Exclusion Protocol, is a standard used by websites to communicate with crawlers.
-It specifies what pages crawlers are allowed to download. Before attempting to crawl a web site, a crawler should check its corresponding robots.txt first and follow its rules. 
-To avoid repeat downloads of robots.txt file, we cache the results of the file.
-The file is downloaded and saved to cache periodically.
-Here is a piece of robots.txt file taken from https://www.amazon.com/robots.txt.
-Some of the directories like creatorhub are disallowed for Google bot.
-User-agent: Googlebot
-Disallow: /creatorhub/*
-Disallow: /rss/people/*/reviews
-Disallow: /gp/pdp/rss/*/reviews
-Disallow: /gp/cdp/member-reviews/
-Disallow: /gp/aw/cr/
-Besides robots.txt, performance optimization is another important concept we will cover for the HTML downloader.
+The HTML Downloader downloads web pages from the internet using the HTTP protocol.
 ```
 
-#### Performance optimization
-1. Distributed crawl
+#### a. Robots.txt(Robots Exclusion Protocol)
 ```
-To achieve high performance, crawl jobs are distributed into multiple servers, and each server runs multiple threads.
-The URL space is partitioned into smaller pieces; so, each downloader is responsible for a subset of the URLs.
-Figure 9-9 shows an example of a distributed crawl.
+Robots.txt(Robots Exclusion Protocol) is a standard to communicate with crawlers. (웹사이트-크롤러간 소통표준)
+ - robots.txt file has a page list that crawlers are allowed to download.
+ - To avoid repeat downloads of robots.txt file, we cache the results of the file.
+
+example) robots.txt file - https://www.amazon.com/robots.txt.
+   Some of the directories like creatorhub are disallowed for Google bot.
+   User-agent: Googlebot
+   Disallow: /creatorhub/*
+   Disallow: /rss/people/*/reviews
+   Disallow: /gp/pdp/rss/*/reviews
+   Disallow: /gp/cdp/member-reviews/
+   Disallow: /gp/aw/cr/
 ```
-2. Cache DNS Resolver
+
+#### b. Performance optimization
+b-1. Distributed crawl(분산크롤링)
+```
+- To achieve high performance, crawl jobs are distributed into multiple servers (크롤링의 성능향상위한 서버분산방식)
+- Each server runs multiple threads. (여러서버의 여러쓰레드 작업처리)
+- The URL space is partitioned into smaller pieces; so, each downloader is responsible for a subset of the URLs.(URL space를 작은 단위화 후 각 서버가 담당)
+Figure 9-9
+```
 ![f9-9](img/fg9-9.jpg)
+
+b-2. Cache DNS Resolver
 ```
 DNS Resolver is a bottleneck for crawlers because DNS requests might take time due to the synchronous nature of many DNS interfaces.
-DNS response time ranges from 10ms to 200ms. Once a request to DNS is carried out by a crawler thread, other threads are blocked until the first request is completed.
+DNS response time ranges from 10ms to 200ms.
+Once a request to DNS is carried out by a crawler thread, other threads are blocked until the first request is completed.
 Maintaining our DNS cache to avoid calling DNS frequently is an effective technique for speed optimization.
 Our DNS cache keeps the domain name to IP address mapping and is updated periodically by cron jobs.
 ```
-3. Locality
+
+b-3. Locality
 ```
-Distribute crawl servers geographically. When crawl servers are closer to website hosts, 
-crawlers experience faster download time. Design locality applies to most of the system 
-components: crawl servers, cache, queue, storage, etc.
+Distribute crawl servers geographically. ( 크롤링수행서버 지역별 분산화)
+When crawl servers are closer to website hosts, crawlers experience faster download time.(crawl servers, cache, queue, storage, etc.)
 ```
-4. Short timeout
+b-4. Short timeout
 ```
 Some web servers respond slowly or may not respond at all. To avoid long wait time, a maximal wait time is specified.
 If a host does not respond within a predefined time, the crawler will stop the job and crawl some other pages.
