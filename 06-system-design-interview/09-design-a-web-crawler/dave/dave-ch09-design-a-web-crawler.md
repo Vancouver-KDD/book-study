@@ -344,46 +344,44 @@ When crawl servers are closer to website hosts, crawlers experience faster downl
 ```
 b-4. Short timeout
 ```
-Some web servers respond slowly or may not respond at all. To avoid long wait time, a maximal wait time is specified.
-If a host does not respond within a predefined time, the crawler will stop the job and crawl some other pages.
+- To avoid long wait time, a maximal wait time is specified.
+  If a host does not respond within a predefined time, the crawler will stop the job and crawl some other pages.
 ```
-### (4) Robustness
+
+### (4) Robustness(안정성)
 ```
-Besides performance optimization, robustness is also an important consideration.
-We present a few approaches to improve the system robustness:
-• Consistent hashing: This helps to distribute loads among downloaders.
-   A new downloader server can be added or removed using consistent hashing.
-   Refer to Chapter 5: Design consistent hashing for more details.
-• Save crawl states and data: To guard against failures, crawl states and data are written to a storage system.
+• Consistent hashing:
+   - To distribute loads among downloaders.(다운로더 서버부하 분산)
+   A new downloader server can be added or removed using consistent hashing(Chapter 5).
+• Save crawl states and data:
+   To guard against failures, crawl states and data are written to a storage system. (장애복구 대비, 크롤링 상태/데이터 저장)
    A disrupted crawl can be restarted easily by loading saved states and data.
-• Exception handling: Errors are inevitable and common in a large-scale system.
-   The crawler must handle exceptions gracefully without crashing the system.
-• Data validation: This is an important measure to prevent system errors.
+• Exception handling:
+   The crawler must handle exceptions gracefully without crashing the system.(장애 시 정상동작)
+• Data validation:
+   This is an important measure to prevent system errors. (오류방지위한 데이터검증)
 ```
+
 ### (5) Extensibility
 ```
-As almost every system evolves, one of the design goals is to make the system flexible enough to support new content types.
-The crawler can be extended by plugging in new modules. Figure 9-10 shows how to add new modules.
-```
-![f9-10](img/fg9-10.jpg)
-```
+The system should be flexible enough to support new content types.
 • PNG Downloader module is plugged-in to download PNG files.
 • Web Monitor module is added to monitor the web and prevent copyright and trademark infringements.
 ```
-### (6) Detect and avoid problematic content
+![f9-10](img/fg9-10.jpg)
+
+
+### (6) Detect and avoid problematic content 
+
 ```
-This section discusses the detection and prevention of redundant, meaningless, or harmful 
-content.
-1. Redundant content
+1. Redundant content(중복컨텐츠)
    As discussed previously, nearly 30% of the web pages are duplicates. Hashes or checksums help to detect duplication [11].
 2. Spider traps
-A spider trap is a web page that causes a crawler in an infinite loop. For instance, an infinite deep directory structure is listed as follows:
-www.spidertrapexample.com/foo/bar/foo/bar/foo/bar/…
-Such spider traps can be avoided by setting a maximal length for URLs. However, no one-size-fits-all solution exists to detect spider traps.
-Websites containing spider traps are easy to identify due to an unusually large number of web pages discovered on such websites.
-It is hard to develop automatic algorithms to avoid spider traps;
-however, a user can manually verify and identify a spider trap, and either exclude those websites from the crawler or apply some customized URL filters.
+   A spider trap is a web page that causes a crawler in an infinite loop.
+   example) www.spidertrapexample.com/foo/bar/foo/bar/foo/bar/…
+
+   - Setting a maximal length for URLs. However, no 만능 솔루션
+   - A user can manually verify and identify a spider trap, and either exclude those websites from the crawler or apply some customized URL filters.
 3. Data noise
-Some of the contents have little or no value, such as advertisements, code snippets, spam URLs, etc.
-Those contents are not useful for crawlers and should be excluded if possible.
+   No value 컨텐츠 제외 i.e. advertisements, code snippets, spam URLs, etc.
 ```
