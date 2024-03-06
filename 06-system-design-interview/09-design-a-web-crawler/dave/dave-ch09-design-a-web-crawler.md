@@ -218,11 +218,11 @@ Two common graph traversal algorithms
 - BFS(Common and is implemented by a first-in-first-out (FIFO)
 
 <Two problems of BFS>
-• Most links from the same web page are linked back to the same host.
+• Most links from the same web page are linked back to the same host.(같은 호스트내 traversal 접근 -> 부하발생)
  example) Figure 9-5, 
    “impolite”: When the crawler tries to download web pages in parallel,  the same host (wikipedia.com) servers will be flooded with requests.
 
-• Standard BFS does not take the priority of a URL into consideration.
+• Standard BFS does not take the priority of a URL into consideration.(no priority)
    The web is large and *NOT* every page has the same level of quality and importance.
    Therefore, we may want to prioritize URLs according to their page ranks, web traffic, update frequency, etc.
 ```
