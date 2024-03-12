@@ -46,14 +46,16 @@ Three components to send an iOS push notification:
 ```
 ![ex10-2.jpg](img/ex10-2.jpg)
 ```
-• APNS: This is a remote service provided by Apple to propagate push notifications to iOS 
-devices.
-• iOS Device: It is the end client, which receives push notifications.
+  • APNS: This is a remote service provided by Apple to propagate push notifications to iOS devices.
+  • iOS Device: It is the end client, which receives push notifications.
 ```
 
 #### a. iOS push notification
+
 ![fg10-2](img/fg10-2.jpg)
+
 #### b. Android push notification
+
 Android adopts a similar notification flow. 
 
 Instead of using APNs, Firebase Cloud Messaging (FCM) is commonly used to send push notifications to android devices.
@@ -108,26 +110,25 @@ Design, and each system component (figure 10-9)
 Service 1 to N: 
 ```
 A service can be a micro-service, a cron job, or a distributed system that triggers notification sending events.
-For example, a billing service sends emails to remind customers of their due payment or
+For example, a billing service sends emails to remind customers of their due payment or 
 a shopping website tells customers that their packages will be delivered tomorrow via SMS messages.
 ```
 
 Notification system:
 ```
-The notification system is the centerpiece of sending/receiving 
-notifications. Starting with something simple, only one notification server is used. It provides 
-APIs for services 1 to N, and builds notification payloads for third party services.
+The notification system is the centerpiece of sending/receiving notifications.
+Starting with something simple, only one notification server is used.
+It provides APIs for services 1 to N, and builds notification payloads for third party services.
 ```
 
 Third-party services: 
 ```
-Third party services are responsible for delivering notifications to 
-users. While integrating with third-party services, we need to pay extra attention to 
-extensibility. Good extensibility means a flexible system that can easily plugging or 
-unplugging of a third-party service. Another important consideration is that a third-party 
-service might be unavailable in new markets or in the future. For instance, FCM is 
-unavailable in China. Thus, alternative third-party services such as Jpush, PushY, etc are used 
-there.
+Third party services are responsible for delivering notifications to users.
+While integrating with third-party services, we need to pay extra attention to extensibility.
+Good extensibility means a flexible system that can easily plugging or unplugging of a third-party service.
+Another important consideration is that a third-party service might be unavailable in new markets or in the future.
+For instance, FCM is unavailable in China.
+Thus, alternative third-party services such as Jpush, PushY, etc are used there.
 ```
 
 iOS, Android, SMS, Email: 
@@ -138,21 +139,19 @@ Users receive notifications on their devices.
 Three problems 
 ```
 • Single point of failure (SPOF): A single notification server means SPOF.
-• Hard to scale: The notification system handles everything related to push notifications in 
-one server. It is challenging to scale databases, caches, and different notification 
-processing components independently.
+• Hard to scale: The notification system handles everything related to push notifications in one server.
+                 It is challenging to scale databases, caches, and different notification processing components independently.
 • Performance bottleneck: Processing and sending notifications can be resource intensive. 
-For example, constructing HTML pages and waiting for responses from third party 
-services could take time. Handling everything in one system can result in the system 
-overload, especially during peak hours.
+                  For example, constructing HTML pages and waiting for responses from third party services could take time.
+                  Handling everything in one system can result in the system overload, especially during peak hours.
 ```
 
 High-level design (improved) figure10-10
 ```
 After enumerating challenges in the initial design, we improve the design as listed below:
-• Move the database and cache out of the notification server.
-• Add more notification servers and set up automatic horizontal scaling.
-• Introduce message queues to decouple the system components.
+  • Move the database and cache out of the notification server.
+  • Add more notification servers and set up automatic horizontal scaling.
+  • Introduce message queues to decouple the system components.
 ```
 
 ![fg10-10](img/fg10-10.jpg)
@@ -195,17 +194,16 @@ It stores data about user, notification, settings, etc.
 
 Message queues: 
 ```
-They remove dependencies between components. Message queues serve as 
-buffers when high volumes of notifications are to be sent out.
+They remove dependencies between components.
+Message queues serve as buffers when high volumes of notifications are to be sent out.
 Each notification type is assigned with a distinct message queue
-so an outage in one third-party service will not affect other notification types.
+  so an outage in one third-party service will not affect other notification types.
 ```
 
 Workers: 
 ```
-Workers are a list of servers that pull notification events from message queues and 
-send them to the corresponding third-party services.
-```
+Workers are a list of servers that pull notification events from message queues and send them to the corresponding third-party services.
+```  
 
 Third-party services: 
 ```
@@ -225,13 +223,15 @@ Next, let us examine how every component works together to send a notification:
 
 ## Step 3 - Design deep dive
 ```
-In the high-level design, we discussed different types of notifications, contact info gathering 
-flow, and notification sending/receiving flow. We will explore the following in deep dive:
-• Reliability.
-• Additional component and considerations: notification template, notification settings, 
-rate limiting, retry mechanism, security in push notifications, monitor queued notifications 
-and event tracking.
-• Updated design.
+In the high-level design, we discussed different types of notifications, contact info gathering flow, and notification sending/receiving flow.
+
+We will explore the following in deep dive:
+  • Reliability.
+  • Additional component and considerations:
+        notification template, notification settings,
+        rate limiting, retry mechanism, security in push notifications,
+        monitor queued notifications and event tracking.
+  • Updated design.
 ```
 
 ### Reliability
@@ -268,68 +268,64 @@ Here we discuss additional components
 
 #### Notification template
 ```
-A large notification system sends out millions of notifications per day, and many of these 
-notifications follow a similar format. Notification templates are introduced to avoid building 
-every notification from scratch. A notification template is a preformatted notification to 
-create your unique notification by customizing parameters, styling, tracking links, etc. Here is 
-an example template of push notifications.
+A large notification system sends out millions of notifications per day, and many of these notifications follow a similar format.
+Notification templates are introduced to avoid building every notification from scratch.
+A notification template is a preformatted notification to create your unique notification by customizing parameters, styling, tracking links, etc.
+Here is an example template of push notifications.
 BODY:
-You dreamed of it. We dared it. [ITEM NAME] is back — only until [DATE]. 
+  You dreamed of it. We dared it. [ITEM NAME] is back — only until [DATE]. 
 CTA:
-Order Now. Or, Save My [ITEM NAME]
-The benefits of using notification templates include maintaining a consistent format, reducing 
-the margin error, and saving time.
+  Order Now. Or, Save My [ITEM NAME]
+The benefits of using notification templates include maintaining a consistent format, reducing the margin error, and saving time.
 ```
 
 #### Notification setting
 ```
-Users generally receive way too many notifications daily and they can easily feel 
-overwhelmed. Thus, many websites and apps give users fine-grained control over notification 
-settings. This information is stored in the notification setting table, with the following fields:
-user_id   bigInt
-channel varchar   # push notification, email or SMS 
-opt_in   boolean    # opt-in to receive notification
-Before any notification is sent to a user, we first check if a user is opted-in to receive this type 
-of notification.
+Users generally receive way too many notifications daily and they can easily feel overwhelmed.
+Thus, many websites and apps give users fine-grained control over notification settings.
+This information is stored in the notification setting table, with the following fields:
+  user_id   bigInt
+  channel varchar   # push notification, email or SMS 
+  opt_in   boolean    # opt-in to receive notification
+Before any notification is sent to a user, we first check if a user is opted-in to receive this type of notification.
 ```
 
 
 #### Rate limiting
 ```
-To avoid overwhelming users with too many notifications, we can limit the number of 
-notifications a user can receive. This is important because receivers could turn off 
-notifications completely if we send too often.
+To avoid overwhelming users with too many notifications, we can limit the number of notifications a user can receive.
+This is important because receivers could turn off notifications completely if we send too often.
 ```
 
 #### Retry mechanism
 ```
-When a third-party service fails to send a notification, the notification will be added to the 
-message queue for retrying. If the problem persists, an alert will be sent out to developers.
+When a third-party service fails to send a notification, the notification will be added to the message queue for retrying.
+If the problem persists, an alert will be sent out to developers.
 ```
 
 #### Security in push notifications
 ```
-For iOS or Android apps, appKey and appSecret are used to secure push notification APIs 
-[6]. Only authenticated or verified clients are allowed to send push notifications using our 
-APIs. Interested users should refer to the reference material [6].
+For iOS or Android apps, appKey and appSecret are used to secure push notification APIs.
+Only authenticated or verified clients are allowed to send push notifications using our APIs.
+Interested users should refer to the reference material.
 ```
 
 #### Monitor queued notifications
 ```
-A key metric to monitor is the total number of queued notifications. If the number is large, 
-the notification events are not processed fast enough by workers. To avoid delay in the 
-notification delivery, more workers are needed. Figure 10-12 (credit to [7]) shows an 
-example of queued messages to be processed.
+A key metric to monitor is the total number of queued notifications.
+If the number is large, the notification events are not processed fast enough by workers.
+To avoid delay in the notification delivery, more workers are needed.
+Figure 10-12 (credit to [7]) shows an example of queued messages to be processed.
 ```
 
 ![fg10-12](img/fg10-12.jpg)
 
 #### Events tracking
 ```
-Notification metrics, such as open rate, click rate, and engagement are important in 
-understanding customer behaviors. Analytics service implements events tracking. Integration 
-between the notification system and the analytics service is usually required. Figure 10-13
-shows an example of events that might be tracked for analytics purposes.
+Notification metrics, such as open rate, click rate, and engagement are important in understanding customer behaviours.
+Analytics service implements events tracking.
+Integration between the notification system and the analytics service is usually required.
+Figure 10-13 shows an example of events that might be tracked for analytics purposes.
 ```
 
 ![fg10-13](img/fg10-13.jpg)
