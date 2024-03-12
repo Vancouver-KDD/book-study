@@ -218,11 +218,11 @@ Two common graph traversal algorithms
 - BFS(Common and is implemented by a first-in-first-out (FIFO)
 
 <Two problems of BFS>
-• Most links from the same web page are linked back to the same host.
+• Most links from the same web page are linked back to the same host.(같은 호스트내 traversal 접근 -> 부하발생)
  example) Figure 9-5, 
    “impolite”: When the crawler tries to download web pages in parallel,  the same host (wikipedia.com) servers will be flooded with requests.
 
-• Standard BFS does not take the priority of a URL into consideration.
+• Standard BFS does not take the priority of a URL into consideration.(no priority)
    The web is large and *NOT* every page has the same level of quality and importance.
    Therefore, we may want to prioritize URLs according to their page ranks, web traffic, update frequency, etc.
 ```
@@ -232,37 +232,39 @@ Two common graph traversal algorithms
 ```
 URL frontier to address these problems(politeness/URL prioritization/freshness)
 ```
+URL frontier에 대한 주목할 만한 몇 가지 논문 내용
 
-##### a. Politeness
+##### a. _Politeness_ of the URL frontier
 ```
 The general idea
  - For the same host, downloading one page at a time 
  - For the same host, a delay can be added between two download tasks.
  - Each downloader(worker) thread has a separate FIFO queue and only downloads URLs obtained from that queue(Same host).
+   (Downloader(worker) thread의 별도 FIFO queue 통해 주어지는 URL만 다운로드)
 Figure 9-6
 ```
 ![f9-6](img/fg9-6.jpg)
 ```
-• Queue router: It ensures that each queue (b1, b2, … bn) only contains URLs from the same host. 같은 호스트 같은 큐 보장역할
-• Mapping table: It maps each host to a queue. 관계보관테이블
+• Queue router: It ensures that each queue (b1, b2, … bn) only contains URLs from the same host. 같은 호스트내 URLs은 지정된 queue로만 가도록 보장
+• Mapping table: It maps each host to a queue. /mapping정보보관
 ```
 ![t9-1](img/t9-1.jpg)
 ```
-• FIFO queues b1, b2 to bn: Each queue contains URLs from the same host. 즉, 같은 호스트 같은 큐
+• FIFO queues b1, b2 to bn: Each queue contains URLs from the same host. 즉, 같은 호스트내 URLs은 지정된 queue
 • Queue selector: Each worker thread is mapped to a FIFO queue, and it only downloads URLs from that queue.
                   The queue selection logic is done by the Queue selector.
-                  큐들을 순회하면서 URL을 꺼내서 해당 URL을 다운로드하도록 지정된 작업 스레드에 전달   
+                  큐들을 순회하면서 URL을 꺼내서 오직 그 해당 URL을 다운로드하도록 지정된 작업 스레드에 전달   
 • Worker thread 1 to N: A worker thread downloads web pages one by one from the same host.(A delay can be added) 다운로드 작업수행
 ```
 
-##### b. Priority
+##### b. _Priority_ of the URL frontier
 ```
-“Prioritizer” is the component that handles URL prioritization.
+“Prioritizer” is the component that handles URL prioritization. URL 우선순위 결정 컴포넌트
 We prioritize URLs based on usefulness, which can be measured by PageRank [10], website 
 traffic, update frequency, etc.
 Figure 9-7 
 
-• Prioritizer: It takes URLs as input and computes the priorities.
+• Prioritizer: It takes URLs as input and computes the priorities. URL입력받아 우선순위계산
 • Queue f1 to fn: Each queue has an assigned priority. Queues with high priority are selected with higher probability.
                   우선순위별로 큐 하나씩 할당. 우선순위 up, 선택될 확률 up
 • Queue selector: Randomly choose a queue with a bias towards queues with higher priority.임의 큐에서 처리할 URL을 꺼내는 역할
@@ -278,7 +280,7 @@ Figure 9-8 URL frontier design
 ![f9-8](img/fg9-8.jpg)
 
 
-##### c. Freshness
+##### c. _Freshness_ of the URL frontier
 ```
 Web pages are constantly being added, deleted, and edited.
 A web crawler must periodically recrawl downloaded pages to keep our data set fresh.
@@ -305,8 +307,8 @@ The HTML Downloader downloads web pages from the internet using the HTTP protoco
 #### a. Robots.txt(Robots Exclusion Protocol)
 ```
 Robots.txt(Robots Exclusion Protocol) is a standard to communicate with crawlers. (웹사이트-크롤러간 소통표준)
- - robots.txt file has a page list that crawlers are allowed to download.
- - To avoid repeat downloads of robots.txt file, we cache the results of the file.
+ - robots.txt file has a page list that crawlers are allowed to download.(파일내 크롤러 수집허용 페이지 목록)
+ - To avoid repeat downloads of robots.txt file, we cache the results of the file.(파일 캐시보관하여 반복 다운로드 제거)
 
 example) robots.txt file - https://www.amazon.com/robots.txt.
    Some of the directories like creatorhub are disallowed for Google bot.
@@ -330,6 +332,8 @@ Figure 9-9
 
 b-2. Cache DNS Resolver
 ```
+Domain name 변환기의 요청/수령 동기화특성에 따른 bottleneck 문제를 DNS 조회를 통한 Domain name/ ip를 캐시에 보관하여 성능 up
+
 DNS Resolver is a bottleneck for crawlers because DNS requests might take time due to the synchronous nature of many DNS interfaces.
 DNS response time ranges from 10ms to 200ms.
 Once a request to DNS is carried out by a crawler thread, other threads are blocked until the first request is completed.
@@ -344,46 +348,45 @@ When crawl servers are closer to website hosts, crawlers experience faster downl
 ```
 b-4. Short timeout
 ```
-Some web servers respond slowly or may not respond at all. To avoid long wait time, a maximal wait time is specified.
-If a host does not respond within a predefined time, the crawler will stop the job and crawl some other pages.
+- To avoid long wait time, a maximal wait time is specified. (타임아웃 대비, delay 허용시간setup 후 초과 시 다음 페이지)
+  If a host does not respond within a predefined time, the crawler will stop the job and crawl some other pages.
 ```
-### (4) Robustness
+
+### (4) Robustness(안정성)
 ```
-Besides performance optimization, robustness is also an important consideration.
-We present a few approaches to improve the system robustness:
-• Consistent hashing: This helps to distribute loads among downloaders.
-   A new downloader server can be added or removed using consistent hashing.
-   Refer to Chapter 5: Design consistent hashing for more details.
-• Save crawl states and data: To guard against failures, crawl states and data are written to a storage system.
+• Consistent hashing:
+   - To distribute loads among downloaders.(다운로더 서버부하 분산)
+   A new downloader server can be added or removed using consistent hashing(Chapter 5).
+• Save crawl states and data:
+   To guard against failures, crawl states and data are written to a storage system. (장애복구 대비, 크롤링 상태/데이터 저장)
    A disrupted crawl can be restarted easily by loading saved states and data.
-• Exception handling: Errors are inevitable and common in a large-scale system.
-   The crawler must handle exceptions gracefully without crashing the system.
-• Data validation: This is an important measure to prevent system errors.
+• Exception handling:
+   The crawler must handle exceptions gracefully without crashing the system.(장애 시 정상동작)
+• Data validation:
+   This is an important measure to prevent system errors. (오류방지위한 데이터검증)
 ```
+
 ### (5) Extensibility
 ```
-As almost every system evolves, one of the design goals is to make the system flexible enough to support new content types.
-The crawler can be extended by plugging in new modules. Figure 9-10 shows how to add new modules.
-```
-![f9-10](img/fg9-10.jpg)
-```
+(신규 컨텐트 수용 가능토록 유연하게)
+The system should be flexible enough to support new content types.
 • PNG Downloader module is plugged-in to download PNG files.
 • Web Monitor module is added to monitor the web and prevent copyright and trademark infringements.
 ```
-### (6) Detect and avoid problematic content
+![f9-10](img/fg9-10.jpg)
+
+
+### (6) Detect and avoid problematic content 
+
 ```
-This section discusses the detection and prevention of redundant, meaningless, or harmful 
-content.
-1. Redundant content
+1. Redundant content(중복컨텐츠 고려)
    As discussed previously, nearly 30% of the web pages are duplicates. Hashes or checksums help to detect duplication [11].
-2. Spider traps
-A spider trap is a web page that causes a crawler in an infinite loop. For instance, an infinite deep directory structure is listed as follows:
-www.spidertrapexample.com/foo/bar/foo/bar/foo/bar/…
-Such spider traps can be avoided by setting a maximal length for URLs. However, no one-size-fits-all solution exists to detect spider traps.
-Websites containing spider traps are easy to identify due to an unusually large number of web pages discovered on such websites.
-It is hard to develop automatic algorithms to avoid spider traps;
-however, a user can manually verify and identify a spider trap, and either exclude those websites from the crawler or apply some customized URL filters.
+2. Spider traps (무한 루프 함정)
+   A spider trap is a web page that causes a crawler in an infinite loop.
+   example) www.spidertrapexample.com/foo/bar/foo/bar/foo/bar/…
+
+   - Setting a maximal length for URLs. However, no 만능 솔루션
+   - A user can manually verify and identify a spider trap, and either exclude those websites from the crawler or apply some customized URL filters.
 3. Data noise
-Some of the contents have little or no value, such as advertisements, code snippets, spam URLs, etc.
-Those contents are not useful for crawlers and should be excluded if possible.
+   No value 컨텐츠 제외 i.e. advertisements, code snippets, spam URLs, etc.
 ```
