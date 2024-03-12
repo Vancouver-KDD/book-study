@@ -102,6 +102,7 @@ Propose some optimizations.
 
 #### High-level design
 Design, and each system component (figure 10-9)
+
 ![fg10-9](img/fg10-9.jpg)
 
 Service 1 to N: 
@@ -117,6 +118,7 @@ The notification system is the centerpiece of sending/receiving
 notifications. Starting with something simple, only one notification server is used. It provides 
 APIs for services 1 to N, and builds notification payloads for third party services.
 ```
+
 Third-party services: 
 ```
 Third party services are responsible for delivering notifications to 
@@ -127,6 +129,7 @@ service might be unavailable in new markets or in the future. For instance, FCM 
 unavailable in China. Thus, alternative third-party services such as Jpush, PushY, etc are used 
 there.
 ```
+
 iOS, Android, SMS, Email: 
 ```
 Users receive notifications on their devices.
@@ -162,6 +165,7 @@ Service 1 to N:
 ```
 They represent different services that send notifications via APIs provided by notification servers.
 ```
+
 Notification servers: 
 ```
 They provide the following functionalities:
@@ -175,17 +179,20 @@ Example of the API to send an email:
 ```
 POST https://api.example.com/v/sms/send 
 Request body
-
 ```
+
 ![ex10-10](img/ex10-10.jpg)
+
 Cache: 
 ```
 User info, device info, notification templates are cached.
 ```
+
 DB: 
 ```
 It stores data about user, notification, settings, etc.
 ```
+
 Message queues: 
 ```
 They remove dependencies between components. Message queues serve as 
@@ -193,11 +200,13 @@ buffers when high volumes of notifications are to be sent out.
 Each notification type is assigned with a distinct message queue
 so an outage in one third-party service will not affect other notification types.
 ```
+
 Workers: 
 ```
 Workers are a list of servers that pull notification events from message queues and 
 send them to the corresponding third-party services.
 ```
+
 Third-party services: 
 ```
 Already explained in the initial design. 
@@ -234,6 +243,7 @@ Notifications can usually be delayed or re-ordered, but never lost.
 To satisfy this requirement, the notification system persists notification data in a database and implements a retry mechanism.
 The notification log database is included for data persistence. - Figure 10-11.
 ```
+
 ![fg10-11](img/fg10-11.jpg)
 
 #### Will recipients receive a notification exactly once?
@@ -244,8 +254,7 @@ Here is a simple dedupe logic:
   When a notification event first arrives, we check if it is seen before by checking the event ID. 
   If it is seen before, it is discarded. Otherwise, we will send out the notification.
   For interested,
-    readers to explore why we cannot have exactly once delivery, refer to the reference material 
-[5].
+    readers to explore why we cannot have exactly once delivery, refer to the reference material
 ```
 
 ### Additional components and considerations
@@ -291,17 +300,20 @@ To avoid overwhelming users with too many notifications, we can limit the number
 notifications a user can receive. This is important because receivers could turn off 
 notifications completely if we send too often.
 ```
+
 #### Retry mechanism
 ```
 When a third-party service fails to send a notification, the notification will be added to the 
 message queue for retrying. If the problem persists, an alert will be sent out to developers.
 ```
+
 #### Security in push notifications
 ```
 For iOS or Android apps, appKey and appSecret are used to secure push notification APIs 
 [6]. Only authenticated or verified clients are allowed to send push notifications using our 
 APIs. Interested users should refer to the reference material [6].
 ```
+
 #### Monitor queued notifications
 ```
 A key metric to monitor is the total number of queued notifications. If the number is large, 
@@ -309,6 +321,7 @@ the notification events are not processed fast enough by workers. To avoid delay
 notification delivery, more workers are needed. Figure 10-12 (credit to [7]) shows an 
 example of queued messages to be processed.
 ```
+
 ![fg10-12](img/fg10-12.jpg)
 
 #### Events tracking
@@ -318,11 +331,14 @@ understanding customer behaviors. Analytics service implements events tracking. 
 between the notification system and the analytics service is usually required. Figure 10-13
 shows an example of events that might be tracked for analytics purposes.
 ```
+
 ![fg10-13](img/fg10-13.jpg)
 
 ### Updated design
+
 ![fg10-14](img/fg10-14.jpg)
 ```
+
 Putting everything together, Figure 10-14 shows the updated notification system design.
 In this design, many new components are added in comparison with the previous design.
   • The notification servers are equipped with two more critical features: authentication and rate-limiting.
