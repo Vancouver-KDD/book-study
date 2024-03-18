@@ -30,9 +30,9 @@ Here is a summary of the requirements:
 • Assume 10 million daily active users (DAU).
 • An average person performs 10 searches per day.
 • 20 bytes of data per query string:
-• Assume we use ASCII character encoding. 1 character = 1 byte
-• Assume a query contains 4 words, and each word contains 5 characters on average.
-• That is 4 x 5 = 20 bytes per query.
+  • Assume we use ASCII character encoding. 1 character = 1 byte
+  • Assume a query contains 4 words, and each word contains 5 characters on average.
+  • That is 4 x 5 = 20 bytes per query.
 • For every character entered into the search box, a client sends a request to the backend for autocomplete suggestions.
   On average, 20 requests are sent for each search query.
   For example, the following 6 requests are sent to the backend by the time you finish typing 
