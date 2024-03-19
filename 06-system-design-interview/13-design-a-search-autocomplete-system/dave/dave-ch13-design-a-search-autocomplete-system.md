@@ -167,28 +167,30 @@ The time complexity of this algorithm is the sum of time spent on each step ment
   -> O(p) + O(c) + O(clogc)
 The above algorithm is straightforward.
 However, it is too slow because we need to traverse the entire trie to get top k results in the worst-case scenario.
-Below are two optimizations:
-  1. Limit the max length of a prefix
-  2. Cache top search queries at each node 
-Let us look at these optimizations one by one.
+
+🙋‍♂️ Below are two optimizations:
+  a. Limit the max length of a prefix
+  b. Cache top search queries at each node 
 ```
 
-#### Limit the max length of a prefix
+#### a. Limit the max length of a prefix
 ```
 Users rarely type a long search query into the search box.
 Thus, it is safe to say p is a small integer number, say 50.
 If we limit the length of a prefix,
   the time complexity for “Find the prefix” can be reduced from O(p) to O(small constant), aka O(1).
 ```
-#### Cache top search queries at each node
+#### b. Cache top search queries at each node
 ```
 To avoid traversing the whole trie, we store top k most frequently used queries at each node. 
 Since 5 to 10 autocomplete suggestions are enough for users, k is a relatively small number. 
 In our specific case, only the top 5 search queries are cached.
 By caching top search queries at every node, we significantly reduce the time complexity to retrieve the top 5 queries.
-However, this design requires a lot of space to store top queries at every node.
+
+🥵 However, this design requires a lot of space to store top queries at every node.
 Trading space for time is well worth it as fast response time is very important.
 Figure 13-8 shows the updated trie data structure.
+
 Top 5 queries are stored on each node.
 For example, the node with prefix “be” stores the following: [best: 35, bet: 29, bee: 20, be: 15, beer: 10].
 ```
@@ -219,43 +221,53 @@ Figure 13-9 shows the redesigned data gathering service. Each component is exami
 ```
 ![fg13-9](img/fg13-9.jpg)
 
+a. Analytics Logs:
 ```
-Analytics Logs:
   It stores raw data about search queries. Logs are append-only and are not indexed. Table 13-3 shows an example of the log file
 ```
 ![t13-3](img/t13-3.jpg)
+
+b. Aggregators(취합서버):
 ```
-Aggregators:
-  The size of analytics logs is usually very large, and data is not in the right format.
-  We need to aggregate data so it can be easily processed by our system.
+  The size of analytics logs is usually very large, and data is not in the right format. (분석데이터 보통 대용량 & 다양한 형식)
+  We need to aggregate data so it can be easily processed by our system. ( 목적에 따라 손쉬운 가공을 위한 취합요)
   Depending on the use case, we may aggregate data differently.
   For real-time applications such as Twitter, we aggregate data in a shorter time interval as real-time results are important. 
-  On the other hand, aggregating data less frequently, say once per week, might be good enough for many use cases.
-  During an interview session, verify whether real-time results are important. We assume trie is rebuilt weekly.
-Aggregated Data:
-  Table 13-4 shows an example of aggregated weekly data.
-  “time” field represents the start time of a week.
-  “frequency” field is the sum of the occurrences for the corresponding query in that week.
+  On the other hand, aggregating data less frequently, say once per week, might be good enough for many use cases. (인터뷰 시 실시간 취합? 주기적 취합? 확인 중요)
+  During an interview session, verify whether real-time results are important. We assume trie is rebuilt weekly. (주당 취합으로 가정한다)
 ```
+
+
+c. Aggregated Data(Table 13-4):
+```
+  Time: the start time of a week.
+  Frequency: the sum of the occurrences for the corresponding query in that week.
+```
+
 ![t13-4](img/t13-4.jpg)
+
+d. Workers(작업서버):
 ```
-Workers:
-  Workers are a set of servers that perform asynchronous jobs at regular intervals. 
-  They build the trie data structure and store it in Trie DB.
-Trie Cache:
+  Workers are a set of servers that perform #asynchronous# jobs at regular intervals. (주기적 비동기수행서버)
+  They build the trie data structure and store it in Trie DB.(데이터구조 생성 및 저장)
+```
+e. Trie Cache:
+```
   Trie Cache is a distributed cache system that keeps trie in memory for fast read. 
-  It takes a weekly snapshot of the DB.
-Trie DB:
-  Trie DB is the persistent storage. Two options are available to store the data:
-  1. Document store: Since a new trie is built weekly, we can periodically take a snapshot of it, 
-  serialize it, and store the serialized data in the database. Document stores like MongoDB [4] 
-  are good fits for serialized data.
-  2. Key-value store: A trie can be represented in a hash table form [4] by applying the following logic:
-  • Every prefix in the trie is mapped to a key in a hash table.
-  • Data on each trie node is mapped to a value in a hash table. 
-Figure 13-10 shows the mapping between the trie and hash table.
-In Figure 13-10, each trie node on the left is mapped to the <key, value> pair on the right.
-If you are unclear how key-value stores work, refer to Chapter 6: Design a key-value store.
+  It takes a weekly snapshot of the DB. (주별 스냅샷 갱신)
+```
+f. Trie DB:
+```
+  Trie DB is the persistent storage.
+  <Two options>
+  1. Document store: (MongoDB... / XML, YAML, JSON..., etc formats)
+                     Since a new trie is built weekly, we can periodically take a snapshot of it, serialize it, and store the serialized data in the database.
+                      
+  2. Key-value store (Chapter 6):
+                     By applying the following logic
+                      • Every prefix in the trie is mapped to a key in a hash table.
+                      • Data on each trie node is mapped to a value in a hash table. 
+                    Figure 13-10:  mapping between the trie and hash table.
 ```
 ![fg13-10](img/fg13-10.jpg)
 
@@ -263,59 +275,82 @@ If you are unclear how key-value stores work, refer to Chapter 6: Design a key-v
 
 ![fg13-11](img/fg13-11.jpg)
 ```
-In the high-level design, query service calls the database directly to fetch the top 5 results. 
-Figure 13-11 shows the improved design as previous design is inefficient.
+In the high-level design, the query service calls the database directly to fetch the top 5 results. 
+
+Figure 13-11: the improved design as the previous design is inefficient.
 
   1. A search query is sent to the load balancer.
   2. The load balancer routes the request to API servers.
-  3. API servers get trie data from Trie Cache and construct autocomplete suggestions for 
-  the client.
-  4. In case the data is not in Trie Cache, we replenish data back to the cache. This way, all 
-  subsequent requests for the same prefix are returned from the cache. A cache miss can 
-  happen when a cache server is out of memory or offline.
-Query service requires lightning-fast speed. We propose the following optimizations:
-  • AJAX request. For web applications, browsers usually send AJAX requests to fetch 
-  autocomplete results. The main benefit of AJAX is that sending/receiving a 
-  request/response does not refresh the whole web page.
-  • Browser caching. For many applications, autocomplete search suggestions may not 
-  change much within a short time. Thus, autocomplete suggestions can be saved in browser 
-  cache to allow subsequent requests to get results from the cache directly. Google search 
-  engine uses the same cache mechanism. Figure 13-12 shows the response header when 
-  you type “system design interview” on the Google search engine. As you can see, Google
-  caches the results in the browser for 1 hour. Please note: “private” in cache-control means 
-  results are intended for a single user and must not be cached by a shared cache. “max- 
-  age=3600” means the cache is valid for 3600 seconds, aka, an hour.
+  3. API servers get trie data from Trie Cache and construct autocomplete suggestions for the client.
+  4. In case the data is not in Trie Cache, we replenish data back to the cache. (트라이캐시에 없을땐 DB서 가져와서 캐시에 더함)
+
+  This way, all subsequent requests for the same prefix are returned from the cache. 이방식으로 차후요청은 캐시로 부터 충족
+  A cache miss(캐시 부적중 <-> cache hit) can happen when a cache server is out of memory or offline.
+     (Then, data should be replenished from the DB back to the cache.)
+```
+Query service requires lightning-fast speed.
+
+<Three proposed optimizations>
+
+(a) AJAX request. 
+```
+For web applications, browsers usually send AJAX requests to fetch autocomplete results.
+The main benefit of AJAX is that sending/receiving a request/response does not refresh the whole web page.
+```
+
+(b) Browser caching (i.e. Google search engine).
+```
+For many applications, autocomplete search suggestions may not change much within a short time.
+Thus, autocomplete suggestions can be saved in browser cache to allow subsequent requests to get results from the cache directly.
+
+Figure 13-12: the response header when you type “system design interview” on the Google search engine.
+As you can see, Google caches the results in the browser for 1 hour.
+Please note: “private” in cache-control means results are intended for a single user and must not be cached by a shared cache.
+             “max-age=3600” means the cache is valid for 3600 seconds, aka, an hour.
 ```
 ![fg13-12](img/fg13-12.jpg)
+
+(c) Data sampling (N개의 요청 중 1개만 로깅기록)
 ```
-  • Data sampling: For a large-scale system, logging every search query requires a lot of 
-  processing power and storage. Data sampling is important. For instance, only 1 out of 
-  every N requests is logged by the system.
+For a large-scale system, logging every search query requires a lot of processing power and storage.
+Data sampling is important.
+For instance, only 1 out of every N requests is logged by the system.
 ```
 
 ### (4) Trie operations
-Trie is a core component of the autocomplete system. Let us look at how trie operations (create, update, and delete) work.
+Trie is a core component of the autocomplete system. 
+
+> Create / Update / Delete
 
 #### Create
 ```
 Trie is created by workers using aggregated data. The source of data is from Analytics Log/DB.
+  (Trie 생성 - 작업서버 담당/  Analytics Log/DB나 데이터베이스 취합데이터 이용)
 ```
+
 #### Update
 ```
-There are two ways to update the trie.
-Option 1: Update the trie weekly. Once a new trie is created, the new trie replaces the old one.
-Option 2: Update individual trie node directly. We try to avoid this operation because it is slow.
-  However, if the size of the trie is small, it is an acceptable solution.
-  When we update a trie node, its ancestors all the way up to the root must be updated because ancestors store top queries of children.
-  Figure 13-13 shows an example of how the update operation works.
-  On the left side, the search query “beer” has the original value 10.
-  On the right side, it is updated to 30. As you can see, the node and its ancestors have the “beer” value updated to 30.
+Two ways
+- Option 1: Update the trie weekly. Once a new trie is created, the new trie replaces the old one.
+- Option 2: Update individual trie node directly.
+            해당 방식은 느리지만 트라이 사이즈가 작다면 적용해봄직하다( 책에서는 느려서 고려친않았음)
+
+When we update a trie node, its ancestors all the way up to the root must be updated because ancestors store top queries of children.
+(최상단 루트노드 반드시 업데이트할것 -> top queries가 저장되므로)           
+```
+
+An example of how the update operation works(Figure 13-13)
+```  
+  Search query “beer”
+  value 10 -> 30(its ancestors)
 ```
 ![fg13-13](img/fg13-13.jpg)
+
+
 #### Delete
 ```
 We have to remove hateful, violent, sexually explicit, or dangerous autocomplete suggestions.
-We add a filter layer (Figure 13-14) in front of the Trie Cache to filter out unwanted suggestions.
+(트라이 캐시 앞에 필터 배치하여 부적절한 응답 리턴 방지)
 Having a filter layer gives us the flexibility of removing results based on different filter rules.
 Unwanted suggestions are removed physically from the database asynchronically so the correct data set will be used to build trie in the next update cycle.
 ```
@@ -351,39 +386,34 @@ Some follow up questions
 
 > How do you extend your design to support multiple languages?
 ```
-To support other non-English queries, we store Unicode characters in trie nodes. If you are 
-not familiar with Unicode, here is the definition: “an encoding standard covers all the 
-characters for all the writing systems of the world, modern and ancient” [5].
+To support other non-English queries, we store Unicode characters in trie nodes.
+Unicode: an encoding standard covering all the characters(world, modern and ancient)
 ```
 
 > What if top search queries in one country are different from others?
 ```
 In this case, we might build different tries for different countries.
 To improve the response time, we can store tries in CDNs.
-```
-
-> What if top search queries in one country are different from others?
-```
-In this case, we might build different tries for different countries.
-To improve the response time, we can store tries in CDNs.
+      A CDN is a network of geographically dispersed servers used to deliver static content.
+      CDN servers cache static content like images, videos, CSS, JavaScript files, etc.
+      (CDN: 사용자에게 웹 콘텐츠를 효율적으로 제공할 수 있는 서버의 분산 네트워크)
 ```
 
 > How can we support the trending (real-time) search queries?
 ```
 Assuming a news event breaks out, a search query suddenly becomes popular.
 Our original design will not work because:
-  • Offline workers are not scheduled to update the trie yet because this is scheduled to run on weekly basis.
-  • Even if it is scheduled, it takes too long to build the trie.
+  • Offline workers are not scheduled to update the trie yet because this is scheduled to run on weekly basis. (주별기준서버의 업데이트로 인한 미반영)
+  • Even if it is scheduled, it takes too long to build the trie. (반영된다해도 오래걸림)
 ```
 
 A few ideas for a real-time search autocomplete
 ```
-• Reduce the working data set by sharding.
-• Change the ranking model and assign more weight to recent search queries.
+• Reduce the working data set by sharding. (샤딩 - 작업데이터셋 축소)
+• Change the ranking model and assign more weight to recent search queries.(최근검색에 가중치 부여)
 • Data may come as streams, so we do not have access to all the data at once.
-Streaming 
-data means data is generated continuously. Stream processing requires a different set of 
-systems: Apache Hadoop MapReduce [6], Apache Spark Streaming [7], Apache Storm [8], Apache Kafka [9], etc.
-        Because all those topics require specific domain knowledge, we are not going into detail here.
+      Streaming data: generated data continuously.
+      Stream processing requires a different set of systems:
+                Apache Hadoop MapReduce [6], Apache Spark Streaming [7], Apache Storm [8], Apache Kafka [9], etc.
 ```
 
