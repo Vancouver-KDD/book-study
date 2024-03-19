@@ -53,11 +53,11 @@ Here is a summary of the requirements:
 ## Step 2 - Propose high-level design and get buy-in
 
 At the high-level,
-> • *Data gathering service*: It gathers user input queries and aggregates them in real-time. 
+> • *Data gathering service* : It gathers user input queries and aggregates them in real-time. 
 Real-time processing is not practical for large data sets; however, it is a good starting 
 point. We will explore a more realistic solution in deep dive.
 
-> • *Query service*: Given a search query or prefix, return 5 most frequently searched terms.
+> • *Query service* : Given a search query or prefix, return 5 most frequently searched terms.
 
 ### Data gathering service
 How data gathering service works?
