@@ -28,10 +28,10 @@ Candidate: **What features are important** for the chat app? Can it support atta
 Interviewer: **1 on 1 chat, group chat, online indicator(presence). The system only supports text
 messages.**\
 Candidate: Is there a **message size limit**?\
-Interviewer: Yes, text length should be **less than 100,000 characters long**.
-Candidate: Is **end-to-end encryption** required?
-Interviewer: Not required for now but we will discuss that if time allows.
-Candidate: **How long shall we store the chat history**?
+Interviewer: Yes, text length should be **less than 100,000 characters long**.\
+Candidate: Is **end-to-end encryption** required?\
+Interviewer: Not required for now but we will discuss that if time allows.\
+Candidate: **How long shall we store the chat history**?\
 Interviewer: Forever.
 
 features:
