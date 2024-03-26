@@ -300,3 +300,65 @@
 
 #### Speed optimization: parallelizm everywhere
 
+- achieving low latency - build a loosely coupled system and enable high parallelism
+- flow of how a video is transferred from original storage to the CDN:
+<img title="Transfer" src="./resources/transfer.png"> 
+
+- the output depends on the input of the previous step.
+    - this dependency makes parallelism difficult
+
+- to make the system more loosely coupled, we introduce message queues :
+
+<img title="MQ" src="./resources/mq.png"> 
+
+- before the message queue was introduced, the encoding module must wait for the output of the download module
+- after message queue, the encoding module doesn't need to wait for the output of the download module. If there are events in the message queue, the encoding module can execute those jobs in parallel
+
+#### Safety optimization: pre-signed upload URL
+- ensure only authorized users upload videos to the right location
+<img title="PSURL" src="./resources/psurl.png"> 
+
+- new upload flow:
+    1. Client requests a pre-signed URL from API servers to access the desired object (e.g., video) for uploading.
+    2. API servers provide the client with a pre-signed URL.
+    3. The client receives the pre-signed URL and proceeds to upload the video using this URL.
+
+#### Safety optimization: protect your videos
+To safeguard copyrighted videos, there are three main safety options:
+
+- Digital rights management (DRM) systems: Examples include Apple FairPlay, Google Widevine, and Microsoft PlayReady.
+- AES encryption: Encrypt the video and establish an authorization policy to decrypt it during playback, ensuring only authorized users can view it.
+- Visual watermarking: Overlay the video with an image containing identifying information, such as a company logo or name, to deter unauthorized use.
+
+#### Cost-saving optimization
+To reduce CDN costs while ensuring efficient video delivery, we implement several optimizations based on content popularity and user access patterns:
+
+1. Serve only the most popular videos from the CDN, while storing other videos on high-capacity storage video servers.
+<img title="CSO" src="./resources/cso.png"> 
+
+
+2. Encode less popular content on-demand to minimize the number of stored video versions.
+3. Distribute videos to regions based on popularity, avoiding unnecessary distribution to regions with low demand.
+4. Consider building a custom CDN in partnership with ISPs, leveraging their global presence to improve user experience and reduce bandwidth charges.
+
+- These optimizations are tailored to historical viewing patterns and aim to balance cost-effectiveness with efficient content delivery.
+
+### Error handling
+- In a large-scale system, errors are inevitable, categorized as recoverable and non-recoverable. Recovery strategies include retrying operations for recoverable errors and halting tasks for non-recoverable ones. Each system component has a playbook for handling typical errors:
+    - Upload errors are retried.
+    - Split video errors are managed server-side if older clients fail.
+    - Transcoding errors are retried.
+    - Preprocessor errors require regenerating DAG diagrams.
+    - DAG scheduler errors necessitate task rescheduling.
+    - Resource manager queue downtime is managed with replicas.
+    - Task worker downtime involves retrying tasks on new workers.
+    - API server downtime is handled by routing requests to other servers.
+    - Metadata cache server failures access replicated data, with new servers replacing dead ones.
+    - Metadata DB server failures involve promoting a slave to master and replacing dead slaves.
+
+## Step 4: Wrap Up
+- Additional points to talk about:
+    - Scaling the API tier is straightforward due to its statelessness, enabling horizontal scaling.
+    - Database scaling options include replication and sharding.
+    - Live streaming, although not the system's focus, shares similarities with non-live streaming but has differences in latency requirements, parallelism needs, and error handling.
+    - Video takedown processes involve identifying and removing videos violating copyrights, containing pornography, or featuring illegal acts, which may be flagged by users or detected during upload.
