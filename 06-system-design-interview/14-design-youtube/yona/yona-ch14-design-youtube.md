@@ -73,3 +73,35 @@
 - On-demand pricing for Data Transfer to the Internet (/GB):
 
 <img title="On-demand pricing for Data Transfer to the Internet (/GB)" src="./resources/on-demand-pricing.png">
+
+## Step 2: Propose High-Level Design and Get Buy-In
+- Cloud services we will leverage: 
+    - CDN
+    - blob storage
+
+- Why not build everything ourselves?
+    - System design interviews are not about building everything from scratch.
+    - Choosing the right technology to do the right job > explaining in detail how every technology works
+    - Talking about the detailed design for every component could even be an overkill
+        - mentioning blob storage for storing source videos is enough
+    - Building scalable blob storage or CDN is extremely complex & costly
+        - Netflix leverages Amazon's cloud services
+        - Facebook uses Akamai's CDN
+
+- System components at the high-level:
+
+<img title="System components at the high-level" src="./resources/system-components-high-level.png">    
+
+- Client: can watch YouTube on their computer, mobile phone, smartTV
+- CDN: stores videos. When clients press play, a video is streamed from the CDN
+- API servers: Everything else except video streaming goes through API servers
+    - feed recommendation
+    - generating video upload URL
+    - updating metadata db and cache
+    - user signup
+    - etc
+
+### Video uploading flow
+
+
+
