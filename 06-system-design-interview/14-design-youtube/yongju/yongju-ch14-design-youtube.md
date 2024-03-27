@@ -109,8 +109,10 @@ The flow is broken down into two processed running **in parallel**.
 **2.** Transcoding servers fetch videos from the original storage and start transcoding
 
 **3.** Once transcoding is complete, the following two steps are executed in parallel:
-    **3a.** Transcoded videos are sent to transcoded storage
-    **3b.** Transcoding completion events are queued in the completion queue
+
+**3a.** Transcoded videos are sent to transcoded storage
+
+**3b.** Transcoding completion events are queued in the completion queue
 
 **3a.1.** Transcoded videos are distributed to CDN
 
