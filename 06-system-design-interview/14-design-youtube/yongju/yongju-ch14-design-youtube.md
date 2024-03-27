@@ -69,7 +69,9 @@ The reason why we leverage cloud services for CDN and blob storage:
 </div>
 
 **Client**: can watch YouTube on computer, mobile phone, and smartTV
+
 **CDN**: Videos are stored in CDN. A video is streamed from CDN
+
 **API servers**: Everything else rather than video streaming goes through API servers; including feed recommendation, generating video upload URL, updating metadata database and cache, user sign-up, etc
 
 > 2-1. Video uploading flow
@@ -78,11 +80,17 @@ The reason why we leverage cloud services for CDN and blob storage:
 </div>
 
 **Metadata DB**: Video metadata are stored in Metadata DB. IT is sharded and replicated to meet performance and high availability requirements
+
 **Metadata cache**: VIdeo metadata and user objects are cached
+
 **Original storage**: A blob storage system is used to store original videos
+
 **Transcoding servers**: Video transcoding is also called video encoding. It is process of converting a video format to other formats(MPEG, HLS, etc), which provide the best video streams possible for different devices and bandwidth capabilities
+
 **Transcoded storage**: BLOB storage that stores transcoded video files
+
 **Completion queue**: MQ that stores information about video transcoding completion events
+
 **Completion handler**: A list of workers that pull event data form the completion queue and update metadata cache and database
 
 > 2-2. How the video uploading flow works?
@@ -97,13 +105,19 @@ The flow is broken down into two processed running **in parallel**.
 </div>
 
 **1.** Videos are uploaded to the original storage
+
 **2.** Transcoding servers fetch videos from the original storage and start transcoding
+
 **3.** Once transcoding is complete, the following two steps are executed in parallel:
     **3a.** Transcoded videos are sent to transcoded storage
     **3b.** Transcoding completion events are queued in the completion queue
+
 **3a.1.** Transcoded videos are distributed to CDN
+
 **3b.1.** Completion handler contains a bunch of workers that continuously pull event data from the queue
+
 **3b.1.a** and **3b.1.b.** Completion handler updates the metadata database and cache when video transcoding is complete
+
 **4.** API servers inform the client that the video is successfully uploaded and is ready for streaming
 
 #### Flow 2. update the metadata
@@ -117,10 +131,14 @@ While a file is being uploaded to the original storage, the client in parallel s
 Streaming means our device continuously receives video streams from remote source videos. 
 
 **Streaming protocol**: A standardized way to control data transfer for video streaming. 
+
 Popular streaming protocols:
 - **MPEG-DASH**: MPEG, "Moving Picture Experts Group" and DASH, "Dynamic Adaptive Streaming over HTTP"
+
 - **Apple HLS**: HLS, "HTTP Live Streaming"
+
 - **Microsoft Smooth Streaming**
+
 - **Adobe HTTP Dynamic Streaming(HDS)**
 
 *Different streaming protocols supports different video encoding and playback players. When we design a video streaming service, we have to choose the right streaming protocol to support our use cases. 
