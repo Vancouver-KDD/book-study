@@ -1,4 +1,5 @@
-Chatper 1 Reliable, Scalable, and Maintainable Applications
+# Chatper 1 Reliable, Scalable, and Maintainable Applications
+
 
 Functionalities for a data-intensive applications need:
 * Database - stores data so different apps can have access to the data again
@@ -7,7 +8,6 @@ Functionalities for a data-intensive applications need:
 * Stream processing - Send a message to another process, to be handled asynchronously < ?
 * Batch processing - Periodically crunch a large amount of accumulated data
 
-
 Boundaries are blurred and wide-range of requirements to obtaindata processing and storage needs
 
 - Redis (data stores used as message queues)
@@ -15,7 +15,7 @@ Boundaries are blurred and wide-range of requirements to obtaindata processing a
 - Memcache (application managed caching layer)
 - Elasticsearch/Solr (full-text search server separate from the main database)
   
-Questions to ask when designing a data system or service/:
+Questions to ask when designing a data system or service?
 1. How do you ensure that the data remains correct and complete, even when things go wrong internally?
 2. How do you provide consistently good performance to clients, even when aprts of your system are degraded?
 3. How do you scale to handle an increase in load?
@@ -23,10 +23,10 @@ Questions to ask when designing a data system or service/:
 5. skills and experience of devs? legacy system dependencies, time scale for delivery, org's tolerance, regulatory constraints, etc?
 
 
-3 Fundamentals - Reliability / Scalability / Maintainability
+## 3 Fundamentals - Reliability / Scalability / Maintainability
 
 
-Reliability - Tolerating hardwware & Software faults and Human Error
+## Reliability - Tolerating hardwware & Software faults and Human Error
    - The system should work correctly with the desired level of performance and prevents any unauthorized access and abuse.
    - You can deliberately induce faults (Ex. Netflix Chaos Monkey) to develop fault-tolerant systems. (faults are usually caused by poor error handling)
 
@@ -65,10 +65,9 @@ Reliability - Tolerating hardwware & Software faults and Human Error
          * Unit tests, whole-system integration tests, manual tests, automated testing
        * Allow quick and easy recovery - fast roll back configuration, roll out code gradually, provide tools to recompute data
        * Set up detailed and clear monitoring, such as performance metrics and error rates (== Telemetry)
-       * 
 
 
-Scalability - Measuring load & performance, Latency percentiles, throughput
+## Scalability - Measuring load & performance, Latency percentiles, throughput
 * Describes the ability to cope with increased load.
     "If a system grows in a particular way, what are our options for coping with the growth?"
 * Describing load - load parameter
@@ -77,7 +76,7 @@ Scalability - Measuring load & performance, Latency percentiles, throughput
     * Twitter Example
       - Post tweet
       - Home timeline
-      - Two methods:
+      - Use two methods:
         1. insert new tweet into a global collection of tweets - for huge influencers
         2. Maintain cache for each user's home timeline (mailbox of tweets) - for regular users
 * Describing Performance
@@ -97,7 +96,7 @@ Scalability - Measuring load & performance, Latency percentiles, throughput
   * used in service level objectives (SLOs) and service level agreements (SLAs)
 
 
-Maintainability - Operability, simplicity, evolvability
+## Maintainability - Operability, simplicity, evolvability
 * fixing bugs, keeping its system operational, investigating failures, adapting it to new platforms, modifying for new use cases, repaying technical debt, adding new features, etc
 * Operability
   - Make it easy for operations team to keep the system running smoothly
