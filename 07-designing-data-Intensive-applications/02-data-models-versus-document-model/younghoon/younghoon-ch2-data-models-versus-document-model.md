@@ -17,13 +17,11 @@ Relational Database dominated
 
 - The name “NoSQL” is unfortunate, since it doesn’t actually refer to any particular technology—it was originally intended simply as a catchy Twitter hashtag for a meetup on open source, distributed, nonrelational databases in 2009
 
-* A need for greater scalability than relational databases can easily achieve, including very large datasets or very high write throughput
+* A need for greater scalability than relational databases can easily achieve, including very large datasets or very high write throughpu
+(no ACID, Sharding)
 * A widespread preference for free and open source software over commercial database products
 * Specialized query operations that are not well supported by the relational model
 * Frustration with the restrictiveness of relational schemas, and a desire for a more dynamic and expressive data model
-
-** It therefore seems likely that in the foreseeable future, relational databases will continue to be used alongside a broad variety of nonrelational datastores—an idea that is sometimes called polyglot persistence **
-
 
 ## The Object-Relational Mismatch
 
