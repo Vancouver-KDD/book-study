@@ -1,0 +1,232 @@
+## Chapter 2 Data models and query languages
+
+### Relational Model vs Document Model
+
+- Relational Model
+- Started from business data processing
+- network model
+- hierarchical model
+
+#### The birth of NoSQL
+
+Driving forces behind the adoption of NoSQL databases:
+
+- A need for greater scalability than relational databases can easily achieve, including very large datasets or very high write throughput
+
+- A widespread preference for free and open source software over commercial database products
+
+- Specialized query operations that are not well supported by the relational model
+
+- Frustration with the restrictiveness of relational schemas, and a desire for a more dynamic and expressive data model
+
+Polyglot persistence - using relational db and nonrelational db techniques together
+
+#### The Object-Relational Mismatch
+
+- impedance mismatch(Need for ORM)
+
+#### Many-to-One and Many-to-Many Relationships
+
+- Advantages to having standardized lists
+
+  - Consistent style and spelling across profiles
+  - Avoiding ambguity (e.g., if there are several cities with the same name)
+  - Ease of updating
+  - Localization support
+  - Better search
+
+- ID or text ? - question of duplication
+- Removing duplication - normalization in databases.
+- In document databases, joins are not needed for one-to-many tree structures, and support for joins is often weak.
+- If the db itself does not support joins, you have to emulate a join in application code by making multiple queries to the database.
+- Moreover, even if the initial version of an application fits well in a join-free document model, data has a tendency of becoming more interconnected as features are added to applications.
+
+#### Are Document Databases Repeating History?
+
+##### The network model
+
+- The network model, also known as the CODASYL model, was a generalization of the hierarchical model, allowing records to have multiple parents, thus supporting many-to-one and many-to-many relationships.
+
+- Queries in the network model involved moving a cursor through the database by iterating over lists of records and following access paths, which made the code for querying and updating the database complicated and inflexible.
+
+##### The relational model
+
+- The relational model laid out all data in tables (relations) with rows (tuples), eliminating the need for complex nested structures and access paths.
+
+- Query optimizers in relational databases automatically decide the execution order and index usage for queries, simplifying the addition of new features to applications and reducing the need for developers to manage access paths manually.
+
+##### Comparison to document databases
+
+- Document databases revert to the hierarchical model by storing nested records within their parent records, similar to the JSON structure.
+
+- Both relational and document databases use unique identifiers (foreign keys or document references) to represent many-to-one and many-to-many relationships, resolved at read time through joins or follow-up queries.
+
+#### Relational Versus Document Databases Today
+
+##### Which data model leads to simpler application code?
+
+- Document models are advantageous for data with a document-like structure (tree of one-to-many relationships), as they avoid the need for shredding data into multiple tables, which can complicate schemas and application code.
+
+- The relational model is more suitable for highly interconnected data, as it provides better support for joins and reduces the complexity of application code compared to document models, which may require additional work to handle denormalized data and emulate joins.
+
+##### Schema flexibility in the document model
+
+- Document databases and JSON support in relational databases typically do not enforce schemas, allowing for schema-on-read, which is beneficial for heterogeneous data or data structures determined by external systems.
+
+- Schema-on-read is similar to dynamic type checking, while schema-on-write (used in relational databases) is akin to static type checking, with each approach having its own advantages and disadvantages depending on the application requirements.
+
+##### Data locality for queries
+
+- storage locality (If data is split across multiple tables, multiple index lookups are required to retrieve it all, which may require more disk seeks and take more time)
+
+- The locality advantage only applies if you need large parts of the document at the same time.
+
+- It is generally recommended that you keep documents fairly small and avoid writes that increase the size of a document.
+
+- These performance limitations significantly reduce the set of situations in which document databases are useful.
+
+- Google's Spanner database
+
+- Oracle's multi-table index cluster tables
+
+- Bigtable data model(used in Cassandra and HBase)'s column-family
+
+##### Convergence of document and relational databases
+
+- Most relational database systems (other than MySQL) have supported XML since the mid-2000s. This includes functions to make local modifications to XML documents and the ability to index and query inside XML documents, which allows applications to use data models very similar to what they would do when using a document databse.
+
+- A hybrid of the relational and document models is a good route for databases to take in the future.
+
+### Query Languges for Data
+
+- Declarative query language: SQL
+
+  - specify the pattern of the data you want
+  - what conditions the results must meet
+  - how you want the data to be transformed(e.g., sorted, grouped, and aggregated)
+  - NOT how to achieve that goal.
+  - It's up to the database system's query optimizer to decide which indexes and which join methods to use, and in which order to execute various parts of the query.
+  - It hides implementation details of the database engine, which makes it possible for the database system to introduce performance improvements without requiring any changes to queries.
+
+- Imperative code: IMS, CODASYL
+
+- Parallel execution(difficult in imperative way)
+
+#### Declarative Queries on the Web
+
+- CSS selector
+  - declares the pattern of elements to which we want to apply the style
+- XSL
+  - XPath expression li[@class='selected']/p is equivalent to the CSS selector li.selected > p
+- CSS and XSL are both declarative languages for specifying the styling of a document.
+
+- If you want to take advantage of a new API, you have to rewrite the code. Browser vendors can improve the performance of CSS and XPath without breaking compatibility.
+
+- In a web browser, using declarative CSS styling is much better than manipulating styles imperatively in JavaScript. Similarly, in databases, declarative query languages like SQL turned out to be much better than imperative query APIs.
+
+#### MapReduce Querying
+
+- MongoDB's use of the model.
+- Neither a declarative query language nor a fully imperative query API, but somewhere in between.
+- PostgreSQL
+
+```
+SELECT date_trunc('month', observation_timestamp) AS observation_month, sum(num_animals) AS total_animals
+FROM observations
+WHERE family = 'Sharks' GROUP BY observation_month;
+```
+
+- MongoDB
+
+```
+db.observations.mapReduce(
+    function map() {
+        var year = this.observationTimestamp.getFullYear(); var month = this.observationTimestamp.getMonth() + 1; emit(year + "-" + month, this.numAnimals);
+    },
+    function reduce(key, values) {
+        return Array.sum(values);
+    },
+    {
+        query: { family: "Sharks" },
+        out: "monthlySharkReport"
+    }
+);
+```
+
+- `pure` function: only use the data that is passed to them as input, cannot perform additional database queries, and must not have any side effects.
+
+- Declarative query language offers more opportunities for a query optimizer to improve the performance of a query.
+  - MongoDB's aggregation pipeline: uses JSON-based syntax rather than SQL's English-sentence-style syntax.
+
+```
+    db.observations.aggregate([
+        { $match: { family: "Sharks" } },
+        { $group: {
+            _id: {
+                year:  { $year:  "$observationTimestamp" },
+                month: { $month: "$observationTimestamp" }
+            },
+            totalAnimals: { $sum: "$numAnimals" }
+        } }
+    ]);
+```
+
+### Graph-Like Data Models
+
+- vertices(nodes or entities) and edges(relationships or arcs)
+
+- Examples: Social graphs, The web graph, Road or rail networks
+
+- Graphs are not limited to homogeneours data.
+
+Figure 2.5 Example of graph-structured data
+
+#### Property Graphs
+
+- vertices(vertex plural): a unique identifier, a set of outgoing edges, a set of incoming edges, a collection of properties(key-value pairs)
+
+- edges: a unique identifier, the vertex at which the edge starts(the tail vertex), the vertex at which the edge ends(the head vertex), a label to describe the kind of relationship between the two vertices, a collection of properties(key-value pairs)
+
+1. Any vertex can have an edge connecting it with any other vertex. There is no schema that restricts which kinds of things can or cannot be associated.
+2. Given any vertex, you can efficiently find both its incoming and its outgoing edges, and thus traverse the graph—i.e., follow a path through a chain of vertices —both forward and backward. (That’s why Example 2-2 has indexes on both the tail_vertex and head_vertex columns.)
+3. By using different labels for different kinds of relationships, you can store several different kinds of information in a single graph, while still maintaining a clean data model.
+
+#### The Cypher Query Language
+
+- Cypher is a declarative query language for property graphs, created for the Neo4j graph database.
+- It uses a visual ASCII-art style syntax for describing patterns in graphs, making queries more intuitive.
+
+#### Graph Queries in SQL
+
+- Graph queries can be expressed in SQL, but with some difficulty, especially for traversals with a variable number of joins.
+- SQL:1999 and later versions support recursive common table expressions, allowing for variable-length traversal paths, but the syntax is cumbersome compared to graph query languages.
+
+#### Triple-Stores and SPARQL
+
+- Triple-stores use a data model where all information is stored as three-part statements: (subject, predicate, object).
+- The triple-store model is mostly equivalent to the property graph model but uses different terminology.
+
+##### The semantic web
+
+- The semantic web aimed to create a web of machine-readable data, allowing data from different websites to be automatically combined.
+- Despite initial hype, the semantic web hasn't been realized in practice, but has produced valuable work applicable to internal data models.
+
+##### The RDF data model
+
+- RDF data can be written in formats like Turtle (a subset of Notation3) or RDF/XML.
+- RDF often uses URIs for subjects, predicates, and objects to avoid naming conflicts when combining data from different sources.
+
+##### The SPARQL query language
+
+- SPARQL is a query language for triple-stores using the RDF data model.
+- It predates Cypher and shares similar pattern matching syntax, often allowing for more concise queries.
+
+Graph Databases Compared to the Network Model
+
+- Graph databases are more flexible than the CODASYL network model, allowing any vertex to connect to any other vertex.
+- Unlike the network model, graph databases use declarative query languages, automatically choosing efficient execution strategies.
+
+#### The Foundation: Datalog
+
+- Datalog's data model is similar to the triple-store model, but generalizes it slightly.
+- Datalog queries are composed of rules that define new predicates, allowing complex queries to be built up incrementally.
