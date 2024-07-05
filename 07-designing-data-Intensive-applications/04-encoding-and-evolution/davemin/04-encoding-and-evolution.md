@@ -1,10 +1,14 @@
 # CHAPTER 4 Encoding and Evolution
 
-Backward compatibility
+- In this chapter we will look at several formats for encoding data, including JSON, XML, Protocol Buffers, Thrift, and Avro. 
+- In particular, we will look at how they handle schema changes and how they support systems where old and new data and code need to coexist
+
+- In order for the system to continue running smoothly, we need to maintain compatibility in both directions:
+[Backward compatibility]
 - Newer code can read data that was written by older code.
 - Backward compatibility is normally not hard to achieve: as author of the newer code, you know the format of data written by older code, and so you can explicitly handle it (if necessary by simply keeping the old code to read the old data).
 
-Forward compatibility
+[Forward compatibility]
 - Older code can read data that was written by newer code.
 - Forward compatibility can be trickier, because it requires older code to ignore additions made by a newer version of the code.
 
@@ -94,11 +98,81 @@ message Person {
   repeated string interests = 3;
 }
 ```
-- What does data encoded with this schema look like? Confusingly, Thrift has two different binary encoding formats,iii called BinaryProtocol and CompactProtocol, respectively. Let’s look at BinaryProtocol first. 
+- What does data encoded with this schema look like? Confusingly, Thrift has two different binary encoding formats,iii called BinaryProtocol and CompactProtocol, respectively.
+
+> **BinaryProtocol** 
 
 ![f4-2.jpg](image/f4-2.jpg "f4-2.jpg")
 
 - Similarly to Figure 4-1, each field has a type annotation (to indicate whether it is a string, integer, list, etc.) and, where required, a length indication (length of a string, number of items in a list). The strings that appear in the data (“Martin”, “daydreaming”, “hacking”) are also encoded as ASCII (or rather, UTF-8), similar to before.
-- The big difference compared to Figure 4-1 is that there are no field names (userName, favoriteNumber, interests). Instead, the encoded data contains field tags, which are numbers (1, 2, and 3). Those are the numbers that appear in the schema definition. 
-- Field tags are like aliases for fields—they are a compact way of saying what field we’re talking about, without having to spell out the field name.
+- No field names (userName, favoriteNumber, interests). Instead, field tags, which are numbers (1, 2, and 3) with the schema definition
+
+> **Thrift CompactProtocol**
+
+![](image/f4-3.jpg "f4-3.jpg")
+
+- only 34 bytes
+- by packing the field type and tag number into a single byte
+- by using variable-length integers
+- Rather than using a full eight bytes for the number 1337, it is encoded in two bytes, with the top bit of each byte used to indicate whether there are still more bytes to come.
+- This means numbers between –64 and 63 are encoded in one byte, numbers between –8192 and 8191 are encoded in two bytes, etc. Bigger numbers use more bytes.
+
+>**Protocol Buffers (which has only one binary encoding format)**
+
+![](image/f4-4.jpg)
+
+- each field was marked either required or optional, but this makes no difference to how the field is encoded (nothing in the binary data indicates whether a field was required).
+- The difference is simply that required enables a runtime check that fails if the field is not set, which can be useful for catching bugs.
+
 #### Field tags and schema evolution
+- We said previously that schemas inevitably need to change over time. We call this schema evolution. How do Thrift and Protocol Buffers handle schema changes while keeping backward and forward compatibility?
+- You can change the name of a field in the schema, since the encoded data never refers to field names,
+- but you cannot change a field’s tag, since that would make all existing encoded data invalid.
+
+
+#### Datatypes and schema evolution
+
+
+### Apache Avro
+
+- Another binary encoding format
+-  It was started in 2009 as a subproject of Hadoop, as a result of Thrift not being a good fit for Hadoop’s use cases.
+-  Hadoop: a framework that allows for the distributed processing of large data sets across clusters of computers using simple programming models.
+-  Avro also uses a schema to specify the structure of the data being encoded. It has two schema languages:
+-  one (Avro IDL) intended for human editing,
+
+```
+Our example schema, written in Avro IDL, might look like this:
+record Person { 
+   string    userName;
+   union { null, long } favoriteNumber = null; 
+   array<string>        interests;
+}
+```
+
+-  and one (based on JSON) that is more easily machine-readable.
+```
+{
+The equivalent JSON representation of that schema is as follows:
+   "type": "record", 
+   "name": "Person", 
+   "fields": [
+      {"name": "userName",       "type": "string"},
+      {"name": "favoriteNumber", "type": ["null", "long"], "default": null}, 
+      {"name": "interests",      "type": {"type": "array", "items": "string"}}
+   ]
+}
+```
+
+[Characteristics - Avro binary encoding]
+- No tag numbers in the schema
+- For the figure 4-1 case, it uses just 32 bytes long which is compact.
+
+![](image/f4-5.jpg)
+
+- No identify fields or their datatypes.
+- concatenated values together
+- The type is encoded using a variable-length encoding (the same as Thrift’s CompactProtocol).
+
+- 
+  
