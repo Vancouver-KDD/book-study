@@ -96,5 +96,40 @@ This has been around since 1970s, but flawed since the local function calls are 
 - local function call latency is the same, a network call is slower and latency is variable
 - RPC framework must translate datatypes between different languages if client/service are using different one
 
-Current directions for RPC
+**Current directions for RPC**
+- The new generation of RPC frameworks is more explicit about that a remote request is different from a local function call.
+    - _futures (promises)_: to encapsulate asynchronous actions that may fail, also simplifying situations where you need to make requests to multiple services in parallel, and combine their results.
+    - _streams_: where a call consists of not just one request and one response, but a series of requests and responses over time.
+
+#### Message-Passing Dataflow
+asynchronous message-passing systems (using message brokers or actors), where nodes communicate by sending each other messages that are encoded by the sender and decoded by the recipient. 
+- A sender normally doesn’t expect to receive a reply to its messages, possible but usually be done on a separate channel. The sender doesn’t wait for the message to be delivered.
+- as RPC, a client’s request (usually called a message) is delivered to another process with low latency.
+- as databases, the message is not sent via a direct network connection, but goes via an intermediary called a message broker, which stores the message temporarily.
+
+
+**Several advantages compared to direct RPC**
+- It can act as a buffer if the recipient is unavailable or overloaded, and thus improve system reliability.
+- It can automatically redeliver messages to a process that has crashed, and thus prevent messages from being lost.
+- It avoids the sender needing to know the IP address and port number of the recipient, useful in a cloud deployment where virtual machines often come and go.
+- It allows one message to be sent to several recipients.
+- It logically decouples the sender from the recipient (the sender just publishes messages and doesn’t care who consumes them).
+
+**Message brokers**
+one process sends a message to a named queue or topic, and the broker ensures that the message is delivered to one or more
+consumers of or subscribers to that queue or topic. There can be many producers and many consumers on the same topic.
+- typically don’t enforce any particular data model, any encoding format is fine
+
+**Distributed actor frameworks**
+_The actor model_: a programming model for concurrency in a single process.
+- logic is encapsulated in actors
+- Each actor typically represents one client or entity, it may have some local state (which is not shared with any other
+actor)
+- communicates with other actors by sending and receiving asynchronous messages. Message delivery is not guaranteed
+
+_distributed actor frameworks_: integrates a message broker and the actor programming model into a single framework
+- used to scale an application across multiple nodes.
+- The same message-passing mechanism is used, no matter whether the sender and recipient are on the same node or different nodes.
+- Location transparency works better in the actor model than in RPC, because the actor model already assumes that messages may be lost
+- less of a fundamental mismatch between local and remote communication when using the actor model.
 
