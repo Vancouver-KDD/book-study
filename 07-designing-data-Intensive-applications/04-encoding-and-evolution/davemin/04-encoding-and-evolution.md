@@ -303,3 +303,7 @@ By contrast
 - The file is self-describing since it includes all the necessary metadata.
 
 ### The Merits of Schemas
+- They can be much more compact than the various “binary JSON” variants, since they can omit field names from the encoded data.
+- The schema is a valuable form of documentation, and because the schema is required for decoding, you can be sure that it is up to date (whereas manually maintained documentation may easily diverge from reality).
+- Keeping a database of schemas allows you to check forward and backward compatibility of schema changes, before anything is deployed.
+- For users of statically typed programming languages, the ability to generate code from the schema is useful, since it enables type checking at compile time.
