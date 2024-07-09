@@ -97,10 +97,12 @@ Because as long as people agree on what the format is, it often doesn’t matter
 - The binary encoding 66 bytes long ( a little less than textual JSON encoding(81 bytes) (with whitespace removed)).
 - But, such a small space reduction
 
+&nbsp;
+
 ### Thrift and Protocol Buffers
 - how we can do much better, and encode the same record in just 32 bytes.
-- Apache Thrift (Facebook) and Protocol Buffers (protobuf/ Google) [16] are binary encoding libraries that are based on the same principle.
-
+- Apache Thrift (Facebook) and Protocol Buffers (protobuf/ Google) binary encoding libraries
+- They come with a code generation tool that takes a schema definition like the ones shown here, and produces classes that implement the schema in various programming languages 
 ```
 // Thrift interface definition language (IDL)
 struct Person {
@@ -118,40 +120,60 @@ message Person {
   repeated string interests = 3;
 }
 ```
-- What does data encoded with this schema look like? Confusingly, Thrift has two different binary encoding formats,iii called BinaryProtocol and CompactProtocol, respectively.
+- **Thrift** : two different binary encoding formats 'BinaryProtocol' & 'CompactProtocol'
 
-> **BinaryProtocol** 
+> **(1) Thrift - BinaryProtocol** 
 
 ![f4-2.jpg](image/f4-2.jpg "f4-2.jpg")
 
-- Similarly to Figure 4-1, each field has a type annotation (to indicate whether it is a string, integer, list, etc.) and, where required, a length indication (length of a string, number of items in a list). The strings that appear in the data (“Martin”, “daydreaming”, “hacking”) are also encoded as ASCII (or rather, UTF-8), similar to before.
-- No field names (userName, favoriteNumber, interests). Instead, field tags, which are numbers (1, 2, and 3) with the schema definition
+- [Similarity]
+   - a type annotation (to indicate whether it is a string, integer, list, etc.) 
+   - a length indication (length of a string, number of items in a list).
+   - Strings encoded as ASCII (or rather, UTF-8)
+- [Difference]
+   - No field names (userName, favoriteNumber, interests).
+   - Instead, field tags(schema definition)- numbers (1, 2, and 3)
 
-> **Thrift CompactProtocol**
+- ==> 59 byte
+
+> **(2) Thrift - CompactProtocol**
 
 ![](image/f4-3.jpg "f4-3.jpg")
 
-- only 34 bytes
-- by packing the field type and tag number into a single byte
+- ==> only 34 bytes
+- by packing the *'field type'* and *'tag number'* into a single byte
 - by using variable-length integers
-- Rather than using a full eight bytes for the number 1337, it is encoded in two bytes, with the top bit of each byte used to indicate whether there are still more bytes to come.
-- This means numbers between –64 and 63 are encoded in one byte, numbers between –8192 and 8191 are encoded in two bytes, etc. Bigger numbers use more bytes.
+- Number 1337 => encoded in two bytes (the top bit indicator -> still more bytes to come? )
+- That is, '–64 ~ 63' --encoded--> 1 byte and '–8192 ~ 8191' --encoded--> 2 byte
 
 >**Protocol Buffers (which has only one binary encoding format)**
 
 ![](image/f4-4.jpg)
 
-- each field was marked either required or optional, but this makes no difference to how the field is encoded (nothing in the binary data indicates whether a field was required).
-- The difference is simply that required enables a runtime check that fails if the field is not set, which can be useful for catching bugs.
+- ==> only 33 bytes
+- bit packing slightly differently, but is otherwise very similar to Thrift’s CompactProtocol.
 
 #### Field tags and schema evolution
-- We said previously that schemas inevitably need to change over time. We call this schema evolution. How do Thrift and Protocol Buffers handle schema changes while keeping backward and forward compatibility?
-- You can change the name of a field in the schema, since the encoded data never refers to field names,
-- but you cannot change a field’s tag, since that would make all existing encoded data invalid.
+- Schema Evolution : Schemas inevitably need to change over time
+- How do Thrift and Protocol Buffers handle schema changes while keeping backward and forward compatibility?
 
+> First, Field’s tags are important!!
+- You can change a field's name in the schema, since the encoded data never refers to field names,
+- But, you can**not** change a field’s tag in the schema, since that would make all existing encoded data invalid.
+
+> Forward compatibility: (old code can read records that were written by new code)
+- You can add new fields to the schema with new tag numbers
+   - Old code can skip it using the datatype annotation   
+
+> Backward compatibility: (new code can read records that were written by old code)
+- New code can always read old data
+- If you add a new field
+   - New code can not read data written by old code
+   - So, the added fields must be optional or have a default value.
+ 
+#### ==> This way, we can maintain the compatibility. (Removing a field is just like adding a field)
 
 #### Datatypes and schema evolution
-
 
 ### Apache Avro
 
@@ -194,5 +216,90 @@ The equivalent JSON representation of that schema is as follows:
 - concatenated values together
 - The type is encoded using a variable-length encoding (the same as Thrift’s CompactProtocol).
 
-- 
-  
+#### The writer’s schema and the reader’s schema
+- writer’s schema:
+   - The schema that is used for application to encode some data     
+- reader’s schema:
+   -  The schema that is used for application to decode some data     
+- Key Idea in Avro.
+   - The writer’s schema and the reader’s schema don’t have to be the same—they only need to be compatible by **Field Name*
+- If the code reads data expecting some field,
+   - But, no field info in the writer’s schema
+   - Then, a **Default Value* declared in the reader’s schema.
+
+#### Schema evolution rules 
+- To maintain forward/backward compatibility, you may only add or remove a field that has a default value.
+> For example,
+```
+case 1)
+you add a field with default value && new field in the new schema, but not the old one
+When reader with new schema ---read--- old schema record ==>  Then, Default value (Read OK)
+
+case 2-1)
+you 'Add' a field with 'NO' default value && new field in the new schema, but not the old one
+When reader with new schema ---read--- old schema record ==>  Then, No Default value (Read Error -> backward compatibility Error)
+
+case 2-2)
+you 'Remove' a field with 'NO' default value && new field in the new schema, but not the old one
+When reader with old schema ---read--- new schema record ==>  Then, No Default value (Read Error -> forward compatibility Error)
+```
+
+-  Consequently,
+-  Avro : no optional and required markers /  instead, default values  
+-  the same as Protocol Buffers and Thrift 
+
+![](image/f4-6.jpg)
+
+#### But what is the writer’s schema?
+- How does the reader know the writer’s schema with which a particular piece of data was encoded?
+- can’t just include the entire schema with every record, because the schema would be too much bigger than the encoded data
+- Answer? It depends in context in Avro being used  
+   - Large file with lots of records :
+      - Writer’s schema included once at the beginning of the file
+      -  all encoded with the same schem
+   - Database with individually written records
+      - In a database, different records / different points in time / different writer’s schemas
+      - How?
+      - include a version number at the beginning of every encoded record, and to keep a list of schema versions in your database.
+   - Sending records over a network connection
+      - When two processes are communicating over a bidirectional network connection
+      - They can negotiate the schema version which is used for the lifetime of the connection.
+      - It's how Avro RPC protocol works.
+    
+#### Dynamically generated schemas
+- No Tag Number in Avro unlike Protocol Buffers and Thrift( why is it important?)
+- The difference is that Avro is friendlier to **dynamically generated schemas**.
+> Example
+```
+- say you have a relational database
+- you want to dump contents in DB to a file
+- also you want to use binary format, not the textual format
+
+- In the case of Avro
+   - you can fairly easily generate an Avro schema from the relational schema and encode the database contents
+   - Because,
+      - each DB column  ==> a field in Avro.
+      - DB column names ==> field names in Avro.
+      - So, schema changes is not that hard
+      - And the updated writer’s schema can still be matched up with the old reader’s schema because the field name is identical.
+
+- By contrast, in the case of 'Thrift' or 'Protocol Buffers'
+   - the field tags have to be assigned by hand
+```
+
+#### Code generation and dynamically typed languages
+> 'Thrift and Protocol Buffers' rely on code generation
+- By using a programming language, you can implements this schema.
+   -  Code generation is useful in statically typed languages(Java, C++, or C#)
+      -  1. Because of efficient in-memory structures for decoded data
+         2. IDE - type checking and autocompletion
+   -  Code generation is pointless in dynamically typed languages(JavaScript, Ruby, or Python)
+      -  Because of no compile-time for type checker
+
+By contrast
+
+> 'Avro' provides optional code generation(with/without any code generation)
+- by using an object container file (which embeds the writer’s schema), you can simply open it using the Avro library and look at the data for analysis
+- The file is self-describing since it includes all the necessary metadata.
+
+### The Merits of Schemas
