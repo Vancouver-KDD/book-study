@@ -1,9 +1,9 @@
 # CHAPTER 4 Encoding and Evolution
 
-- In this chapter we will look at several formats for encoding data, including JSON, XML, Protocol Buffers, Thrift, and Avro. 
+- In this chapter we will look at *several formats* for encoding data, including JSON, XML, Protocol Buffers, Thrift, and Avro. 
 - In particular, we will look at
-   - how they handle schema changes and
-   - how they support systems where old and new data and code need to coexist
+   - *Schema Change* - how they handle schema changes and
+   - *Compatibility* - how they support systems where old and new data and code need to coexist
 
 
 #### In order for the system to continue running smoothly, we need to maintain compatibility in both directions:
@@ -17,7 +17,7 @@
     - Forward compatibility can be trickier, because it requires older code to ignore additions made by a newer version of the code.
 
 ## Formats for Encoding Data
-Two different data representations that Programs work with 
+Normally, Two different data representations that Programs work with 
 1. Data in memory which is kept in objects, structs, lists, arrays, hash tables, trees, and so on.
 2. Encoded data to be written in a file or sent it over the network which has self-contained sequence of bytes(i.e. JSON)
 
@@ -33,8 +33,8 @@ Two different data representations that Programs work with
 - Third-party: Kryo for Java
 ```
 
-- Convenient: because Encoding libraries allow in-memory objects to be saved and restored with minimal additional code.
-- Problem:
+- *Convenient*: Minimal additional code is used because *Encoding libraries* allow in-memory objects to be saved and restored.
+- *Problem*:
 1. Compatible issue b/w differnet languages:
    - A particular program language might not be able to be read the encoded data by another language.
 2. Security issue :
@@ -45,7 +45,7 @@ Two different data representations that Programs work with
    -> they can instantiate arbitrary classes -> they can do terrible things(such as remotely executing arbitrary code).
    ```
 3. Compatible issue b/w differnet versions:
-   - Versioning data is often an afterthought in these libraries: as they are intended for quick and easy encoding of data, they often neglect the inconvenient problems of forward and backward compatibility.
+   - Versioning data is often an afterthought in these libraries: as they are intended for quick and easy encoding of data, they often neglect the inconvenient problems of *forward and backward compatibility*.
 4. Efficiency (CPU time taken to encode or decode, and the size of the encoded structure) is also often an afterthought.
    - (For example, Java’s built-in serialization is notorious for its bad performance and bloated encoding).
 
@@ -64,18 +64,18 @@ Two different data representations that Programs work with
          - XML & CSV: cannot distinguish b/w numbers and string+digits
          - JSON: cannot distinguish integers and floating-point numbers
          - This is a problem when dealing with large numbers(i.e.  > 2^53); 
-      2. JSON and XML have good support for Unicode character strings (i.e., human- readable text), but they don’t support binary strings (sequences of bytes without a character encoding).
-      3. If applications don’t use XML/JSON schemas, then they need to potentially hardcode the appropriate encoding/decoding logic instead.(Since the interpretation depends on information in the schema)
-      4. CSV does not have any schema, so it is up to the application to define the meaning of each row and column. If an application change adds a new row or column, you have to handle that change manually.
+      2. JSON and XML don’t support binary strings (sequences of bytes without a character encoding), but they have good support for Unicode character strings (i.e., human- readable text).
+      3. If applications don’t use XML/JSON schemas, then they need to *potentially hardcode* the appropriate encoding/decoding logic instead.(Since the interpretation depends on information in the schema)
+      4. CSV does not have any schema, so the application needs to define the meaning of each row and column. If an application change adds a new row or column, you have to handle that change manually.
 
 > ==> Despite these flaws, JSON, XML, and CSV are good enough for many purposes(data interchange formats b/w different organizations)
 Because as long as people agree on what the format is, it often doesn’t matter how pretty or efficient the format is. 
 
 #### Binary encoding
-- Binary encodings for JSON and XML was developed because the textual versions of JSON and XML use a lot of space.
-   - Binary encodings for JSON : *MessagePack*, BSON, BJSON, UBJSON, BISON, and Smile
-   - Binary encodings for XML : WBXML and Fast Infoset
-- No prescribed schema -> include all the object field names
+- Because of using *a lot of space* in the textual versions(JSON and XML), binary encodings for JSON and XML were developed.
+   - Binary encodings for JSON: *MessagePack*, BSON, BJSON, UBJSON, BISON, and Smile
+   - Binary encodings for XML: WBXML and Fast Infoset
+- No prescribed schema in formats above -> So, they need to include all the object field names
 
 ```json
 //Example 4-1. Example record which we will encode in several binary formats in this chapter
@@ -101,8 +101,8 @@ Because as long as people agree on what the format is, it often doesn’t matter
 
 ### Thrift and Protocol Buffers
 - how we can do much better, and encode the same record in just 32 bytes.
-- Apache Thrift (Facebook) and Protocol Buffers (protobuf/ Google) binary encoding libraries
-- They come with a code generation tool that takes a schema definition like the ones shown here, and produces classes that implement the schema in various programming languages 
+- Apache Thrift (Facebook) and Protocol Buffers (a.k.a protobuf/ Google) binary encoding libraries
+- They come with *a code generation tool* that takes *a schema definition* like the ones shown here, and produces classes that implement the schema in various programming languages 
 ```
 // Thrift interface definition language (IDL)
 struct Person {
@@ -146,7 +146,7 @@ message Person {
 - Number 1337 => encoded in two bytes (the top bit indicator -> still more bytes to come? )
 - That is, '–64 ~ 63' --encoded--> 1 byte and '–8192 ~ 8191' --encoded--> 2 byte
 
->**Protocol Buffers (which has only one binary encoding format)**
+>**(3) Protocol Buffers (which has only one binary encoding format)**
 
 ![](image/f4-4.jpg)
 
@@ -161,12 +161,12 @@ message Person {
 - You can change a field's name in the schema, since the encoded data never refers to field names,
 - But, you can**not** change a field’s tag in the schema, since that would make all existing encoded data invalid.
 
+[Explain]
 > Forward compatibility: (old code can read records that were written by new code)
-- You can add new fields to the schema with new tag numbers
-   - Old code can skip it using the datatype annotation   
+- If you add new fields to the schema with new tag numbers
+   - Then, Old code can skip it using the datatype annotation   
 
 > Backward compatibility: (new code can read records that were written by old code)
-- New code can always read old data
 - If you add a new field
    - New code can not read data written by old code
    - So, the added fields must be optional or have a default value.
@@ -174,7 +174,23 @@ message Person {
 #### ==> This way, we can maintain the compatibility. (Removing a field is just like adding a field)
 
 #### Datatypes and schema evolution
-
+- What about changing the datatype of a field?
+- there is a risk that values will lose precision or get truncated.
+   - For example, say you change a 32-bit integer into a 64-bit integer
+   - Old Data <==Read== New code: OK - The Parser can fill in missing bits with zeros.
+   - Old Code(still 32-bit) ==Read==> New Data: Error - It will be truncated.
+- A curious detail of 'Protocol Buffers'
+   - No list or array datatype
+   - Instead, a repeated marker for fields ( Two 'filed tag =3 type = string' in Figure 4-4)
+   - The nice effect: it’s okay to change an optional (single-valued) field into a repeated (multi-valued) field. 
+   - New code reading old data sees a list with zero or one element (depending on whether the field was present).
+   - Old code reading new data sees only the last element of the list cuz they think the only last element can be multiple. 
+- 'Thrift' has a dedicated list datatype
+   - It is parameterized with the data type of the list elements
+   - not allow the same evolution from single-valued to multi-valued as Protocol Buffers
+   - but it has the advantage of supporting nested lists
+ 
+     
 ### Apache Avro
 
 - Another binary encoding format
