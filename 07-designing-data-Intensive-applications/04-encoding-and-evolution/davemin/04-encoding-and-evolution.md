@@ -153,7 +153,7 @@ message Person {
 - ==> only 33 bytes
 - bit packing slightly differently, but is otherwise very similar to Thrift’s CompactProtocol.
 
-#### Field tags and schema evolution
+#### *Field tags* and schema evolution
 - Schema Evolution : Schemas inevitably need to change over time
 - How do Thrift and Protocol Buffers handle schema changes while keeping backward and forward compatibility?
 
@@ -173,7 +173,7 @@ message Person {
  
 #### ==> This way, we can maintain the compatibility. (Removing a field is just like adding a field)
 
-#### Datatypes and schema evolution
+#### *Datatypes* and schema evolution
 - What about changing the datatype of a field?
 - there is a risk that values will lose precision or get truncated.
    - For example, say you change a 32-bit integer into a 64-bit integer
@@ -197,7 +197,7 @@ message Person {
 -  It was started in 2009 as a subproject of Hadoop, as a result of Thrift not being a good fit for Hadoop’s use cases.
 -  Hadoop: a framework that allows for the distributed processing of large data sets across clusters of computers using simple programming models.
 -  Avro also uses a schema to specify the structure of the data being encoded. It has two schema languages:
--  one (Avro IDL) intended for human editing,
+   -  one (Avro IDL) intended for human editing,
 
 ```
 Our example schema, written in Avro IDL, might look like this:
@@ -208,7 +208,7 @@ record Person {
 }
 ```
 
--  and one (based on JSON) that is more easily machine-readable.
+   -  and one (based on JSON) that is more easily machine-readable.
 ```
 {
 The equivalent JSON representation of that schema is as follows:
@@ -233,15 +233,16 @@ The equivalent JSON representation of that schema is as follows:
 - The type is encoded using a variable-length encoding (the same as Thrift’s CompactProtocol).
 
 #### The writer’s schema and the reader’s schema
-- writer’s schema:
-   - The schema that is used for application to encode some data     
-- reader’s schema:
-   -  The schema that is used for application to decode some data     
-- Key Idea in Avro.
+- ✔ writer’s schema:
+   - The schema that is used for applications to encode some data     
+- ✔ reader’s schema:
+   -  The schema that is used for applications to decode some data     
+- ✔ Key Idea in Avro.
    - The writer’s schema and the reader’s schema don’t have to be the same—they only need to be compatible by **Field Name*
-- If the code reads data expecting some field,
-   - But, no field info in the writer’s schema
+- If the code reads data expecting some field, But no field info in the writer’s schema
    - Then, a **Default Value* declared in the reader’s schema.
+
+![](image/f4-6.jpg)
 
 #### Schema evolution rules 
 - To maintain forward/backward compatibility, you may only add or remove a field that has a default value.
@@ -260,15 +261,15 @@ you 'Remove' a field with 'NO' default value && new field in the new schema, but
 When reader with old schema ---read--- new schema record ==>  Then, No Default value (Read Error -> forward compatibility Error)
 ```
 
--  Consequently,
--  Avro : no optional and required markers /  instead, default values  
--  the same as Protocol Buffers and Thrift 
+- Also, Null is not an acceptable default for Avro
+     - Instead, Union type is allowed (i.e., * union { null, long, string } field;*)
+       
+-  Consequently, Avro : no optional and required markers /  instead, union types / default values  
 
-![](image/f4-6.jpg)
 
 #### But what is the writer’s schema?
 - How does the reader know the writer’s schema with which a particular piece of data was encoded?
-- can’t just include the entire schema with every record, because the schema would be too much bigger than the encoded data
+- can’t include the entire schema => too much bigger than the encoded data
 - Answer? It depends in context in Avro being used  
    - Large file with lots of records :
       - Writer’s schema included once at the beginning of the file
@@ -279,12 +280,12 @@ When reader with old schema ---read--- new schema record ==>  Then, No Default v
       - include a version number at the beginning of every encoded record, and to keep a list of schema versions in your database.
    - Sending records over a network connection
       - When two processes are communicating over a bidirectional network connection
-      - They can negotiate the schema version which is used for the lifetime of the connection.
+      - the negotiated schema version for the lifetime of the connection.
       - It's how Avro RPC protocol works.
     
 #### Dynamically generated schemas
-- No Tag Number in Avro unlike Protocol Buffers and Thrift( why is it important?)
-- The difference is that Avro is friendlier to **dynamically generated schemas**.
+- Advantage of Avro’s approach- No Tag Number in Avro unlike Protocol Buffers and Thrift( why is it important?)
+- cuz Avro is friendlier to **dynamically generated schemas**.
 > Example
 ```
 - say you have a relational database
@@ -315,14 +316,17 @@ When reader with old schema ---read--- new schema record ==>  Then, No Default v
 By contrast
 
 > 'Avro' provides optional code generation(with/without any code generation)
-- by using an object container file (which embeds the writer’s schema), you can simply open it using the Avro library and look at the data for analysis
+- by using an object container file (which embeds the writer’s schema), you can simply *open* it using the Avro library and look at the data for *analysis*
 - The file is self-describing since it includes all the necessary metadata.
 
 ### The Merits of Schemas
-- They can be much more compact than the various “binary JSON” variants, since they can omit field names from the encoded data.
-- The schema is a valuable form of documentation, and because the schema is required for decoding, you can be sure that it is up to date (whereas manually maintained documentation may easily diverge from reality).
+- More compact than the various “binary JSON” variants
+   - since they can omit field names from the encoded data
+- The schema is a valuable form of documentation
+   - because the schema is required for decoding, you can be sure that it is up to date (whereas manually maintained documentation may easily diverge from reality).
 - Keeping a database of schemas allows you to check forward and backward compatibility of schema changes, before anything is deployed.
-- For users of statically typed programming languages, the ability to generate code from the schema is useful, since it enables type checking at compile time.
+- For statically typed programming languages, generate code from the schema is useful
+   - since it enables type checking at compile time.
 
 
 ## Modes of Dataflow
