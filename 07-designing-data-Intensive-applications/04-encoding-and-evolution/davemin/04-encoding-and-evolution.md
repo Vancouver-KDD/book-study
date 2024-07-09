@@ -307,3 +307,92 @@ By contrast
 - The schema is a valuable form of documentation, and because the schema is required for decoding, you can be sure that it is up to date (whereas manually maintained documentation may easily diverge from reality).
 - Keeping a database of schemas allows you to check forward and backward compatibility of schema changes, before anything is deployed.
 - For users of statically typed programming languages, the ability to generate code from the schema is useful, since it enables type checking at compile time.
+
+
+## Modes of Dataflow
+- That’s a fairly abstract idea—there are many ways data can flow from one process to another. 
+- Who encodes the data, and who decodes it?
+- In the rest of this chapter we will explore some of the most common ways how data flows between processes:
+```
+•  Via databases (see “Dataflow Through Databases” on page 129)
+•  Via service calls (see “Dataflow Through Services: REST and RPC” on page 131)
+•  Via asynchronous message passing (see “Message-Passing Dataflow” on page 136)
+```
+### Dataflow Through Databases
+![](image/f4-7.jpg)
+- In general, it’s common for several different processes to be accessing a database at the same time.
+- Either way, in an environment where the application is changing, it is likely that some processes accessing the database will be running newer ode and some will be running older code—for example because a new version is currently being deployed in a rolling upgrade, so some instances have been updated while others haven’t yet.
+- sometimes you need to take care at an application level, as illustrated in Figure 4-7. For example, if you decode a database value into model objects in the application, and later reencode those model objects, the unknown field might be lost in that translation process. Solving this is not a hard problem; you just need to be aware of it.
+
+#### Different values written at different times
+- within a single database you may have some values that were written five milliseconds ago, and some values that were written five years ago.
+- Rewriting (migrating) data into a new schema is certainly possible, but it’s an expensive thing to do on a large dataset, so most databases avoid it if possible.
+- Most relational databases allow simple schema changes, such as adding a new column with a null default value, without rewriting existing data.
+
+#### Archival storage  
+- Perhaps you take a snapshot of your database from time to time, say for backup purposes or for loading into a data warehouse
+- In this case, the data dump will typically be encoded using the latest schema, even if the original encoding in the source database contained a mixture of schema versions from different eras.
+- As the data dump is written in one go and is thereafter immutable, formats like Avro object container files are a good fit.
+
+## Dataflow Through Services: REST and RPC
+- The most common arrangement is to have two roles: clients and servers.
+- The servers expose an API over the network, and the clients can connect to the servers to make requests to that API.
+- The API exposed by the server is known as a service.
+
+> WEB
+- clients (web browsers) make requests to web servers, making GET requests to download HTML, CSS, JavaScript, images, etc.,
+- and making POST requests to submit data to the server.
+- The API consists of a standardized set of protocols and data formats (HTTP, URLs, SSL/TLS, HTML, etc.).
+- Web browsers are not the only type of client.
+     For example, a native app running on a mobile device or a desktop computer can also make network requests to a server,
+     and a client-side JavaScript application running inside a web browser can use XMLHttpRequest to become an HTTP client (this technique is known as Ajax [30]).
+- In this case, the server’s response is typically not HTML for displaying to a human, but rather data in an encoding that is convenient for further processing by the client-side application code (such as JSON)
+- Moreover, a server can itself be a client to another service (for example, a typical web app server acts as client to a database).
+- This approach is often used to decompose a large application into smaller services by area of functionality, such that one service makes a request to another when it requires some functionality or data from that other service.
+- This way of building applications has traditionally been called a service-oriented architecture (SOA), more recently refined and rebranded as microservices architecture [31, 32].
+- A key design goal of a service-oriented/microservices architecture is to make the application easier to change and maintain by making services independently deployable and evolvable.
+
+### Web Service
+1. A client application running on a user’s device (e.g., a native app on a mobile device, or JavaScript web app using Ajax) making requests to a service over HTTP. These requests typically go over the public internet.
+2. One service making requests to another service owned by the same organization, often located within the same datacenter, as part of a service-oriented/microservices architecture. (Software that supports this kind of se case is sometimes called middleware.)
+3. One service making requests to a service owned by a different organization, usually via the internet. This is used for data exchange between different organizations’ backend systems. This category includes public APIs provided by online services, such as credit card processing systems, or OAuth for shared access to user data.
+
+#### REST and SOAP
+> REST
+- REST is not a protocol, but rather a design philosophy that builds upon the principles of HTTP [34, 35].
+- It emphasizes simple data formats, using URLs for identifying resources and using HTTP features for cache control, authentication, and content type negotiation.
+- REST has been gaining popularity compared to SOAP, at least in the context of cross-organizational service integration [36], and is often associated with microservices [31].
+- An API designed according to the principles of REST is called RESTful.
+
+> SOAP
+- SOAP is an XML-based protocol for making network API requests.
+- Although it is most commonly used over HTTP, it aims to be independent from HTTP and avoids using most HTTP features.
+- Instead, it comes with a sprawling and complex multitude of related standards (the web service framework, known as WS-*) that add various features
+- The API of a SOAP web service is described using an XML-based language called the Web Services Description Language, or WSDL. WSDL enables code generation so that a client can access a remote service using local classes and method calls (which are encoded to XML messages and decoded again by the framework).
+- This is useful in statically typed programming languages, but less so in dynamically typed ones
+- As WSDL is not designed to be human-readable, and as SOAP messages are often too complex to construct manually, users of SOAP rely heavily on tool support, code generation, and IDEs
+
+#### The problems with remote procedure calls (RPCs)
+- All of these are based on the idea of a remote procedure call (RPC), which has been around since the 1970s [42]. The RPC model tries to make a request to a remote network service look the same as calling a function or method in your programming language, within the same process (this abstraction is called location transparency). 
+- Although RPC seems convenient at first, the approach is fundamentally flawed 
+
+- A local function call is predictable and either succeeds or fails, depending only on parameters that are under your control.
+- A network request is unpredictable: the request or response may be lost due to a network problem, or the remote machine may be slow or unavailable, and such problems are entirely outside of your control.
+- Network problems are common, so you have to anticipate them, for example by retrying a failed request.
+
+> network request vs a local function call
+  
+- A local function call either returns a result, or throws an exception, or never returns (because it goes into an infinite loop or the process crashes). A network request has another possible outcome: it may return without a result, due to a timeout. 
+  
+- If you retry a failed network request, it could happen that the requests are actually getting through, and only the responses are getting lost. In that case, retrying will cause the action to be performed multiple times, unless you build a mechanism for deduplication (idempotence) into the protocol. Local function calls don’t have this problem. (We discuss idempotence in more detail in Chapter 11.)
+  
+- Every time you call a local function, it normally takes about the same time to execute. A network request is much slower than a function call, and its latency is also wildly variable: at good times it may complete in less than a millisecond, but when the network is congested or the remote service is overloaded it may take many seconds to do exactly the same thing.
+  
+-  When you call a local function, you can efficiently pass it references (pointers) to objects in local memory. When you make a network request, all those parameters need to be encoded into a sequence of bytes that can be sent over the network. That’s okay if the parameters are primitives like numbers or strings, but quickly becomes problematic with larger objects.
+
+-    The client and the service may be implemented in different programming languages, so the RPC framework must translate datatypes from one language into another.
+This can end up ugly, since not all languages have the same types—recall JavaScript’s problems with numbers greater than 253, for example (see “JSON, XML, and Binary Variants” on page 114). This problem doesn’t exist in a 
+single process written in a single language.
+
+ #### Current directions for RPC
+ 
