@@ -416,3 +416,34 @@ single process written in a single language.
 
  #### Current directions for RPC
  
+- This new generation of RPC frameworks is more explicit about the fact that a remote request is different from a local function call.
+   - For example, Finagle and Rest.li use futures (promises) to encapsulate asynchronous actions that may fail.
+- Futures also simplify situations where you need to make requests to multiple services in parallel, and combine their results [45].
+- gRPC supports streams, where a call consists of not just one request and one response, but a series of requests and responses over time.
+- Some of these frameworks also provide service discovery—that is, allowing a client to find out at which IP address and port number it can find a particular service.
+
+#### Data encoding and evolution for RPC
+The backward and forward compatibility properties of an RPC scheme are inherited from whatever encoding it uses:
+•  Thrift, gRPC (Protocol Buffers), and Avro RPC can be evolved according to the compatibility rules of the respective encoding format.
+•  In SOAP, requests and responses are specified with XML schemas. These can be evolved, but there are some subtle pitfalls.
+• RESTful APIs most commonly use JSON (without a formally specified schema) for responses, and JSON or URI-encoded/form-encoded request parameters for requests. 
+   Adding optional request parameters and adding new fields to response objects are usually considered changes that maintain compatibility.
+
+## Message-Passing Dataflow
+- In this final section, we will briefly look at asynchronous message-passing systems, which are somewhere between RPC and databases. 
+- They are similar to RPC in that a client’s request (usually called a message) is delivered to another process with low latency.
+- They are similar to databases in that the message is not sent via a direct network connection,
+- but goes via an intermediary called a message broker (also called a message queue or message-oriented middleware), which stores the message temporarily.
+
+Using a message broker has several advantages compared to direct RPC:
+-  It can act as a buffer if the recipient is unavailable or overloaded, and thus improve system reliability.
+-  It can automatically redeliver messages to a process that has crashed, and thus prevent messages from being lost.
+- It avoids the sender needing to know the IP address and port number of the recipient (which is particularly useful in a cloud deployment where virtual machines often come and go).
+-  It allows one message to be sent to several recipients.
+-  It logically decouples the sender from the recipient (the sender just publishes messages and doesn’t care who consumes them).
+
+- However, a difference compared to RPC is that message-passing communication is usually one-way: a sender normally doesn’t expect to receive a reply to its messages.
+- It is possible for a process to send a response, but this would usually be done on a separate channel.
+- This communication pattern is asynchronous: the sender doesn’t wait for the message to be delivered, but simply sends it and then forgets about it.
+
+  
