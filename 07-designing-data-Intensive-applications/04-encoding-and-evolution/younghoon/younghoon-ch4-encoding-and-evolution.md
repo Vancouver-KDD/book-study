@@ -283,11 +283,6 @@ There are two popular approaches to web services: REST and SOAP
 
 - By contrast, SOAP is an XML-based protocol for making network API requests.vii Although it is most commonly used over HTTP, it aims to be independent from HTTP and avoids using most HTTP feature.
 
-WSDL enables code generation so that a client can access a remote service using local classes and method calls (which
-are encoded to XML messages and decoded again by the framework).
-
-RESTful APIs tend to favor simpler approaches, typically involving less code generation and automated tooling
-
 
 ### The problems with remote procedure calls (RPCs)
 
