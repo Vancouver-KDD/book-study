@@ -231,9 +231,9 @@ tooling.
 ## Modes of Dataflow
 
 In the rest of this chapter we will explore some of the most common ways how data flows between processes:
-• Via databases (see “Dataflow Through Databases” on page 129)
-• Via service calls (see “Dataflow Through Services: REST and RPC” on page 131)
-• Via asynchronous message passing (see “Message-Passing Dataflow” on page 136)
+- Via databases (see “Dataflow Through Databases” on page 129)
+- Via service calls (see “Dataflow Through Services: REST and RPC” on page 131)
+- Via asynchronous message passing (see “Message-Passing Dataflow” on page 136)
 
 
 ### Datafolow Through Databases
@@ -243,7 +243,6 @@ In a database, the process that writes to the database encodes the data, and the
 For databases, there will be multiple processes reading/writing the db, which means there might different versions of code writing / reading from the database.. Therefore, backward and forward compatilibity is needed.
 
 If not careful, data can be lost... It should be known to developers.
-
 
 ![alt text](image-1.png)
 
@@ -311,13 +310,15 @@ Many problems!
 
 ### Current directions for RPC
 
-All of these factors mean that there’s no point trying to make a remote service look too much like a local object in your programming language, because it’s a fundamentally different thing. Part of the appeal of REST is that it doesn’t try to hide the fact
+All of these factors mean that there’s no point trying to make a remote service look too much like a local object in your programming language, because it’s a fundamentally different thing.
+
+Part of the appeal of REST is that it doesn’t try to hide the fact
 that it’s a network protocol
 
 - For example, Finagle and Rest.li use futures (promises) to encapsulate asynchronous actions that may fail. Futures alsosimplify situations where you need to make requests to multiple services in parallel, and combine their results [45].
 
 - gRPC supports streams, where a call consists of not just one request and one response, but a series of requests and responses over time
-[46].
+
 
 However, a RESTful API has other significant advantages: it is good for experimentation and debugging (you can simply make requests to it using a web browser or the command-line tool curl, without any code generation or software installation),
 
@@ -329,14 +330,9 @@ Compared to data flowing through databases (as described in the last section), w
 through services: it is reasonable to assume that all the servers will be updated first, and all the clients second. Thus, you only need backward compatibility on requests, and forward compatibility on responses.
 
 The backward and forward compatibility properties of an RPC scheme are inherited from whatever encoding it uses:
-• Thrift, gRPC (Protocol Buffers), and Avro RPC can be evolved according to the
-compatibility rules of the respective encoding format.
-• In SOAP, requests and responses are specified with XML schemas. These can be
-evolved, but there are some subtle pitfalls [47].
-• RESTful APIs most commonly use JSON (without a formally specified schema)
-for responses, and JSON or URI-encoded/form-encoded request parameters for
-requests. Adding optional request parameters and adding new fields to response
-objects are usually considered changes that maintain compatibility.
+- Thrift, gRPC (Protocol Buffers), and Avro RPC can be evolved according to the compatibility rules of the respective encoding format.
+- In SOAP, requests and responses are specified with XML schemas. These can be evolved, but there are some subtle pitfalls [47].
+- RESTful APIs most commonly use JSON (without a formally specified schema) for responses, and JSON or URI-encoded/form-encoded request parameters for requests. Adding optional request parameters and adding new fields to response objects are usually considered changes that maintain compatibility.
 
 Service compatibility is made harder by the fact that RPC is often used for communication across organizational boundaries, so the provider of a service often has no control over its clients and cannot force them to upgrade. Thus, compatibility needs
 to be maintained for a long time, perhaps indefinitely.
@@ -344,7 +340,9 @@ to be maintained for a long time, perhaps indefinitely.
 
 ## Messaging Data Flow
 
-In this final section, we will briefly look at asynchronous message-passing systems, which are somewhere between RPC and databases. They are similar to RPC in that a client’s request (usually called a message) is delivered to another process with low latency. They are similar to databases in that the message is not sent via a direct network connection, but goes via an intermediary called a message broker (also called a message queue or message-oriented middleware), which stores the message temporarily.
+In this final section, we will briefly look at asynchronous message-passing systems, which are somewhere between RPC and databases.
+- They are similar to RPC in that a client’s request (usually called a message) is delivered to another process with low latency.
+- They are similar to databases in that the message is not sent via a direct network connection, but goes via an intermediary called a message broker
 
 It can act as a buffer if the recipient is unavailable or overloaded, and thus
 improve system reliability.
@@ -354,15 +352,20 @@ improve system reliability.
 - It allows one message to be sent to several recipients.
 - It logically decouples the sender from the recipient (the sender just publishes messages and doesn’t care who consumes them).
 
-However, a difference compared to RPC is that message-passing communication is usually one-way: a sender normally doesn’t expect to receive a reply to its messages. It is possible for a process to send a response, but this would usually be done on a separate channel. This communication pattern is asynchronous: the sender doesn’t wait for the message to be delivered, but simply sends it and then forgets about it.
+- communication is usually one-way: a sender normally doesn’t expect to receive a reply to its messages. I
+- It is possible for a process to send a response, but this would usually be done on a separate channel.
+- This communication pattern is asynchronous:
+
 
 ### Message Brokers
 
 TIBCO, IBM WebSphere, and webMethods. More recently, open source implementations such as RabbitMQ, ActiveMQ, HornetQ,
 NATS, and Apache Kafka have become popular.
 
-message brokers are used as follows: one process sends a message to a named queue or topic, and the broker ensures that the message is delivered to one or more consumers of or subscribers to that queue or topic. There can be many producers and
-many consumers on the same topic.
+message brokers are used as follows:
+- one process sends a message to a named queue or topic
+- the broker ensures that the message is delivered to one or more consumers of or subscribers to that queue or topic.
+- There can be many producers and many consumers on the same topic.
 
 However, a consumer may itself publish messages to another topic (so you can chain them together, as we shall see in Chapter
 11), or to a reply queue that is consumed by the sender of the original message
@@ -372,17 +375,16 @@ Message brokers typically don’t enforce any particular data model—a message 
 
 ### Distributed actor frameworks
 
-The actor model is a programming model for concurrency in a single process. Rather than dealing directly with threads (and the associated problems of race conditions, locking, and deadlock), logic is encapsulated in actors. Each actor typically represents
-one client or entity, it may have some local state (which is not shared with any other actor), and it communicates with other actors by sending and receiving asynchronous messages.
-
 
 In distributed actor frameworks, this programming model is used to scale an application across multiple nodes. The same message-passing mechanism is used, no matter whether the sender and recipient are on the same node or different nodes. If they are on different nodes, the message is transparently encoded into a byte sequence, sent ver the network, and decoded on the other side.
 
 Depending on actor framworks, forward and backward compaitilbities are handled diffrently.
 
 
+- Akka uses Java’s built-in serialization by default,
+- which does not provide forward or backward compatibility.
+- replace it with something like Protocol Buffers, and thus gain the ability to do rolling upgrades
 
+- Orleans by default uses a custom data encoding format that does not support rolling upgrade deployments; t\
 
-- Akka uses Java’s built-in serialization by default, which does not provide forward or backward compatibility. However, you can replace it with something like Protocol Buffers, and thus gain the ability to do rolling upgrades [50].
-- Orleans by default uses a custom data encoding format that does not support rolling upgrade deployments; to deploy a new version of your application, you need to set up a new cluster, move traffic from the old cluster to the new one, and shut down the old one [51, 52]. Like with Akka, custom serialization plug-ins can be used.
-- In Erlang OTP it is surprisingly hard to make changes to record schemas (despite the system having many features designed for high availability); rolling upgrades are possible but need to be planned carefully [53]. An experimental new maps datatype (a JSON-like structure, introduced in Erlang R17 in 2014) may make this easier in the future [54].
+- In Erlang OTP it is surprisingly hard to make changes to record schemas (despite the system having many features designed for high availability); rolling upgrades are possible but need to be planned carefully
