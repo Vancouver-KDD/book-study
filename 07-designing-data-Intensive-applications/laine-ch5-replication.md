@@ -110,12 +110,75 @@ _**transaction**_
 
 
 # Multi-Leader Replication
-- Single leader, eery write must go through it.
+- Single leader, every write must go through it.
 - multiple leaders process write forward the change to all the other nodes. Each leader is also a follower to the other leaders
 
 ## Use Cases for Multi-Leader Replication
 ### Multi-datacenter operation
 Having a leader in each datacenter. 
+
+### Clients with offline operation
+Every device has a local DB acting as a leader, and asynchronous replication process will be done once online. 
+
+### Collaborative editing
+- Like Google doc
+Not exactly DB replication problem, but resembles a lot.
+- One user edit is instantly applied to the local replica, and asynchronously replicated to the server
+- For no editing conflicts, can obtain a lock
+- To avoid lock, replicate with very small units of change (single keystroke)
+
+## Handling Write Conflicts
+Wiki page edited by two users simultaneously
+
+#### Synchronous versus asynchronous conflict detection
+- Single leader DB, the second writer will wait for the first write completion or abort the second write
+- Multi leader, both writes are processed and the conflict is detected asynchronously
+  - If conflict detection is synchronous, it loses the advantage of multi leaders
+
+#### Conflict avoidance
+Recommended approach
+- Each user has the home datacenter (geo proximity), requests are always routed to the same datacenter
+- But conflicts can't be avoided if you change the leader of a datacenter due to failure, or user moved to different location
+
+#### Converging toward a consistent state
+Multi-leader setup, there's no defined ordering of writes, and DB must resolve the conflict in convergent way
+- All replicas must arrive at the same final value
+
+#### Custom conflict resolution logic
+Using application code for conflict resolution
+- execute at write or read
+
+#### What is a conflict?
+Some conflicts are subtle to detect
+- ex: Booking room, from two different groups booked at the same time
+
+### Multi-Leader Replication Topologies
+_**Replication topology**_: comm path which writes are propagated from one node to another
+
+**all-to-all topology**
+- (most general) - every leader sends writes to every other leader
+- Better fault tolerance, avoiding a single point of failure
+- some network links are faster than others, so some replica may overtake others
+  - version vectors could be a solution
+
+**Problem with circular & star**
+- star: one designated root node forwards writes to all other nodes
+- a write need to pass through several nodes before reaching all replicas
+- if one node fails it interupt the flow until fix
+
+# Leaderless Replication
+Any replicas accept writes from clients directly or a coordinator node does it on behalf of the client
+- Amazon in-house Dynamo system
+
+## Writing to the Database When a Node Is Down
+No failover in the leaderless setup
+- If some replica is unavailable, it simply misses the write and data gets stale
+- Read requests are sent to severl nodes in parallel, the newer data with version number is read
+
+**Read repair**
+- 
+### Read repair and anti-entropy
+
 
 
 
