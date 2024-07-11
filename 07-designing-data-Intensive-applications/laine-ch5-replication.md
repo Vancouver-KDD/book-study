@@ -173,12 +173,51 @@ Any replicas accept writes from clients directly or a coordinator node does it o
 ## Writing to the Database When a Node Is Down
 No failover in the leaderless setup
 - If some replica is unavailable, it simply misses the write and data gets stale
-- Read requests are sent to severl nodes in parallel, the newer data with version number is read
+- **Read requests are sent to several nodes in parallel,** the newer data with version number is read
 
 **Read repair**
-- 
-### Read repair and anti-entropy
+- A read checks several nodes and if a stale value is detected, writes newer value to the replica
+**Anti-entropy process**
+- background process constantly looking for differences of data between replicas and copies missing data
+- may be a significant delay
 
+**Quorums for reading and writing**
+- ex) 3 replicas, write is guaranteed successful in at least two nodes, then read is guaranteed successful at least two 
+- as long as **w + r > n**, expect up-to-date value when reading
+- otherwise writes or reads return an error
+- Remember limitations with edge cases returning stale values
+  - network interruption lets a client off from DB nodes, while others can access
 
+## Detecting Concurrent Writes
+_**Concurrency**_: if they are both unware of each other, regardless of the physical time
+- For eventual consistency, the replicas should converge toward the same value
 
+#### Last write wins (discarding concurrent writes)
+Declare that each replica need only store the most “recent” value and allow “older” values to be overwritten and discarded.
+- The ordering is arbitrary forced by attaching a timestamp to each write (Supported by Cassandra, Riak)
+- Durability is not kept: if several concurrent writes to the same key, only one will survive
 
+#### The “happens-before” relationship and concurrency
+- Writes on the same key, no casual dependency
+- Writes based on **`happened before`** write value, then casual dependency - No concurrency
+
+**Capturing the happens-before relationship**
+- Example in a single replica - based on if the later operation knew about or depended on the earlier one
+- _Version number_ is used to determine whether two operations are concurrent
+  - version number is maintained for every key, incrementing for each write
+  - client must read before writing
+  - writing includes the version number from previous read
+  - Can overwrite all values with =< version number, but keep all values with > version number
+- _Version vector_ for multiple replicas
+  - collection of version numbers from all the replicas
+  - version number per replica and per key, per replica, it keeps track of the the version number seen from other replicas
+  -allows DB to distinguish between overwrites and concurrent writes
+
+#### Merging concurrently written values
+siblings: concurrently written values
+- clients have to clean up by merging value siblings - same problem as conflict resolution in multi-leader replication
+
+**approaches**
+- Take union: But if removing is allowed, union might not be right
+- System must leave a marker with appropriate version number to indicate removed item
+  - deletion marker: tombstone
