@@ -208,6 +208,113 @@ The fundamental limitations of distributed systems in Chapters 8 The Trouble wit
   - Trigger-based replication typically has greater overheads than other replication methods, and is more prone to bugs and limitations than the database’s built-in replication.
   - However, it can nevertheless be useful due to its flexibility.
 
-#### Trigger-based replication
 
 ## Problems with Replication Lag
+Replication? why? 
+1. cuz of being able to tolerate node failures
+2. scalability: processing more requests than a single machine can handle
+3. latency: placing replicas geo-graphically closer to users
+
+- Read-scaling architecture
+  - you can increase the capacity for serving read-only requests simply by adding more followers.
+  - Detail:
+    - In the Leader-based replication, basically all writes to go through a single node, but read-only queries can go to any replica.
+    - create many followers, and distribute the read requests across those followers.
+    - This removes load from the leader and allows read requests to be served by nearby replicas.
+  - But, synchronously replicate....
+    - Only realistically works with asynchronous replication
+    - because if you tried to synchronously replicate to all followers, a single node failure or network outage would make the entire system unavailable for writing.
+    - The more nodes you have, the likelier it is that one will be down, so a fully synchronous configuration would be very unreliable.
+  - But, asynchronous replication....
+    - Out‐dated information(inconsistency) issue : if the follower has fallen behind
+    - different results on the leader and a follower from same query - because not all writes have been reflected in the follower
+    - if you stop writing to the database and wait a while, the followers will eventually catch up and become consistent with the leader. For that reason, this effect is known as eventual consistency.
+  - The term “eventually” is deliberately vague:
+    - in general, there is no limit to how far a replica can fall behind.
+    - In normal operation, the delay between a write happening on the leader and being reflected on a follower—the replication lag—may be only a fraction of a second, and not noticeable in practice.
+    - However, if the system is operating near capacity or if there is a problem in the network, the lag can easily increase to several seconds or even minutes.
+    - When the lag is so large, the inconsistencies it introduces are not just a theoretical issue but a real problem for applications. 
+
+- 3 problems caused by replication lag
+- 1 solution
+
+### Reading Your Own Writes
+- When new data is submitted, it must be sent to the leader, but when the user views the data, it can be read from a follower. 
+- This is especially appropriate if data is frequently viewed but only occasionally written.
+
+> A problem in asynchronous replication
+
+![](image/fg5-3.jpg "")
+
+- if the user views the data shortly after making a write, the new data may not yet have reached the replica.
+- To the user, it looks as though the data they submitted was lost, so they will be understandably unhappy.
+- In this situation, we need *read-after-write consistency*(a.k.a. *read-your-writes consistency*)
+  - This is a guarantee that if the user reloads the page, they will always see any updates they submitted themselves.
+  - It makes no promises about other users: other users’ updates may not be visible until some later time.
+  - However, it reassures the user that their own input has been saved correctly.
+- How can we implement read-after-write consistency in a system with leader-based replication?
+  1. When reading something that the user may have modified, read it from the leader; otherwise, read it from a follower. This requires that you have some way of knowing whether something might have been modified, without actually querying it. For example, user profile information on a social network is normally only editable by the owner of the profile, not by anybody else. Thus, a simple rule is: always read the user’s own profile from the leader, and any other users’ profiles from a follower.
+  2. If most things in the application are potentially editable by the user, that approach won’t be effective, as most things would have to be read from the leader (negating the benefit of read scaling). In that case, other criteria may be used to decide whether to read from the leader. For example, you could track the time of the last update and, for one minute after the last update, make all reads from the leader. You could also monitor the replication lag on followers and prevent queries on any follower that is more than one minute behind the leader.
+  3. The client can remember the timestamp of its most recent write—then the system can ensure that the replica serving any reads for that user reflects updates at least until that timestamp. If a replica is not sufficiently up to date, either the read can be handled by another replica or the query can wait until the replica has caught up. The timestamp could be a logical timestamp (something that indicates ordering of writes, such as the log sequence number) or the actual system clock (in which case clock synchronization becomes critical.
+  4. If your replicas are distributed across multiple datacenters (for geographical proximity to users or for availability), there is additional complexity. Any request that needs to be served by the leader must be routed to the datacenter that contains the leader.
+
+> Same users & multiple devices
+-  In this case you may want to provide *cross-device* read-after-write consistency: if the user enters some information on one device and then views it on another device, they should see the information they just entered.
+  - Approaches that require remembering the timestamp of the user’s last update become more difficult, because the code running on one device doesn’t know what updates have happened on the other device. This metadata will need to be centralized.
+  - If your replicas are distributed across different datacenters, there is no guarantee that connections from different devices will be routed to the same datacenter. (For example, if the user’s desktop computer uses the home broadband connection and their mobile device uses the cellular data network, the devices’ network routes may be completely different.) If your approach requires reading from the leader, you may first need to route requests from all of a user’s devices to the same datacenter.
+
+
+### Monotonic Reads
+- when reading from asynchronous followers is that it’s possible for a user to see things moving backward in time.
+  - This can happen if a user makes several reads from different replicas.
+
+![](image/fg5-4.jpg "")
+  
+  -  For example, Figure 5-4 shows user 2345 making the same query twice, first to a follower with little lag, then to a follower with greater lag.
+  -  (This scenario is quite likely if the user refreshes a web page, and each request is routed to a random server.)
+  -  The first query returns a comment that was recently added by user 1234, but the second query doesn’t return anything because the lagging follower has not yet picked up that write.
+  -  In effect, the second query is observing the system at an earlier point in time than the first query.
+  -  This wouldn’t be so bad if the first query hadn’t returned anything, because user 2345 probably wouldn’t know that user 1234 had recently added a comment.
+  -  However, it’s very confusing for user 2345 if they first see user 1234’s comment
+- Monotonic reads [23] is a guarantee that this kind of anomaly does not happen.
+- It’s a lesser guarantee than strong consistency, but a stronger guarantee than eventual consistency.
+  - When you read data, you may see an old value; monotonic reads only means that if one user makes several reads in sequence, they will not see time go backward
+  - i.e., they will not read older data after having previously read newer data.
+  - One way of achieving monotonic reads is to make sure that each user always makes their reads from the same replica (different users can read from different replicas).
+  - For example, the replica can be chosen based on a hash of the user ID, rather than randomly.
+- However, if that replica fails, the user’s queries will need to be rerouted to appear, and then see it disappear again.
+
+### Consistent Prefix Reads
+>  Short dialog between Mr. Poons and Mrs. Cake
+
+```
+Mr. Poons: How far into the future can you see, Mrs. Cake? 
+Mrs. Cake: About ten seconds usually, Mr. Poons.
+```
+- Now, imagine a third person is listening to this conversation through followers.
+- The things said by Mrs. Cake go through a follower with little lag, but the things said by Mr. Poons have a longer replication lag
+```
+Mrs. Cake: About ten seconds usually, Mr. Poons. 
+Mr. Poons: How far into the future can you see, Mrs. Cake?
+```
+- Preventing this kind of anomaly requires another type of guarantee: consistent prefix reads [23].
+- This guarantee says that if a sequence of writes happens in a certain order, then anyone reading those writes will see them appear in the same order.
+- This is a particular problem in partitioned (sharded) databases, which we will discuss in Chapter 6.
+- If the database always applies writes in the same order, reads always see a consistent prefix, so this anomaly cannot happen. However, in many distributed databases, different partitions operate independently, so there is no global ordering of writes: when a user reads from the database, they may see some parts of the database in an older state and some in a newer state.
+- One solution is to make sure that any writes that are causally related to each other are written to the same partition—but in some applications that cannot be done efficiently.
+- There are also algorithms that explicitly keep track of causal dependencies, a topic that we will return to in “The “happens-before” relationship and concurrency”
+
+
+![](image/fg5-5.jpg "")
+
+
+### Solutions for Replication Lag
+- When working with an eventually consistent system, it is worth thinking about how the application behaves if the replication lag increases to several minutes or even hours.
+- If the answer is “no problem,” that’s great. However, if the result is a bad experience for users, it’s important to design the system to provide a stronger guarantee, such as read-after-write.
+- Pretending that replication is synchronous when in fact it is asynchronous is a recipe for problems down the line.
+- As discussed earlier, there are ways in which an application can provide a stronger guarantee than the underlying database—for example, by performing certain kinds of reads on the leader.
+- However, dealing with these issues in application code is complex and easy to get wrong.
+- It would be better if application developers didn’t have to worry about subtle replication issues and could just trust their databases to “do the right thing.”
+- This is why transactions exist: they are a way for a database to provide stronger guarantees so that the application can be simpler.
+- Single-node transactions have existed for a long time. However, in the move to distributed (replicated and partitioned) databases, many systems have abandoned them, claiming that transactions are too expensive in terms of performance and availability, and asserting that eventual consistency is inevitable in a scalable system.
+- There is some truth in that statement, but it is overly simplistic, and we will develop a more nuanced view over the course of the rest of this book. We will return to the topic of transactions in Chapters 7 and 9, and we will discuss some alternative mechanisms in Part III.
