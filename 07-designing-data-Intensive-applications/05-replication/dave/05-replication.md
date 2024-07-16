@@ -502,31 +502,36 @@ contravene the purpose of having multiple datacenters in the first place.
 - This difference in design has profound consequences for the way the database is used as we shall see.
 
 ### Writing to the Database When a Node Is Down
-- Imagine you have a database with three replicas, and one of the replicas is currently unavailable—perhaps it is being rebooted to install a system update.
-- In a leader-based configuration, if you want to continue processing writes, you may need to perform a failover (see “Handling Node Outages” on page 156).
-- On the other hand, in a leaderless configuration, failover does not exist. Figure 5-10 shows what happens: the client (user 1234) sends the write to all three replicas in parallel, and the two available replicas accept the write but the unavailable replica misses it.
-- Let’s say that it’s sufficient for two out of three replicas to acknowledge the write: after user 1234 has received two ok responses, we consider the write to be successful. 
-- The client simply ignores the fact that one of the replicas missed the write.
+- Imagine you have a database with three replicas and one of the replicas is currently unavailable—perhaps it is being rebooted to install a system update.
+- In a leader-based configuration,
+  - need to perform a failover (see “*Handling Node Outages*” on page 156).
+- In a leaderless configuration, on the other hand,
+  - No failover exists
+    - Example(Figure 5-10), The client (user 1234) sends the write to all three replicas in parallel. The two available replicas accept the write, but the unavailable replica misses it.
+    - Let’s say that it’s sufficient for two out of three replicas to acknowledge the 'write':
+    - After user 1234 has received two ok responses, we consider the write to be successful. The client simply ignores the fact that one of the replicas missed the write.
+    - The unavailable node comes back online, and clients start reading from it. (Any writes that happened while the node was down are missing from that node.)
+    - Thus, if you read from that node, you may get stale (outdated) values as responses.
+    - To solve that problem, a client sends read requests to *several nodes* in parallel.
+    - The client may get different responses from different nodes; i.e., the up-to-date value from one node and a stale value from another.
+    - *Version numbers* are used to determine which value is newer (see “Detecting Concurrent Writes” on page 184).
 
 ![](image/fg5-10.jpg "")
 
-- Now imagine that the unavailable node comes back online, and clients start reading from it.
-- Any writes that happened while the node was down are missing from that node.
-- Thus, if you read from that node, you may get  stale (outdated) values as responses.
-- To solve that problem, when a client reads from the database, it doesn’t just send its request to one replica: read requests are also sent to several nodes in parallel. The client may get different responses from different nodes; i.e., the up-to-date value from one node and a stale value from another.
-- *Version numbers* are used to determine which value is newer (see “Detecting Concurrent Writes” on page 184).
-
 #### Read repair and anti-entropy
-- The replication scheme should ensure that eventually all the data is copied to every replica. After an unavailable node comes back online, how does it catch up on the writes that it missed?
+- How does it catch up on the writes that it missed? (After an unavailable node comes back online). 
+- The replication scheme should ensure that eventually all the data is copied to every replica. 
 - Two mechanisms are often used in Dynamo-style datastores:
   - Read repair:
     - When a client makes a read from several nodes in parallel, it can detect any stale responses.
-    - For example, in Figure 5-10, user 2345 gets a version 6 value from replica 3 and a version 7 value from replicas 1 and 2.
-    - The client sees that replica 3 has a stale value and writes the newer value back to that replica. This approach works well for values that are frequently read.
+    - For example(Figure 5-10), user 2345 gets a version 6 value from replica 3 and a version 7 value from replicas 1 and 2.
+    - The client writes the newer value back to that replica 3. This approach works well for values that are frequently read.
   - Anti-entropy process:
     - In addition, some datastores have a *background process* that *constantly looks for* differences in the data between replicas and copies any missing data from one replica to another.
     - Unlike the replication log in leader-based replication, this anti-entropy process does not copy writes in any particular order, and there may be a significant delay before data is copied.
-- Not all systems implement both of these; for example, Voldemort currently does not have an anti-entropy process. Note that without an anti-entropy process, values that are rarely read may be missing from some replicas and thus have reduced durability, because read repair is only performed when a value is read by the application.
+- Not all systems implement both of these;
+  - For example, Voldemort currently does not have an anti-entropy process.
+  - Note that without an anti-entropy process, values that are rarely read may be missing from some replicas and thus have reduced durability, because read repair is only performed when a value is read by the application.
 
 #### Quorums for reading and writing
 - In the example of Figure 5-10, we considered the write to be successful even though it was only processed on two out of three replicas.
