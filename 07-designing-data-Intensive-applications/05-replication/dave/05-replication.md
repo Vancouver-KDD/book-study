@@ -301,21 +301,21 @@ We want Replication. why?
   - A guarantee that the user sees the updated page they submitted themselves.
   - No promises about other users
 - How to implement *read-after-write consistency* in a system with leader-based replication?
-1. A simple rule: always read the user’s own profile from the leader, and any other users’ profiles from a follower.
-2. Most things would have to be read from the leader, so the approach is ineffective.
- - The criteria for whether to read from the leader.
-   - i.e., After tracking the last update and, for one minute after the last update, make all reads from the leader.
-   - i.e., After monitoring the lag on followers' replication, if it's more than one minute behind the leader, prevent queries on any follower.
-3. Client can remember the timestamp of most recent writes
+- 1. A simple rule: always read the user’s own profile from the leader, and any other users’ profiles from a follower.
+- 2. Most things would have to be read from the leader, so the approach is ineffective.
+  - The criteria for whether to read from the leader.
+     - i.e., After tracking the last update and, for one minute after the last update, make all reads from the leader.
+     - i.e., After monitoring the lag on followers' replication, if it's more than one minute behind the leader, prevent queries on any follower.
+- 3. Client can remember the timestamp of most recent writes
   - then, the replica can serve reads which are reflected updates at least until that timestamp.
-4. Geographical complexity: If the replicas are distributed across multiple data centers (for geographical proximity to users or for availability) 
+- 4. Geographical complexity: If the replicas are distributed across multiple data centers (for geographical proximity to users or for availability) 
   - then, any request served by the leader must be routed to the leader's data center  .
-5. Same users from multiple devices (a desktop web browser + a mobile app)
+- 5. Same users from multiple devices (a desktop web browser + a mobile app)
   - when the same user is accessing your service from multiple devices
   - *cross-device* read-after-write consistency
     - Users can view just entered data on another device
-   - Approaches that require remembering the timestamp of the user’s last update become more difficult because the code running on one device doesn’t know what updates have happened on the other device.
-     - This metadata will need to be centralized.
+    - Approaches that require remembering the timestamp of the user’s last update become more difficult because the code running on one device doesn’t know what updates have happened on the other device.
+      - This metadata will need to be centralized.
   - If your replicas are distributed across different datacenters, there is no guarantee that connections from different devices will be routed to the same datacenter. (For example, if the user’s desktop computer uses the home broadband connection and their mobile device uses the cellular data network, the devices’ network routes may be completely different.) If your approach requires reading from the leader, you may first need to route requests from all of a user’s devices to the same datacenter.
 
 
