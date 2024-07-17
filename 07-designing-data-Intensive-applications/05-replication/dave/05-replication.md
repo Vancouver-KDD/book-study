@@ -328,7 +328,7 @@ We want Replication. why?
   - then to a follower 2 with greater lag ==> none 
     - Because the lagging follower 2 has not yet picked up that write.
   - Very confusing for user 2345 since they first see user 1234’s comment.
-- *Monotonic reads* not to happen
+- *Monotonic reads* to prevent from happening
   - Monotonic reads-only means that a user will not read older data if the user makes several reads in sequence
   - how? each user always makes their reads *from the same replica*
   - Based on a hash of the user ID
@@ -336,38 +336,37 @@ We want Replication. why?
 
 ### Consistent Prefix Reads
 >  Short dialog between Mr. Poons and Mrs. Cake
-
+  
 ```
 Mr. Poons: How far into the future can you see, Mrs. Cake? 
 Mrs. Cake: About ten seconds usually, Mr. Poons.
 ```
-- Now, imagine a third person is listening to this conversation through followers.
-- The things said by Mrs. Cake go through a follower with little lag, but the things said by Mr. Poons have a longer replication lag
+- Now, imagine a third person is listening to this conversation through followers(Partition follower 2 and Partition leader 1 ).
+- Mrs. Cake's comment with little lag, but Mr. Poons's comment with a longer replication lag
 ```
 Mrs. Cake: About ten seconds usually, Mr. Poons. 
 Mr. Poons: How far into the future can you see, Mrs. Cake?
 ```
-- Preventing this kind of anomaly requires another type of guarantee: consistent prefix reads [23].
-- This guarantee says that if a sequence of writes happens in a certain order, then anyone reading those writes will see them appear in the same order.
-- This is a particular problem in partitioned (sharded) databases, which we will discuss in Chapter 6.
-- If the database always applies writes in the same order, reads always see a consistent prefix, so this anomaly cannot happen. However, in many distributed databases, different partitions operate independently, so there is no global ordering of writes: when a user reads from the database, they may see some parts of the database in an older state and some in a newer state.
-- One solution is to make sure that any writes that are causally related to each other are written to the same partition—but in some applications that cannot be done efficiently.
-- There are also algorithms that explicitly keep track of causal dependencies, a topic that we will return to in “The “happens-before” relationship and concurrency”
+- Consistent prefix reads to prevent from happening
+- It guarantees that 'write' in a certain order ===then==> 'read' data in the same order.
+- It's an issue from the partitioned (sharded) databases(Chapter 6)
+- In many distributed databases, different partitions operate independently, so there is no global ordering of writes
+  - So, some in an older state & some in a newer state.
+- One solution: All Related 'write's in the same partition ==> Not efficient
+- Another solution: Algorithms that keep track of causal dependencies (in upcoming Chapter)
 
 
 ![](image/fg5-5.jpg "")
 
 
 ### Solutions for Replication Lag
-- When working with an eventually consistent system, it is worth thinking about how the application behaves if the replication lag increases to several minutes or even hours.
-- If the answer is “no problem,” that’s great. However, if the result is a bad experience for users, it’s important to design the system to provide a stronger guarantee, such as read-after-write.
-- Pretending that replication is synchronous when in fact it is asynchronous is a recipe for problems down the line.
-- As discussed earlier, there are ways in which an application can provide a stronger guarantee than the underlying database—for example, by performing certain kinds of reads on the leader.
-- However, dealing with these issues in application code is complex and easy to get wrong.
-- It would be better if application developers didn’t have to worry about subtle replication issues and could just trust their databases to “do the right thing.”
-- This is why transactions exist: they are a way for a database to provide stronger guarantees so that the application can be simpler.
-- Single-node transactions have existed for a long time. However, in the move to distributed (replicated and partitioned) databases, many systems have abandoned them, claiming that transactions are too expensive in terms of performance and availability, and asserting that eventual consistency is inevitable in a scalable system.
-- There is some truth in that statement, but it is overly simplistic, and we will develop a more nuanced view over the course of the rest of this book. We will return to the topic of transactions in Chapters 7 and 9, and we will discuss some alternative mechanisms in Part III.
+- Think about how the application behaves if the replication-lag increases
+- A bad experience for users ==> design the system with a stronger guarantee, such as read-after-write.
+- Pretending of synchronous replication(in fact, Asyc) is a solution.
+- Performing certain 'Read's on the leader ==> stronger guarantee
+- Transactions in DB: a good way for a database to provide stronger guarantees so that the application can be simpler
+- Some systems don't accept distributed (replicated and partitioned) databases due to the hight cost in terms of transactions, performance and availability.
+  - It's an overly simplistic way of thinking - in Chapters 7 and 9
 
 
 ## Multi-Leader Replication
