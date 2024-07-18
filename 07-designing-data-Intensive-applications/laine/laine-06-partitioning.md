@@ -122,4 +122,15 @@ in the assignment of partitions to nodes?
 
 
 
+#### Parallel Query Execution - analytics 
+massively parallel processing (MPP) relational database products, often used for analytics, are much more sophisticated in the types of queries they support.
+A typical data warehouse query contains several join, filtering, grouping, and aggre‐
+gation operations. The MPP query optimizer breaks this complex query into a num‐
+ber of execution stages and partitions, many of which can be executed in parallel on
+different nodes of the database cluster. Queries that involve scanning over large parts
+of the dataset particularly benefit from such parallel execution.
+Fast parallel execution of data warehouse queries is a specialized topic, and given the
+business importance of analytics, it receives a lot of commercial interest. We will dis‐
+cuss some techniques for parallel query execution in Chapter 10. For a more detailed
+overview of techniques used in parallel databases, please see the references [1, 33]. 
 
