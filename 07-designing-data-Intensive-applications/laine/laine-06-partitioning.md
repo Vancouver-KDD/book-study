@@ -98,39 +98,30 @@ responsibilities.
 DB is partitioned across multiple nodes running on multiple machines. 
 
 #### Service discovery problem
-**When a client wants to make a request, how does it know which node to connect to? **
+**When a client wants to make a request, how does it know which node to connect to?**
 - As partitions are rebalanced, the assignment of partitions to nodes changes.
 - Somebody needs to stay on top of those changes
   - if I want to read or write the key “foo”, which IP address and port number do I need to connect to?
 - Any piece of software that is accessible over a network has this problem, especially if it is aiming for high availability (running in a redundant
 configuration on multiple machines) - not limited to DB
 
-**How to resolve the problem**
-1. Allow clients to contact any node (e.g., via a round-robin load balancer). If that
-node coincidentally owns the partition to which the request applies, it can handle
-the request directly; otherwise, it forwards the request to the appropriate node,
-receives the reply, and passes the reply along to the client.
-2. Send all requests from clients to a routing tier first, which determines the node
-that should handle each request and forwards it accordingly. This routing tier
-does not itself handle any requests; it only acts as a partition-aware load balancer.
-3. Require that clients be aware of the partitioning and the assignment of partitions
-to nodes. In this case, a client can connect directly to the appropriate node,
-without any intermediary.
-In all cases, the key problem is: how does the component making the routing decision
-(which may be one of the nodes, or the routing tier, or the client) learn about changes
-in the assignment of partitions to nodes?
+**How to resolve the service discovery**
+1. Allow clients to contact any node (e.g., via a round-robin load balancer)
+- If that node coincidentally owns the partition to which the request applies, it can handle the request directly
+- otherwise, it forwards the request to the appropriate node, receives the reply, and passes the reply along to the client.
+2. Send all requests from clients to **a routing tier first**, which determines the node that should handle each request and forwards it accordingly.
+  - This routing tier does not itself handle any requests; only acts as a _partition-aware load balancer_.
+3. Require that clients be aware of the partitioning and the assignment of partitions to nodes
+  - a client can connect directly to the appropriate node, without any intermediary.
+
+**key problem** 
+how does the component making the routing decision (which may be one of the nodes, or the routing tier, or the client) learn about changes in the assignment of partitions to nodes?
 
 
-
-#### Parallel Query Execution - analytics 
-massively parallel processing (MPP) relational database products, often used for analytics, are much more sophisticated in the types of queries they support.
-A typical data warehouse query contains several join, filtering, grouping, and aggre‐
-gation operations. The MPP query optimizer breaks this complex query into a num‐
-ber of execution stages and partitions, many of which can be executed in parallel on
-different nodes of the database cluster. Queries that involve scanning over large parts
-of the dataset particularly benefit from such parallel execution.
-Fast parallel execution of data warehouse queries is a specialized topic, and given the
-business importance of analytics, it receives a lot of commercial interest. We will dis‐
-cuss some techniques for parallel query execution in Chapter 10. For a more detailed
-overview of techniques used in parallel databases, please see the references [1, 33]. 
+### Parallel Query Execution - for analytics / data warehouse
+Massively parallel processing (MPP) relational database products, often used for analytics, are much more sophisticated in the types of queries they support.
+- A typical data warehouse query contains several join, filtering, grouping, and aggregation operations.
+- The MPP query optimizer breaks this complex query into a number of execution stages and partitions, many of which can be executed in parallel on different nodes of the database cluster.
+- Queries that involve scanning over large parts of the dataset particularly benefit from such parallel execution.
+- Fast parallel execution of data warehouse queries is a specialized topic, and given the business importance of analytics, it receives a lot of commercial interest. (More in the later chapter)
 
