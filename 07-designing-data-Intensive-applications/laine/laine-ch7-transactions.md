@@ -104,10 +104,105 @@ Nothing that fundamentally prevents transactions in a distributed database
 - transaction succeeded but the network failed, it performs twice
 - error due to overload, retrying makes it worse
 - retrying is only worth after transient errors (due to deadlock, isolation violation, temporary network interruptions, failover)
-  - no point of retrying for permanent error (constraint violation)
+  - No point of retrying for permanent error (constraint violation)
 - transaction has side effects outside of DB, it may happen even if the transaction is aborded
 - If the client process fails while retrying, any data to be written is lost.
 
 ## Weak Isolation Levels
+Concurrency issues (race conditions)
+- when one transaction reads data being modified by another transaction, or when two transactions try to modify the same data simultaneously
+- hard to test 
+- DB tried to hide concurrency issues from application developer by transaction isolation in theory, serializable isolation
+   - DB guarantees as if transactions run serially  
+   - but in practice, the performance cost is high - thus **weaker levels of isolation**
+- Weaker levels of isolation doesn't prevent all concurrency issues
+   - leading to subtle bugs
 
+_Rather than blindly relying on tools, we need to develop a good understanding of the kinds of concurrency problems that exist, and how to prevent them. Then we can build applications that are reliable and correct, using the tools at our disposal._
+
+### Read Committed
+- Most basic level of transaction isolation
+- two guarantees: No dirty reads, No dirty writes
+
+#### No dirty reads
+Any writes by a transaction only become visible to others when that transaction commits (and then all of its writes become visible at once).
+
+**dirty read**
+- a transaction has written some data to the database, but the transaction has not yet committed or aborted. Then another transaction sees that uncommitted data
+- Why problem?
+  - If a transaction needs to update several objects, a dirty read means that another transaction may see some of the updates but not others. Seeing the database in a partially updated state is confusing to users and may cause other transactions to take incorrect decisions.
+  - A transaction may see data that is later rolled back, which is never actually committed to the database.
+
+#### No dirty writes
+Transactions running at the read committed isolation level must prevent dirty writes, usually by delaying the second write until the first write’s transaction has committed or aborted.
+
+**dirty write**
+- if the earlier write is part of a transaction that has not yet committed, so the later write overwrites an uncommitted value
+- Why problem?
+  - If transactions update multiple objects, dirty writes can lead to a bad outcome.
+- Read committed does not always prevent the race condition. If the second write happens after the first transaction has committed(so not a dirty write), but still incorrect for a different reason (discussed in Preventing Lost Update).
+
+
+#### Implementing read committed
+- Very popular isolation level, default setting in many DB
+
+**DB prevent dirty writes by row-level locks**
+- when a transaction wants to modify a particular object (row or document), it must first acquire a lock on that object.
+- It must then hold that lock until the transaction is committed or aborted.
+- Only one transaction can hold the lock for any given object
+
+**How to prevent dirty read?**
+- For every object being written, DB remembers the old and new value
+- while the transaction is ongoing, other read transaction read from the old value
+- long-running (as dirty write prevention) is not an option
+   - one long-running write transaction can block many read only transactions, harming the response time and operability
+
+
+### Snapshot Isolation and Repeatable Read
+With read committed isolation, concurrency bugs can still occur.
+
+**Read skew = Nonrepeatable read**
+- While a read commit going on, update happens and the user sees the incorrect value, but eventually after the read commit, the read will be correct
+- some situations cannot tolerate such temporary inconsistency, usually acceptable under read committed isolation though
+   - Backups: During back up, if some part contains older version while other containing newer version, the inconsistency is permanent.
+   - Analytic queries and integrity checks: query that scans over large part of the DB, likely to return nonsensical results if parts of DB at different points of time
+
+**Snapshot isolation** 
+- the most common solution to the problems above
+- each transaction reads from a consistent snapshot of the database
+  - the transaction sees all the data that was committed in the database at the _start of the transaction._
+  - as if frozen at a particular point in time
+
+#### Implementing snapshot isolation
+- typically use write locks to prevent dirty writes
+**- readers never block writers, and writers never block readers.**
+
+**multi-version concurrency control (MVCC)**
+- The DB maintains several versions of an object side by side
+- The database must potentially keep several different committed versions of an object, because various in-progress transactions may need to see the state of the database at different points in time. 
+- storage engines supporting snapshot isolation typically use MVCC for read committed isolation level
+
+#### Visibility rules for observing a consistent snapshot
+When a transaction reads from the database, transaction IDs are used to decide which objects it can see and which are invisible.
+
+_Visibility rules_ (apply to creation and deletion both)
+1. At the start of each transaction, the database makes a list of all the other **transactions that are in progress** (not yet committed or aborted) at that time. Any writes that those transactions have made are ignored, even if the transactions subsequently commit.
+2. Any writes made by **aborted transactions** are ignored.
+3. Any writes made by transactions with a **later transaction ID** (started after the current transaction started) are ignored, regardless of whether those transactions have committed.
+4. All other writes are visible to the application’s queries.
+5. Thus, an object is visible if
+  - At the time when the reader’s transaction started, the transaction that created the object had already committed.
+  - The object is not marked for deletion, or if it is, the transaction that requested deletion had not yet committed at the time when the reader’s transaction started.
+
+#### Indexes and snapshot isolation
+One option is to have the index simply point to all versions of an object and require an index query to filter out any object versions that are not visible to the current transaction.
+- PostgreSQL: optimizations for avoiding index updates if different versions of the same object can fit on the same page
+- CouchDB, Datomic: append-only/copy-on-write variant that does not overwrite pages of the tree when they are updated, but instead creates a new copy of each modified page.
+
+#### Repeatable read and naming confusion
+Snapshot isolation is called in the different DB systems
+- Oracle: serializable
+- PostgreSQL and MySQL: repeatable read - their definition is flawed though
+
+### Preventing Lost Updates
 
