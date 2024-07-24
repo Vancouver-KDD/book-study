@@ -97,15 +97,18 @@ As we shall see in “Rebalancing Partitions” on page 209, this particular app
   - Different users may be stored on different partitions, but within each user, the updates are stored ordered by timestamp on a single partition.
  
 ### Skewed Workloads and Relieving Hot Spots
-- As discussed, hashing a key to determine its partition can help reduce hot spots. 
-- However, it can’t avoid them entirely: in the extreme case where all reads and writes are for the same key, you still end up with all requests being routed to the same partition.
-- This kind of workload is perhaps unusual, but not unheard of: for example, on a social media site, a celebrity user with millions of followers may cause a storm of activity when they do something [14].
-- This event can result in a large volume of writes to the same key (where the key is perhaps the user ID of the celebrity, or the ID of the action that people are commenting on). Hashing the key doesn’t help, as the 
-hash of two identical IDs is still the same.
+- As discussed, hashing a key to determine its partition can help *reduce* hot spots. 
+- However, it *can’t avoid* them entirely: in the extreme case where all reads and writes are for the same key, you still end up with all requests being routed to the same partition.
+- This kind of workload is perhaps unusual, but not unheard of:
+  - **Celebrity**
+  - for example, on a social media site, a celebrity user with millions of followers may cause a storm of activity when they do something [14].
+  - This event can result in a large volume of writes to the same key (where the key is perhaps the user ID of the celebrity, or the ID of the action that people are commenting on).
+  - Hashing the key doesn’t help, as the hash of two identical IDs is still the same.
 - Today, most data systems are not able to automatically compensate for such a highly skewed workload, so it’s the responsibility of the application to reduce the skew.
-- For example, if one key is known to be very hot, a simple technique is to add a random number to the beginning or end of the key. Just a two-digit decimal random number would split the writes to the key evenly across 100 different keys, allowing those keys to be distributed to different partitions.
-- However, having split the writes across different keys, any reads now have to do additional work, as they have to read the data from all 100 keys and combine it.
-- This technique also requires additional bookkeeping: it only makes sense to append the random number for the small number of hot keys; for the vast majority of keys with low write throughput this would be unnecessary overhead. Thus, you also need some way of keeping track of which keys are being split.
+  - For example, if one key is known to be very hot, a simple technique is to add a random number to the beginning or end of the key.
+  - Just a two-digit decimal random number would split the writes to the key evenly across 100 different keys, allowing those keys to be distributed to different partitions.
+  - However, having split the writes across different keys, any reads now have to do additional work, as they have to read the data from all 100 keys and combine it.
+  - This technique also requires additional bookkeeping: it only makes sense to append the random number for the small number of hotkeys; for the vast majority of keys with low write throughput this would be unnecessary overhead. Thus, you also need some way of keeping track of which keys are being split.
 - Perhaps in the future, data systems will be able to automatically detect and compensate for skewed workloads; but for now, you need to think through the trade-offs for your own application.
 
 ## Partitioning and Secondary Indexes
@@ -113,7 +116,9 @@ hash of two identical IDs is still the same.
 - The situation becomes more complicated if secondary indexes are involved (see also “Other Indexing Structures” on page 85). A secondary index usually doesn’t identify a record uniquely but rather is a way of searching for occurrences of a particular value: find all actions by user 123, find all articles containing the word hogwash, find all cars whose color is red, and so on.
 - Secondary indexes are the bread and butter of relational databases, and they are common in document databases too. Many key-value stores (such as HBase and Voldemort) have avoided secondary indexes because of their added implementation complexity, but some (such as Riak) have started adding them because they are so useful for data modeling. And finally, secondary indexes are the raison d’être of search servers such as Solr and Elasticsearch.
 - The problem with secondary indexes is that they don’t map neatly to partitions.
-- There are two main approaches to partitioning a database with secondary indexes: document-based partitioning and term-based partitioning.
+- There are two main approaches to partitioning a database with secondary indexes:
+  - **Document-based partitioning** and
+  - **Term-based partitioning**.
 
 ### Partitioning Secondary Indexes by Document
 - For example, imagine you are operating a website for selling used cars (illustrated in Figure 6-4).
