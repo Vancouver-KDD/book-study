@@ -205,4 +205,19 @@ Snapshot isolation is called in the different DB systems
 - PostgreSQL and MySQL: repeatable read - their definition is flawed though
 
 ### Preventing Lost Updates
+_lost update problem_
+- Issue regarding concurrent writes
+- If an application reads some value from DB, modifies it, and writes back the modified value (read-modify-write cycle). If two transactions do this concurrently, one of the modifications can be lost, because the second write does not include the first modification.
+- examples:
+  - Incrementing a counter or updating an account balance (requires reading the current value, calculating the new value, and writing back the updated value)
+  - Making a local change to a complex value, e.g., adding an element to a list within a JSON document (requires parsing the document, making the change, and writing back the modified document)
+  - Two users editing a wiki page at the same time, where each user saves their changes by sending the entire page contents to the server, overwriting whatever is currently in the database
+
+#### Atomic write operations (cursor stability)
+UPDATE counters SET value = value + 1 WHERE key = 'foo';
+- removes the need to implement read-modify-write cycles in application code
+- Taking an exclusive lock on the object when it is read so that no other transaction can read it until the update has been applied
+- Not all writes can easily be expressed in terms of atomic operations: for example, updates to a wiki page involve arbitrary text editing
+
+#### Explicit locking
 
