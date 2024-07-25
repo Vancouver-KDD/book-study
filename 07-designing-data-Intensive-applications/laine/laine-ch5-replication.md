@@ -61,12 +61,16 @@ No easy solution, so some prefers manual failover
 - longer timeout means longer recovery time 
 
 ## Implementation of Replication Logs
+Specific technics how replicas work
+
 - Statement-based replication
   - Leader logs every write request (statement) and sends the log to followers
   - Still used, but mostly converted to row based replication
 - Write-ahead log (WAL) shipping
   - log is appended to all writes to the database, and the log is used to build a replica on another node (leader sends it to followers)
+  - Cons: log describes the data on very low level - containing details of bytes changes in disk blocks
 - Logical (row-based) log replication
+  - Using different log formats for replicas and storage engine - opposed to WAL
   - For relational database, a sequence of records describing writes to database tables at the granularity of a row - insert/delete/update a row
   - decoupled from the storage engine, allowing easily kept backward compatible, and also easier for external applications to parse
 - Trigger-based replication
@@ -75,16 +79,17 @@ No easy solution, so some prefers manual failover
   - greater overheads and bugs
 
 # Problems with Replication Lag
-Scalability and latency are also reasons for replication.
+Scalability and latency are also reasons for replication, in addition to the failure tolerance.
+
 **Replication Lag**
 - Delay between a write on leader and being reflected on a follower
 - Read from asynchronous followers can show outdated info, leading to inconsistency
 - Even though the inconsistency is temporary (eventual consistency) but it's vague and could vary from a few seconds to minutes
 
 ### Reading Your Own Writes
-**read-after-write consistency, also known as read-your-writes consistency is needed**
-- Read what the user modified from leader, and from follower if it's not modifed by the user
-  - Such as my own profile VS seeing other users profile in Twitter
+**read-after-write consistency = read-your-writes consistency is needed**
+- Read what the user modified from leader, and from follower if it's not modified by the user
+  - Such as my own profile VS seeing other users profiles in Twitter
 - 1 min from the last update, read from leader, otherwise from followers
 - checking the timestamp of the recent write, and read from followers updated with it
 
@@ -94,19 +99,22 @@ Scalability and latency are also reasons for replication.
 
 ### Monotonic Reads
 - If one user makes several reads in sequence, they won't see older data after reading new data
-- each user always read from the same replica, based on the user ID, not randomly
+  - If the requests were routed to random servers
+- Each user always reads from the same replica, based on the user ID, not randomly
 
 ### Consistent Prefix Reads
-- if a sequence of writes happens in a certain order, then anyone reading those writes will see them appear in the same order.
+- Guarantees if a sequence of writes happens in a certain order, then anyone reading those writes will see them appear in the same order.
 - Particular problem with partitioned (sharded) DB
-- Ensure writes related to each other are written to the same partition, but not always easy
+  - All partitions operate independently without global ordering
+- Ensure causally related writes to each other are written to the same partition, but not always easy
 
 ### Solutions for Replication Lag
-Pretending that replication is synchronous when in fact it is asynchronous is a recipe for problems down the line
+Lags can be up to several minutes or hours. 
+_Pretending that replication is synchronous when in fact it is asynchronous is a recipe for problems down the line_
 
 _**transaction**_
 - A way for a database to provide stronger guarantees so that the application can be simple
-- In the distributed DB system, transactions are too expensive for performance/availability
+- In the distributed DB system, transactions are too expensive for performance/availability, thus eventual consistency is chosen.
 
 
 # Multi-Leader Replication
