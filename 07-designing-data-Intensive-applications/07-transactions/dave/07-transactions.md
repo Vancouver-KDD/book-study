@@ -353,7 +353,8 @@ WHERE id = 1234 AND content = 'old content';
   - • The automatic detection of lost updates that you find in some implementations of snapshot isolation unfortunately doesn’t help either: write skew is not automatically detected in PostgreSQL’s repeatable read, MySQL/InnoDB’s repeatable read, Oracle’s serializable, or SQL Server’s snapshot isolation level [23]. Automatically preventing write skew requires true serializable isolation (see “Serializability” on page 251).
  - • Some databases allow you to configure constraints, which are then enforced by the database (e.g., uniqueness, foreign key constraints, or restrictions on a particular value). However, in order to specify that at least one doctor must be on call, you would need a constraint that involves multiple objects. Most databases do not have built-in support for such constraints, but you may be able to implement them with triggers or materialized views, depending on the database [42].
   - • If you can’t use a serializable isolation level, the second-best option in this case is probably to explicitly lock the rows that the transaction depends on. In the doctors example, you could write something like the following:
-```sql 
+    
+```SQL 
 BEGIN TRANSACTION;
 SELECT * FROM doctors
   WHERE on_call = true
@@ -375,7 +376,7 @@ COMMIT;
 Example 7-2).
   - Example 7-2. A meeting room booking system tries to avoid double-booking (not safe under snapshot isolation)
 
-```
+```SQL
 BEGIN TRANSACTION;
 -- Check for any existing bookings that overlap with the period of noon-1pm
 SELECT COUNT(*) FROM bookings
