@@ -357,3 +357,22 @@ _**SSI is optimistic concurrency control**_
 - How does DB know if a query result might have changed?
   - detecting reads of a stale MVCC (multi version concurrency control)
   - detecting the writes affecting prior reads 
+
+#### Detecting stale MVCC reads
+Example of on call doctors
+- Abort as the transaction wants to commit, the DB checks whether any of the ignored writes have now been commited, then abort.
+- Why wait until commit? DB can't tell if a transaction starting with a read might include write or not, or if the read will turn out to be stale or not
+
+#### Detecting writes that affect prior reads
+When a transaction writes to the database, it must look in the indexes for any other transactions that have recently read the affected data
+- similar to acquiring a write lock on the affected key range, but not blocking until the readers have committed.
+- it simply notifies the transactions that the data they read may no longer be up to date
+
+#### Performance of serializable snapshot isolation
+- Compared to two-phase locking
+  - one transaction doesn’t need to block waiting for locks held by another transaction.
+  - Like under snapshot isolation, writers don’t block readers, and vice versa.
+  - query latency much more predictable and less variable. In particular, read-only queries can run on a consistent snapshot without requiring any locks
+
+- Compared to serial execution
+   - not limited to the throughput of a single CPU core: allowing it to scale to very high throughput. 
