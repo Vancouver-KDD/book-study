@@ -220,4 +220,52 @@ UPDATE counters SET value = value + 1 WHERE key = 'foo';
 - Not all writes can easily be expressed in terms of atomic operations: for example, updates to a wiki page involve arbitrary text editing
 
 #### Explicit locking
+The application locks the object to be updated
+- Read request wait until the write is done
+- ex) multi players game, moving the same figure concurrently - preventing two players from moving the same piece
 
+#### Automatically detecting lost update
+Done by Database feature - if the transaction manager detects a lost update, abort the transaction and force it to retry its read-modify-write cycle.
+
+#### Compare-and-set
+Whenever updating, check if the value has not changed since last read, if then, read again then write
+
+#### Conflict resolution and replication
+A common approach is to allow concurrent writes to create several conflicting versions of a value (also known as siblings)
+- then to use application code or special data structures to resolve and merge these versions after the fact.
+- Techniques based on locks or compare-and-set (for the single up-to-date copy) do not apply in this context
+
+
+### Write Skew and Phantoms
+- subtler examples of conflicts than dirty writes or lost updates
+- Example: two on-call doctors requesting leave at the same time, updating the different objects - then no one is on call
+
+#### Characterizing write skew
+_**Write skew**_
+- The two transactions are updating two different objects (Alice’s and Bob’s on- call records, respectively), ending up undesired condition
+- Limited options to resolve
+  - atomic single-object doesn't work for multiple objects write
+  - automatic detection doesn't help
+  - DB object constraint to prevent write skew involve mutiple objects, and most DB doesn't have such support
+- Explicit lock would be the only way
+
+#### More examples of write skew
+- Meeting room booking system - multiple requests reads the no current booking, then end up conflicting meetings reservation: Only serializable isolation is the answer
+- Multiplayer game - players moving two different figures to the same position violating the rules
+
+_**phantom pattern**_
+where a write in one transaction changes the result of a search query in another transaction.
+1. SELECT query checks if some requirement is satisfied
+2. If satisfied, go ahead and make a write then commit - this write changes the condition for the requirement
+
+#### Materializing conflicts
+EX) meeting room problem: Creating a table with time slots and rooms for a duration in time like six months
+- Each transaction can then lock the rows during the operation, forcing other transactions to wait to execute their first data fetch.
+- hard to implement and error-prone, so as last resort
+
+## Serializability
+The strongest isolation level
+- guarantees that even though transactions may execute in parallel, the end result is the same as if they had executed one at a time, serially, without any concurrency.
+- the database prevents all possible race conditions.
+
+Then why isn't everyone using it? To answer that, explore the techniques for the serializability
