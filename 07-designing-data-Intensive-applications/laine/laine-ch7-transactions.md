@@ -220,4 +220,159 @@ UPDATE counters SET value = value + 1 WHERE key = 'foo';
 - Not all writes can easily be expressed in terms of atomic operations: for example, updates to a wiki page involve arbitrary text editing
 
 #### Explicit locking
+The application locks the object to be updated
+- Read request wait until the write is done
+- ex) multi players game, moving the same figure concurrently - preventing two players from moving the same piece
 
+#### Automatically detecting lost update
+Done by Database feature - if the transaction manager detects a lost update, abort the transaction and force it to retry its read-modify-write cycle.
+
+#### Compare-and-set
+Whenever updating, check if the value has not changed since last read, if then, read again then write
+
+#### Conflict resolution and replication
+A common approach is to allow concurrent writes to create several conflicting versions of a value (also known as siblings)
+- then to use application code or special data structures to resolve and merge these versions after the fact.
+- Techniques based on locks or compare-and-set (for the single up-to-date copy) do not apply in this context
+
+
+### Write Skew and Phantoms
+- subtler examples of conflicts than dirty writes or lost updates
+- Example: two on-call doctors requesting leave at the same time, updating the different objects - then no one is on call
+
+#### Characterizing write skew
+_**Write skew**_
+- The two transactions are updating two different objects (Alice’s and Bob’s on- call records, respectively), ending up undesired condition
+- Limited options to resolve
+  - atomic single-object doesn't work for multiple objects write
+  - automatic detection doesn't help
+  - DB object constraint to prevent write skew involve mutiple objects, and most DB doesn't have such support
+- Explicit lock would be the only way
+
+#### More examples of write skew
+- Meeting room booking system - multiple requests reads the no current booking, then end up conflicting meetings reservation: Only serializable isolation is the answer
+- Multiplayer game - players moving two different figures to the same position violating the rules
+
+_**phantom pattern**_
+where a write in one transaction changes the result of a search query in another transaction.
+1. SELECT query checks if some requirement is satisfied
+2. If satisfied, go ahead and make a write then commit - this write changes the condition for the requirement
+
+#### Materializing conflicts
+EX) meeting room problem: Creating a table with time slots and rooms for a duration in time like six months
+- Each transaction can then lock the rows during the operation, forcing other transactions to wait to execute their first data fetch.
+- hard to implement and error-prone, so as last resort
+
+## Serializability
+The strongest isolation level
+- guarantees that even though transactions may execute in parallel, the end result is the same as if they had executed one at a time, serially, without any concurrency.
+- the database prevents all possible race conditions.
+
+Then why isn't everyone using it? To answer that, explore the techniques for the serializability
+
+### Actual Serial Execution
+Execute only one transaction at a time, in serial order, on a single thread. 
+- Was not considered feasible due to performance but recently was rethought as feasible
+   - with the development of cheap RAM
+   - shorter and smaller number of OLTP (online transaction processing)
+- To utilize the single thread throughput, transactions need to be structured differently
+
+#### Encapsulating transactions in stored procedures
+Transactions have continued to be executed in an interactive client/server style, one statement at a time.
+- A transaction does not span multiple requests. A new HTTP request starts a new transaction.
+- ex) booking an airline ticket, DB not waiting until it's completed to the last stage
+
+_**Stored procedure**_
+- the application must submit the entire transaction code to the database ahead of time
+- as systems with single-threaded serial transaction processing don’t allow interactive multi-statement transactions
+
+#### Pros and cons of stored procedures
+**Cons and how modern implementations can overcome**
+- Each database vendor has its own language for stored procedures, lacking the ecosystem of libraries
+   - Now store procedures use general-purpose programming languages
+- Code running in a database is difficult to manage: compared to an application server, it’s harder to debug
+- A badly written stored procedure (e.g., using a lot of memory or CPU time) in a database can cause much more trouble than in application server
+
+**Pros**
+- stored procedures and in-memory data, executing all transactions on a single thread 
+- VoltDB uses it for replication - executes the same stored procedure on each replica, instead of copying transactions writes
+
+#### Partitioning
+Cross-partition transactions are possible but have additional coordination overhead
+- vastly slower than single-partition transactions
+
+### Two-Phase Locking (2PL)
+Readers block writers, writers block readers 
+- opposed to _readers never block writers, and writers never block_ from snapshot isolation
+- protects against all the race conditions discussed earlier, including lost updates and write skew
+
+#### Implementation of two-phase locking
+Each object has a lock, either in a shared mode or exclusive mode
+- several transactions are allowed to hold the shard mode lock simultaneously, but should wait if the object is locked in exclusive mode by other transaction
+- A trasaction continues to hold the lock until the end of the transaction
+- Reads acquires a shared mode lock, writes acquires exclusive mode lock
+- A transaction including a read then write, first gets the shared lock then upgrades to an exclusive lock
+- used by the serializable isolation level in MySQL (InnoDB) and SQL Server, and the repeatable read isolation level in DB2
+
+_**Deadlock**_
+- transaction A is stuck waiting for transaction B to release its lock, and vice versa
+- DB automatically detects deadlocks and aborts one of them, aborted transaction should be retried by the application, not DB
+
+#### Performance of two-phase locking
+Bad performance with unstable latencies
+- overhead of acquiring and releasing all those locks, but more importantly due to reduced concurrency
+   - If two concurrent transactions try to do anything that may in any way result in a race condition, one has to wait for the other to complete.
+   - And no limit on how long it needs to wait
+- If deadlocks occur frequently, meaning the work needs to be retried, wasting significant efforts
+- Until 1970s, only one widely used algorithm for serializability in databases for 30 years but not after due to performance
+
+#### Predicate locks
+Similar to the shared/exclusive lock described earlier, but it belongs to all objects that match some search condition, not belonging to a particular object
+- To resolve phantoms leading write skews
+- Predicate lock applies even to objects that do not yet exist in the database, but which might be added in the future
+- do not perform well: if there are many locks by active transactions, checking for matching locks becomes time-consuming
+
+#### Index-range locks (next-key locking)
+- simplified approximation of predicate locking, by making it match a greater set of objects.
+- less precise but lower overheads, so most common implementation for DBs with 2PL 
+- ex) predicate lock for booking of room 123 between 12 - 1pm
+- index-range lock: booking of room 123 at any time or locking all rooms between 12 - 1pm
+
+### Serializable Snapshot Isolation (SSI)
+Are serializable isolation and good performance fundamentally at odds with each other?
+- SSI answers promisingly, with full serializability but with only small performance penalty, compared to snapshot isolation
+
+
+#### Pessimistic versus optimistic concurrency control
+- 2PL and serial executions are pessimistic - based on if anything could go wrong, better to wait until safe
+
+_**SSI is optimistic concurrency control**_
+- instead of blocking if something potentially dangerous happens, transactions continue with the hope everything will be alright
+- If DB found out something bad happened, then action is aborted and recommited
+- Performs better if there's enough spare capacity with less contention, than pessimistic controls
+*Contention: when multiple processes are trying to access the same data at the same time. 
+
+#### Decisions based on an outdated premise
+- Snapshot isolation - transaction is taking an action based on a premise (which was true at the beginning of the transaction, but no longer be true later)
+- How does DB know if a query result might have changed?
+  - detecting reads of a stale MVCC (multi version concurrency control)
+  - detecting the writes affecting prior reads 
+
+#### Detecting stale MVCC reads
+Example of on call doctors
+- Abort as the transaction wants to commit, the DB checks whether any of the ignored writes have now been commited, then abort.
+- Why wait until commit? DB can't tell if a transaction starting with a read might include write or not, or if the read will turn out to be stale or not
+
+#### Detecting writes that affect prior reads
+When a transaction writes to the database, it must look in the indexes for any other transactions that have recently read the affected data
+- similar to acquiring a write lock on the affected key range, but not blocking until the readers have committed.
+- it simply notifies the transactions that the data they read may no longer be up to date
+
+#### Performance of serializable snapshot isolation
+- Compared to two-phase locking
+  - one transaction doesn’t need to block waiting for locks held by another transaction.
+  - Like under snapshot isolation, writers don’t block readers, and vice versa.
+  - query latency much more predictable and less variable. In particular, read-only queries can run on a consistent snapshot without requiring any locks
+
+- Compared to serial execution
+   - not limited to the throughput of a single CPU core: allowing it to scale to very high throughput. 
