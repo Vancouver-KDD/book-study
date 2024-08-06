@@ -5,7 +5,7 @@
 ## Faults and Partial Failures
 > Why is it difficult to deal with the Distributed Systems?
 
-- A single computer
+- Single computer
   - fairly predictable: either it works or it doesn’t
   - mostly just a consequence of badly written software
   - If there is a hardware problem (e.g., memory corruption or a loose connector), the consequence is usually a total system failure.
@@ -13,29 +13,35 @@
 - Distributed system
   - Partial Failures: some parts of the system that are broken in some unpredictable way, but others are fine.
   - In multiple nodes and the network -> sometimes work and sometimes unpredictably fail.
-  - If we want to make distributed systems work, we must accept the possibility of partial
-failure and build fault-tolerance mechanisms into the software.
-- For the distributed systems, we must accept the possibility of partial failure and build fault-tolerance mechanisms into the software. In other words, we need to build a reliable system from unreliable components.
+  - If we want to make distributed systems work, we must accept
+    - (1) the possibility of partial failure and
+    - (2) build fault-tolerance mechanisms into the software.    
+  - In other words, we need to build a reliable system from unreliable components.
 
-### Features of the Distributed System
-- Supercomputer
-  - A single-node computer 
-  - partial failure ==> total failure(everything crashs)
+### Approaches to Handling Faults of the Distributed System
+> Large-scale computing systems in internet services - Cloud Computing
+- associated with multi-tenant datacenters using connectin with an IP network (often Ethernet), elastic/on-demand resource allocation.
+  
+> Approaches to handling faults
+- Many internet-related applications are *On-line*, in the sense that they need to be able to serve users with low latency at any time.
+- Nodes in cloud services are built from commodity machines
+  - Equivalent performance at lower cost due to economies of scale
+  - But also have higher failure rates.
+- Large datacenter networks are often based on IP and Ethernet.
+- It is reasonable to assume that something is always broken in a system with thousands of nodes
+- If the system can tolerate failed nodes and still keep working as a whole, that is a very useful feature for operations and maintenance
+- Communication most likely goes over the internet
+  - => Slow and Unreliable (compared to local networks)
 
-- Distributed System
-  - Many internet-related applications are online, in the sense that they need to be able to serve users with low latency at any time.
-  -  Nodes in cloud services are built from commodity machines, which can provide equivalent performance at lower cost due to economies of scale, but also have higher failure rates.
-  -  Large datacenter networks are often based on IP and Ethernet.
-  -  In a system with thousands of nodes, it is reasonable to assume that something is always broken.
-  -  If the system can tolerate failed nodes and still keep working as a whole, that is a very useful feature for operations and maintenance
-  -  Communication most likely goes over the internet, which is slow and unreliable compared to local networks.
-
-> Again, we need to build a reliable system from unreliable components and we must accept the possibility of partial failure and build fault-tolerance mechanisms into the software.
+> Again
+- We need to build a reliable system from unreliable components
+- We must accept the possibility of partial failure and build fault-tolerance mechanisms into the software.
 
 ## Unreliable Networks
 
-- The internet and most internal networks in datacenters (often Ethernet) are *asynchronous packet networks*.
-- In this kind of network, one node can send a message (a packet) to another node, but the network gives no guarantees as to when it will arrive, or whether it will arrive at all.
+- The internet and most internal networks in datacenters (often Ethernet) ==> *asynchronous packet networks*.
+- One node can send a message (a packet) to another node,
+  - but No guarantees as to when it will arrive, or whether it will arrive at all.
   
 - If you send a request and don’t get a response, the reason for that is the following 3 thing.
 
@@ -52,13 +58,13 @@ failure and build fault-tolerance mechanisms into the software.
 ### Network Faults in Practice
 - Building a reliable network is still not an easy task.
 - Adding redundant networking gear doesn’t reduce faults as much as you might hope
-- The software needs to be able to handle them, Considering faults can occur.
-- Handling network faults doesn’t necessarily mean tolerating them
+- Instead, the software needs to be able to handle them, Considering faults can occur.
+  - Handling network faults doesn’t necessarily mean tolerating them
   - Show an error message to users while your network is in problems.
   - However, by having software react to network problems, you should ensure that the system can recover from them.
 
 ### Detecting Faults
-- In some specific circumstances you might get some feedback to explicitly tell you that something is not working.
+- In some specific circumstances, you might get some feedback to explain something not working.
 - Unfortunately, however, the uncertainty about the network makes it difficult to tell whether a node is working or not.
 
 ### Timeouts and Unbounded Delays
@@ -75,9 +81,9 @@ failure and build fault-tolerance mechanisms into the software.
 
 #### Network congestion and queueing
 - Variability of packet delays on computer networks is most often due to Queueing
-  - ex) (Figure 8-2) If several different nodes simultaneously try to send packets to the same destination, the network switch must queue them up and feed them into the destination network link one by one
-  - ex) When several different nodes simultaneously try to send packets to the same destination
-  - ex) When all CPU cores in the destination are currently busy
+  - i.e., (Figure 8-2) If several different nodes simultaneously try to send packets to the same destination
+    - the network switch must queue them up and feed them into the destination network link one by one
+  - i.e., When all CPU cores in the destination are currently busy
   
 ![](images/fg8-2.jpg "")
 
@@ -108,8 +114,8 @@ What about the Reliable and Synchronous Network at the hardware level?
   - transfer data in the shortest time possible.
   - While a TCP connection is idle, it doesn’t use any bandwidth.  
   - Requesting a web page / Sending an email / Transferring a file
-  -  No particular Bandwidth
-  -  As quickly As possible
+  - No particular Bandwidth
+  - As quickly As possible
 
 #### Consequently,
 - Currently deployed technology does not allow us to make any guarantees about delays or reliability of the network
