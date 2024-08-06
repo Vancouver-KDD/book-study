@@ -44,14 +44,14 @@ failure and build fault-tolerance mechanisms into the software.
   - (a) Request was lost, 
   - (b) Remote node is down, or 
   - (c) Response was lost.
-
-- Timeout : The usual way of handling the issue
+    
+- It is impossible to tell why.
+- **Timeout** : The usual way of handling the issue in the Asynchronous Packet Networks(Internet/Most Internal Networks)
   - After some time you give up waiting and assume that the response is not going to arrive.
  
-    
 ### Network Faults in Practice
 - Building a reliable network is still not an easy task.
-- adding redundant networking gear doesn’t reduce faults as much as you might hope
+- Adding redundant networking gear doesn’t reduce faults as much as you might hope
 - The software needs to be able to handle them, Considering faults can occur.
 - Handling network faults doesn’t necessarily mean tolerating them
   - Show an error message to users while your network is in problems.
@@ -62,70 +62,68 @@ failure and build fault-tolerance mechanisms into the software.
 - Unfortunately, however, the uncertainty about the network makes it difficult to tell whether a node is working or not.
 
 ### Timeouts and Unbounded Delays
-- If a timeout is the only sure way of detecting a fault, then how long should the timeout
-be? There is unfortunately no simple answer.
-- most systems we work with have neither of those guarantees: asynchronous networks have unbounded delays (that is, they try to deliver packets as quickly as possible, but there is no upper limit on the time it may take for a packet to arrive), and most server implementations cannot guarantee that they can handle
-requests within some maximum time (see “Response time guarantees” on page 298).
-- For failure detection, it’s not sufficient for the system to be fast most of the time: if your timeout is low, it only takes a transient spike in round-trip times to throw the system off-balance.
+- If a timeout is the only sure way of detecting a fault, then how long should the timeout be?
+  - A long timeout means a long wait until a node is declared dead
+  - A short timeout means it's faster but, carries a higher risk of incorrectly declaring a node dead.
+    - if the node is actually alive, the action may end up being performed twice.
+    - Placing additional load on other nodes might cause an overload and a cascading failure.
+  
+- Asynchronous networks have unbounded delays
+  - They deliver packets as quickly as possible
+  - But there is no upper limit on the time to deliver packets
+  - No guarantee to handle requests within some maximum time
 
 #### Network congestion and queueing
-- the variability of packet delays on computer networks is most often due to queueing 
-- • If several different nodes simultaneously try to send packets to the same destination, the network switch must queue them up and feed them into the destination network link one by one (as illustrated in Figure 8-2). On a busy network link, a packet may have to wait a while until it can get a slot (this is called network congestion). 
-If there is so much incoming data that the switch queue fills up, the packet is dropped, so it needs to be resent—even though the network is functioning fine.
-• When a packet reaches the destination machine, if all CPU cores are currently busy, the incoming request from the network is queued by the operating system until the application is ready to handle it. Depending on the load on the machine, this may take an arbitrary length of time.
-• In virtualized environments, a running operating system is often paused for tens of milliseconds while another virtual machine uses a CPU core. During this time, the VM cannot consume any data from the network, so the incoming data is queued (buffered) by the virtual machine monitor [26], further increasing the variability of network delays.
-• TCP performs flow control (also known as congestion avoidance or backpressure), in which a node limits its own rate of sending in order to avoid overloading a network link or the receiving node [27]. This means additional queueing at the sender before the data even enters the network.
-• Moreover, TCP considers a packet to be lost if it is not acknowledged within some timeout (which is calculated from observed round-trip times), and lost packets are automatically retransmitted. Although the application does not see the packet loss and retransmission, it does see the resulting delay (waiting for the timeout to expire, and then waiting for the retransmitted packet to be acknowledged).
-
-> TCP Versus UDP
-- Some latency-sensitive applications, such as videoconferencing and Voice over IP (VoIP), use UDP rather than TCP. It’s a trade-off between reliability and variability of delays: as UDP does not perform flow control and does not retransmit lost packets, it avoids some of the reasons for variable network delays (although it is still susceptible to switch queues and scheduling delays).
-- UDP is a good choice in situations where delayed data is worthless. For example, in a VoIP phone call, there probably isn’t enough time to retransmit a lost packet before its data is due to be played over the loudspeakers. In this case, there’s no point in retransmitting the packet—the application must instead fill the missing packet’s time slot with silence (causing a brief interruption in the sound) and move on in the stream. The retry happens at the human layer instead. (“Could you repeat that please? The sound just cut out for a moment.”)
-
+- Variability of packet delays on computer networks is most often due to Queueing
+  - ex) (Figure 8-2) If several different nodes simultaneously try to send packets to the same destination, the network switch must queue them up and feed them into the destination network link one by one
+  - ex) When several different nodes simultaneously try to send packets to the same destination
+  - ex) When all CPU cores in the destination are currently busy
+  
 ![](images/fg8-2.jpg "")
 
-- In public clouds and multi-tenant datacenters, you can determine an appropriate trade-off between failure detection delay and risk of premature timeouts.
-
-- Even better, rather than using configured constant timeouts, systems can continually measure response times and their variability (jitter), and automatically adjust timeouts according to the observed response time distribution
 
 ### Synchronous Versus Asynchronous Networks
+What about the Reliable and Synchronous Network at the hardware level?
 
 > Datacenter networks vs Traditional fixed-line telephone network(non-cellular, non-VoIP)
 
 - Traditional fixed-line telephone network(non-cellular, non-VoIP)
+  - *Synchronous* / Bounded delays / No Suffering from queueing
   - circuit-switched networks 
   - Extremely reliable
   - requires a constantly low end-to-end latency 
+  - Bounded delay: maximum end-to-end latency of the network is fixed
   - How it works?
     - When you make a call over the telephone network, it establishes a *circuit*
     - This circuit remains in place until the call ends.
-    - A circuit is a fixed amount of reserved bandwidth which nobody else can use while the
-circuit is established.
-  - Synchronous ( no suffering from Queueing )
-  - Bounded delay: maximum end-to-end latency of the network is fixed
-      
+    - A circuit is a fixed amount of reserved bandwidth which nobody else can use while the circuit is established.
+    
 - Datacenter networks
+  - *Asynchronous* / Unbounded delays / Suffering from queueing
   - Packet-switched protocols 
   - TCP connection
   - Optimized for bursty traffic
   - use whatever network bandwidth is available
   - A variable-sized block of data(e.g., an email or a web page)
   - transfer data in the shortest time possible.
-  - While a TCP connection is idle, it doesn’t use any bandwidth.
-  - Unbounded delays: Suffer from queueing
+  - While a TCP connection is idle, it doesn’t use any bandwidth.  
   - Requesting a web page / Sending an email / Transferring a file
-  -  no particular bandwidth
-  -  as quickly as possible
+  -  No particular Bandwidth
+  -  As quickly As possible
+
+#### Consequently,
+- Currently deployed technology does not allow us to make any guarantees about delays or reliability of the network
+- We have to assume that *network congestion*, *queueing*, and *unbounded delays* will happen.
+- Consequently, there’s no “correct” value for timeouts—they need to be determined experimentally.
 
 ## Unreliable Clocks
-- In a distributed system, time is a tricky business, because communication is not
-instantaneous.
+- In a distributed system, time is a tricky business, because communication is not instantaneous.
 - The time when a message is received is always later than the time when it is sent, but due to variable delays in the network, we don’t know how much later.
 - Each machine on the network has its own clock with its own notion of time.
 - This fact sometimes makes it difficult to determine the order in which things happened when multiple machines are involved, 
 
 ### Monotonic Versus Time-of-Day Clocks 
-- Modern computers have at least two different kinds of clocks: a time-of-day clock and
-a monotonic clock.
+- Modern computers have at least two different kinds of clocks: a time-of-day clock and a monotonic clock.
 
 #### Time-of-day clocks
 - Returns the current date and time according to the reference point each system has (usually midnight of January 1, 1970 UTC)
