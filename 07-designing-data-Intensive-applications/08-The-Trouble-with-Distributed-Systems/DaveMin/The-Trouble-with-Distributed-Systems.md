@@ -124,12 +124,13 @@ What about the Reliable and Synchronous Network at the hardware level?
 
 ## Unreliable Clocks
 - In a distributed system, time is a tricky business, because communication is not instantaneous.
-- The time when a message is received is always later than the time when it is sent, but due to variable delays in the network, we don’t know how much later.
+- The time when a message is received is always later than the time when it is sent
+  - but due to variable delays in the network, we don’t know how much later.
 - Each machine on the network has its own clock with its own notion of time.
-- This fact sometimes makes it difficult to determine the order in which things happened when multiple machines are involved, 
+  - ==> It makes it difficult to determine the order in which things happened when multiple machines are involved, 
 
 ### Monotonic Versus Time-of-Day Clocks 
-- Modern computers have at least two different kinds of clocks: a time-of-day clock and a monotonic clock.
+- Modern computers have at least two different kinds of clocks: a time-of-day clock / a monotonic clock.
 
 #### Time-of-day clocks
 - Returns the current date and time according to the reference point each system has (usually midnight of January 1, 1970 UTC)
@@ -141,14 +142,61 @@ What about the Reliable and Synchronous Network at the hardware level?
 #### Monotonic clocks
 - A monotonic clock is suitable for measuring a duration (time interval: timeout or service’s response time)
   - for example, clock_gettime(CLOCK_MONOTONIC) on Linux / System.nanoTime() in Java.
-- comparing two monotonic clock values from two different computers is meaningless - not same
-- By default, NTP allows the clock rate to be speeded up or slowed down by up to 0.05%, but NTP cannot cause the monotonic clock to jump forward or backward.
-- In a distributed system, using a monotonic clock for measuring elapsed time (e.g.,timeouts) is usually fine, because it doesn’t assume any synchronization between different nodes’ clocks and is not sensitive to slight inaccuracies of measurement.
+  - But, comparing two monotonic clock values from two different computers is meaningless - not same
+- By default, NTP allows the clock rate to be speeded up or slowed down by up to 0.05%,
+  - but NTP cannot cause the monotonic clock to jump forward or backward.
+- In a distributed system, using a monotonic clock for measuring elapsed time (e.g.,timeouts) is usually fine,
+  - because it doesn’t assume any synchronization between different nodes’ clocks and is not sensitive to slight inaccuracies of measurement.
 
 ### Clock Synchronization and Accuracy
-  
+- Unfortunately, our methods for getting a clock to tell the correct time aren’t nearly as reliable or accurate as you might hope.
+  - hardware clocks and NTP are fickle.
+- Examples
+  - The quartz clock in a computer is not very accurate: it drifts (runs faster or slower than it should).
+  - If a computer’s clock differs too much from an NTP server, it may refuse to synchronize, or the local clock will be forcibly reset.
+  - If a node is accidentally firewalled off from NTP servers, the misconfiguration may go unnoticed for some time.
+  - NTP synchronization can only be as good as the network delay, so there is a limit to its accuracy when you’re on a congested network with variable packet delays
+  - Some NTP servers are wrong or misconfigured, reporting time that is off by hours
+  - Leap seconds result in a minute that is 59 seconds or 61 seconds long, which messes up timing assumptions in systems that are not designed with leap seconds in mind
+  - In virtual machines, the hardware clock is virtualized, which raises additional challenges for applications that need accurate timekeeping
+
+### Relying on Synchronized Clocks
+- Thus, if you use software that requires synchronized clocks, it is essential that you also carefully monitor the clock offsets between all the machines.
+- Any node whose clock drifts too far from the others should be declared dead and removed from the cluster.
+- Such monitoring ensures that you notice the broken clocks before they can cause too much damage.
+
+#### Timestamps for ordering events
+
 ![](images/fg8-3.jpg "")
+- The write by client B is causally later than the write by client A, but B’s write has an earlier timestamp.
+- This conflict resolution strategy is called last write wins (LWW), and it is widely used in both multi-leader replication and leaderless databases such as Cassandra and Riak
+- but this doesn’t change the fundamental problems with LWW
+- So-called logical clocks [56, 57], which are based on incrementing counters rather than an oscillating quartz crystal, are a safer alternative for ordering events.
+- Logical clocks do not measure the time of day or the number of seconds elapsed, only the relative ordering of events
 
-![](images/fg8-4.jpg "")
 
-![](images/fg8-5.jpg "")
+#### Clock readings have a confidence interval
+- it doesn’t make sense to think of a clock reading as a point in time
+- it is more like a range of times, within a confidence interval.
+- because it is not accurate
+  - quartz drift since your last sync with the server,
+  - plus the NTP server’s uncertainty,
+  - plus the network round-trip time to the server
+  
+#### Synchronized clocks for global snapshots
+- snapshot isolation is a very useful feature in databases that need to support both small, fast read-write transactions and large, long-running read-only transactions
+- but, when a database is distributed across many machines, potentially in multiple datacenters, a global, monotonically increasing transaction ID (across all partitions) is difficult to generate,
+- The uncertainty might cause an issues. 
+
+### Process Pauses
+- Several programming languages have Garbage Collectors (GCs) that sometimes have to stop all running threads at runtime.
+- It can sometimes last up to a few minutes and cannot run completely parallel to the application code.
+- In a virtual environment, virtual equipment can be suspended (stop running all processes and save memory content to disk) and then resumed.
+- If the operating system switches contextually to another thread or the hypervisor switches to another virtual device, the currently running thread can stop at any point in the code.
+
+- In a single device, you can make application code thread-safe using mutex, semaphore, atomic counters, and the like.
+
+- However, the above tools cannot be utilized because distributed systems do not have shared memory and only send and receive messages over unreliable networks.
+
+- Therefore, it should be assumed that the node in the distributed system can stop running for a considerable amount of time at any point. While stopped, an externally stopped node may declare dead because it did not respond.
+- Even if a stopped node is executed again later, the node does not know that it was stopped until the code checks the clock.
