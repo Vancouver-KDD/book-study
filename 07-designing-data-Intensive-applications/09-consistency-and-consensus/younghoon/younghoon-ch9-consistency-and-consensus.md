@@ -25,17 +25,15 @@
 ![alt text](image-4.png)
 
 ## Serializability VS  Linearizability
-- Serializability is an isolation property where transactions appear to execute in a serial order, even if they run concurrently. This ensures consistent outcomes as if each transaction ran to completion before the next began.
-- It is okay for that serial order to be different from the order in which transactions were actually run
-
-- Linearzability: It doesn’t group operations together into transactions, so it does not prevent problems such as write skew
+- **Serializability** is an isolation property where transactions appear to execute in a serial order, even if they run concurrently.  It is okay for that serial order to be different from the order in which transactions were actually run
+- **Linearzability**: It doesn’t group operations together into transactions, so it does not prevent problems such as write skew
 
 - Serializability can be combined with linearizability, but they address different aspects of system behavior.
 
 ## Relying on Linearizability
-- Locking and leader election: Systems like single-leader replication require linearizability to ensure that only one leader exists at a time (avoiding "split-brain" scenarios). Locking mechanisms or leader election processes help maintain this guarantee.
-- Constraints and uniqueness guarantees: such as unique usernames in a database, rely on linearizability to prevent race conditions and ensure consistent data.
-- Cross-Channel Timing Dependencies: Issues arise when timing dependencies exist across different systems, like ensuring a bank account balance doesn’t go negative or that two people don’t book the same seat. Linearizability helps prevent such inconsistencies by ensuring a single up-to-date value is always agreed upon by all nodes.
+- **Locking and leader election** : Systems like single-leader replication require linearizability to ensure that only one leader exists at a time (avoiding "split-brain" scenarios). Locking mechanisms or leader election processes help maintain this guarantee.
+- **Constraints and uniqueness guarantees**: such as unique usernames in a database, rely on linearizability to prevent race conditions and ensure consistent data.
+- **Cross-Channel Timing Dependencies**: Issues arise when timing dependencies exist across different systems, like ensuring a bank account balance doesn’t go negative or that two people don’t book the same seat. Linearizability helps prevent such inconsistencies by ensuring a single up-to-date value is always agreed upon by all nodes.
 ![alt text](image-1.png)
 
 ## Implementing Linearizable Systems
@@ -62,16 +60,12 @@ Depending on the database, sometimes Quorum will guarantee linarizability at the
 - The CAP theorem highlights the trade-off between consistency, availability, and partition tolerance, emphasizing that in a network partition, you must choose between consistency and availability. Linearizability is often sacrificed in favor of better performance and availability in systems that don't require strict consistency.
 
 ### Linearizability and Network Delays
-- However, there are now several copies of the data (one
-in main memory, and perhaps several more in various caches), and these copies are
-asynchronously updated, so linearizability is lost.
+- However, there are now several copies of the data (one in main memory, and perhaps several more in various caches), and these copies are asynchronously updated, so linearizability is lost.
 - reason for dropping linearizability is performance, not fault tolerance.
-- Despite its benefits, linearizability is rare in practice due to its impact on performance. Even modern multi-core CPUs and many distributed databases opt for weaker consistency models to enhance speed and reduce latency.
 - the response time of read and write requests is at least proportional to the uncertainty of delays in the network.
 
 # Ordering Guarantees
-linearizable - operations are executed in some well-defined order.
-It turns out that there are deep connections between ordering, linearizability, and
+linearizable - operations are executed in some well-defined order. It turns out that there are deep connections between ordering, linearizability, and
 consensus.
 ## Ordering and Causality
 - Ordering helps preserve causality.
