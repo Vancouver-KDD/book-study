@@ -46,4 +46,81 @@
 
 ## MapReduce and Distributed Filesystems
 **- the biggest limitation of Unix tools is that they run only on a single machine**—and that’s where tools like Hadoop come in. 
-- MapReduce is a bit like Unix tools, but distributed across potentially thousands of machines.
+
+**MapReduce** 
+- a bit like Unix tools, but distributed across potentially thousands of machines.
+- MapReduce jobs read and write files on a distributed filesystem.
+
+**HDFS (Hadoop Distributed File System)**
+- In Hadoop’s implementation of MapReduce, that filesystem is called HDFS, an open source reimplementation of the Google File System (GFS)
+- shared-nothing principle, no need for special hardware
+- HDFS consists of a daemon process running on each machine, exposing a network service that allows other nodes to access files stored on that machine (assuming that every general-purpose machine in a datacenter has some disks attached to it).
+- HDFS has scaled well: at the time of writing, the biggest HDFS deployments run on tens of thousands of machines, with combined storage capacity of hundreds of petabytes
+  - Such large scale has become viable because the cost of data storage and access on HDFS is much lower than that of the equivalent capacity on a dedicated storage appliance.
+
+### MapReduce Job Execution
+- MapReduce is a programming framework with which you can write code to process large datasets in a distributed filesystem like HDFS.
+
+**pattern of data processing in MapReduce**
+1. Read a set of input files, and break it up into records.
+   - In the web server log example, each record is one line in the log (that is, \n is the record separator).
+2. Call the mapper function to extract a key and value from each input record.
+   - In the preceding example, the mapper function is awk '{print $7}': it extracts the URL ($7) as the key, and leaves the value empty.
+3. Sort all of the key-value pairs by key.
+   - In the log example, this is done by the first sort command.
+4. Call the reducer function to iterate over the sorted key-value pairs. If there are multiple occurrences of the same key, the sorting has made them adjacent in the list, so it is easy to combine those values without having to keep a lot of state in memory.
+   - In the preceding example, the reducer is implemented by the command uniq -c, which counts the number of adjacent records with the same key.
+
+**To create a MapReduce job, you need to implement two callback functions**
+- Mapper: prepare the data by putting it into a form that is suitable for sorting
+   - is called once for every input record, and its job is to extract the key and value from the input record.
+   - For each input, it may generate any number of key-value pairs (including none).
+   - It does not keep any state from one input record to the next, so each record is handled independently.
+- Reducer: to process the data that has been sorted.
+   - After collecting all the values belonging to the same key by the mapper, and calls the reducer with an iterator over that collection of values.
+   - The reducer can produce output records (such as the number of occurrences of the same URL).
+
+#### Distributed execution of MapReduce
+**MapReduce and paralleization**
+- can parallelize a computation across many machines, different from Unix, without writing code to explicitly handle the parallelism. 
+- The mapper and reducer only operate on one record at a time; they don’t need to know where their input is coming from or their output is going to, so the framework can handle the complexities of moving data between machines.
+
+**Hadoop MapReduce job**
+- Its parallelization is based on partitioning
+- the input to a job is typically a directory in HDFS
+- Map task:
+  - each file or file block within the input directory is considered to be a separate partition that can be processed by a separate map task
+  - MapReduce framework first copies the code (e.g., JAR files in the case of a Java program) to the appropriate machines.
+  - starts the map task and begins reading the input file, passing one record at a time to the mapper callback.
+  - The output of the mapper consists of key-value pairs.
+- Reduce task:
+  - The reducers connect to each of the mappers and download the files of sorted key-value pairs for their partition, preserving the sort order
+  - shuffle: The process of partitioning by reducer, sorting, and copying data partitions from mappers to reducers
+
+#### MapReduce workflows
+**Chained MapReduce jobs**
+- the output of one job becomes the input to the next job.
+- this chaining is done implicitly by directory name:
+  - the first job must be configured to write its output to a designated directory in HDFS, and the second job must be configured to read that same directory name as its input.
+  - From the MapReduce framework’s point of view, they are two independent jobs.
+- more like a sequence of commands where each command’s output is written to a temporary file, and the next command reads from the temporary file.
+
+**How MapReduce handle a failed job**
+- A batch job’s output is only considered valid when the job has completed successfully, and only when the prior job succeeded, the next job starts
+- MapReduce discards the partial output of a failed job
+
+### Reduce-Side Joins and Grouping
+- A join is necessary whenever you have some code that needs to access records on both sides of that association (both the record that holds the reference and the record being referenced).
+- MapReduce has no concept of indexes—at least not in the usual sense.
+- joins in the context of batch processing, we mean resolving **all occurrences** of some association within a dataset.
+  - For example, we assume that a job is processing the data for all users simultaneously, not merely looking up the data for one particular user (which would be done far more efficiently with an index).
+
+#### Example: analysis of user activity events
+Two databases for user activity events and user
+- The simplest implementation: go over the activity events one by one and query the user database (on a remote server) for every user ID it encounters.
+  - This is possible, but it would most likely suffer from very poor performance
+**- Good performance implementation:**
+  - to take a copy of the user database and to put it in the same distributed filesystem as the log of user activity events.
+  - You would then have the user database in one set of files in HDFS and the user activity records in another set of files
+  - then could use MapReduce to bring together all of the relevant records in the same place and process them efficiently.
+  - because to achieve good throughput in a batch process, the computation must be (as much as possible) local to one machine
