@@ -230,4 +230,41 @@ damage.
 - the combination of MapReduce and a distributed filesystem provides something much more like a general-purpose operating system that can run arbitrary programs.
 
 #### Diversity of storage
+- MPP databases typically require careful up-front modeling of the data and query pat‐terns before importing the data into the database’s proprietary storage format.
+- Hadoop indiscriminately dumping data into HDFS, and only later figuring out how to process it further
+  - it shifts the burden of interpreting the data: instead of forcing the producer of a dataset to bring it into a standardized format, the interpretation of the data becomes the consumer’s problem (the schema-on-read approach)
+  - good if the producer and consumers are different teams with different priorities.
+
+**sushi principle**
+- raw data is better
+- Simply dumping data in its raw form allows for several such transformations.
+
+#### Diversity of processing models
+not all kinds of processing can be sensibly expressed as SQL queries, as MPP. 
+  - general model of data processing is needed for:
+      - machine learning and recommendation systems, or full-text search indexes with relevance ranking models, or performing image analysis
+
+**With HDFS and MapReduce, you can build a SQL query execution engine**
+- but it was not enough, and more different models were needed
+- due to the openness of the Hadoop platform, it was feasible to implement a whole range of approaches, not possible for a monolithic MPP database
+
+#### Designing for frequent faults
+- Batch processes are less sensitive to faults because they do not immediately affect users if they fail and they can always be run again.
+- node failure: most MPP databases abort the entire query, and either let the user resubmit the query or automatically run it again
+
+- The MapReduce approach is more appropriate for larger jobs
+    - jobs that process so much data and run for such a long time that they are likely to experience at least one task failure along the way
+    - Is it really worth incurring significant overheads for the sake of fault tolerance?
+
+**Why MapReduce's sparing use of memory and task-level recovery**
+- because the freedom to arbitrarily terminate processes enables better resource utilization in a computing cluster.
+- from looking at the environment for which MapReduce was originally designed in Google
+  - Every task has a resource allocation (CPU cores, RAM, disk space, etc.), a priority that determines pricing of the computing resources
+  - as MapReduce jobs run at low priority, they run the risk of being preempted at any time because a higher-priority process requires their resources.
+- batch job: “pick up the scraps under the table,”
+
+## Beyond MapReduce
+
+
+
 
