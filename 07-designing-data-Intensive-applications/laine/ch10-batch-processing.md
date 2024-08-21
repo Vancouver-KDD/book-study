@@ -124,3 +124,39 @@ Two databases for user activity events and user
   - You would then have the user database in one set of files in HDFS and the user activity records in another set of files
   - then could use MapReduce to bring together all of the relevant records in the same place and process them efficiently.
   - because to achieve good throughput in a batch process, the computation must be (as much as possible) local to one machine
+
+#### Sort-merge joins
+- mapper output is sorted by key, and the reducers then merge together the sorted lists of records from both sides of the join.
+- the reducer function is called once for every user ID, and thanks to the secondary sort, the first value is expected to be the date-of-birth record from the user database.
+- The reducer stores the date of birth in a local variable and then iterates over the activity events with the same user ID, outputting pairs of viewed-url and viewer-age-in-years. 
+- Since the reducer processes all of the records for a particular user ID in one go, it only needs to keep one user record in memory at any one time, and it never needs to make any requests over the network.
+
+#### Bringing related data together in the same place
+- Using the MapReduce programming model has separated the physical network communication aspects of the computation (getting the data to the right machine) from the application logic (processing the data once you have it).
+  - contrasts with the typical use of databases
+- MapReduce handles all network communication, it also shields the application code from having to worry about partial failures, such as the crash of another node:
+  - retries failed tasks without affecting the application logic
+ 
+#### GROUP BY
+Usage 1 - grouping records by some key
+- MapReduce sets up the mappers so that the key-value pairs they produce use the desired grouping key
+- The partitioning and sorting process then brings together all the records with the same key in the same reducer.
+- Thus, grouping and joining look quite similar when implemented on top of MapReduce.
+
+Usage 2 - collating all the activity events for a particular user session
+- in order to find out the sequence of actions that the user took a process called sessionization
+  - i.e. such analysis could be used to work out whether users who were shown a new version of your website are more likely to make a purchase than those who were shown the old version (A/B testing),
+  - or to calculate whether some marketing activity is worthwhile.
+
+#### Handling skew
+Hot keys
+- The pattern of “bringing all records with the same key to the same place” breaks down if there is a very large amount of data related to a single key.
+  - i.e. in a social network, most users might be connected to a few hundred people, but a small number of celebrities may have many millions of followers.
+  - Collecting all activity related to a celebrity (e.g., replies to something they posted) in a single reducer can lead to **significant skew **(also known as hot spots)
+  - meaning one reducer that must process significantly more records than the others
+
+Algorithms to resolve the issue
+- skewed join in Pig - first runs a sampling job to find hot keys and spread work oever several reducers for better parallelization
+- Hive's skewed join - hot keys are specified in the DB table metatdata, and use map-side join for the hot keys
+
+### Map-Side Joins
