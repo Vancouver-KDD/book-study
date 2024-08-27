@@ -264,7 +264,49 @@ not all kinds of processing can be sensibly expressed as SQL queries, as MPP.
 - batch job: “pick up the scraps under the table,”
 
 ## Beyond MapReduce
+MapReduce is very robust but slow
+- you can use it to process almost arbitrarily large quantities of data on an unreliable multi-tenant system with frequent task terminations, and it will still get the job done (albeit slowly).
+- On the other hand, other tools are sometimes orders of magnitude faster for some kinds of processing.
 
+### Materialization of Intermediate State
+- every MapReduce job is independent from every other job. The main contact points of a job with the rest of the world are its input and output directories on the distributed filesystem.
 
+_**intermediate state**_
+- But in many cases, the output of one job is only ever used as input to one other job, which is maintained by the same team
+   - a means of passing data from one job to the next.
+   - For a complex system with 50 or 100 MapReduce jobs, there is a lot of such intermediate state.
+- The process of writing out this intermediate state to files is called materialization.
 
+**Unix pipes (in contrast to materialization)**
+- Unix pipes to connect the output of one command with the input of another.
+- Pipes do not fully materialize the intermediate state, but instead stream the output to the input incre‐ mentally, using only a small in-memory buffer.
 
+**MapReduce's downsides compared to this**
+- A MapReduce job can only start when all tasks in the preceding jobs (that generate its inputs) have completed, whereas processes connected by a Unix pipe are started at the same time, with output being consumed as soon as it is produced.
+- Mappers are often redundant: they just read back the same file that was just written by a reducer, and prepare it for the next stage of partitioning and sorting. In many cases, the mapper code could be part of the previous reducer
+- Storing intermediate state in a distributed filesystem means those files are repli‐ cated across several nodes, which is often overkill for such temporary data.
+
+#### Dataflow engines
+**_Dataflow engines_ - Spark, Tez, and Flink**
+- In order to fix these problems with MapReduce, several **new execution engines** for distributed batch computations were developed
+- they handle an entire workflow as one job, rather than breaking it up into independent subjobs.
+- execute significantly faster due to the optimizations described below
+- Operators: Unlike in MapReduce, these functions need not take the strict roles of alternating map and reduce, but instead can be assembled in more flexible ways
+
+**Advantages**
+• Expensive work such as sorting need only be performed in places where it is actually required, rather than always happening by default between every map and reduce stage.
+• There are no unnecessary map tasks, since the work done by a mapper can often be incorporated into the preceding reduce operator (because a mapper does not change the partitioning of a dataset).
+• Because all joins and data dependencies in a workflow are explicitly declared, the scheduler has an overview of what data is required where, so it can make locality optimizations.
+• It is sufficient for intermediate state between operators to be kept in memory or written to local disk, which requires less I/O than writing it to HDFS (where it must be replicated to several machines and written to disk on each replica).
+• Operators can start executing as soon as their input is ready; no need to wait for the entire preceding stage to finish before the next one starts.
+• Existing Java Virtual Machine (JVM) processes can be reused to run new operators, reducing startup overheads compared to MapReduce (which launches a new JVM for each task).
+
+#### Fault tolerance
+- fault tolerance is fairly easy in MapReduce: if a task fails, it can just be restarted on another machine and read the same input again from the filesystem.
+
+The new systems
+- if a machine fails and the intermediate state on that machine is lost, it is recomputed from other data that is still available
+- To enable this recomputation, the framework must keep track of how a given piece of data was computed
+- In order to avoid such cascading faults, it is better to make operators deterministic.
+- Recovering from faults by recomputing data is not always the right answer
+   - if the intermediate data is much smaller than the source data, or if the computation is very CPU-intensive, it is probably cheaper to materialize the intermediate data to files than to recompute it.
