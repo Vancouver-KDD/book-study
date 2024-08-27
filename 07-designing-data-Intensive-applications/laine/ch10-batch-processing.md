@@ -295,10 +295,15 @@ _**intermediate state**_
 
 **Advantages**
 • Expensive work such as sorting need only be performed in places where it is actually required, rather than always happening by default between every map and reduce stage.
+
 • There are no unnecessary map tasks, since the work done by a mapper can often be incorporated into the preceding reduce operator (because a mapper does not change the partitioning of a dataset).
+
 • Because all joins and data dependencies in a workflow are explicitly declared, the scheduler has an overview of what data is required where, so it can make locality optimizations.
+
 • It is sufficient for intermediate state between operators to be kept in memory or written to local disk, which requires less I/O than writing it to HDFS (where it must be replicated to several machines and written to disk on each replica).
+
 • Operators can start executing as soon as their input is ready; no need to wait for the entire preceding stage to finish before the next one starts.
+
 • Existing Java Virtual Machine (JVM) processes can be reused to run new operators, reducing startup overheads compared to MapReduce (which launches a new JVM for each task).
 
 #### Fault tolerance
@@ -310,3 +315,30 @@ The new systems
 - In order to avoid such cascading faults, it is better to make operators deterministic.
 - Recovering from faults by recomputing data is not always the right answer
    - if the intermediate data is much smaller than the source data, or if the computation is very CPU-intensive, it is probably cheaper to materialize the intermediate data to files than to recompute it.
+
+#### Discussion of materialization
+MapReduce is like writing the output of each command to a temporary file, whereas dataflow engines look much more like Unix pipes.
+- Flink: incrementally passing the output of an operator to other operators, and not waiting for the input to be complete before starting to process it.
+
+- When the job completes, its output needs to go somewhere durable - the distributed filesystem
+- using a dataflow engine, materialized datasets on HDFS are still usually the inputs and the final outputs of a job.
+   - Like with MapReduce, the inputs are immutable and the output is completely replaced.
+
+### High-Level APIs and Languages
+- Since MapReduce, the execution engines for distributed batch processing have matured, robust enough to store and process petabytes of data on clusters of over 10,000 machines.
+- Now the attention has turned to other areas: improving the programming model, improving the efficiency of processing, and broadening the set of problems that these technologies can solve.
+
+- higher-level languages and APIs: such as Hive, Pig, Cascading, and Crunch
+  - help to reduce programming MapReduce by hands
+- Tez, Spark, Flink: being able to move to the new dataflow execution engine without the need to rewrite job code
+
+## Summary - Batch VS Stream processing
+**Batch processing job**
+- reads some input data and produces some output data, without modifying the input — the output is derived from the input.
+- the input data is **bounded**: it has a known, fixed size (for example, it consists of a set of log files at some point in time, or a snapshot of a database’s contents).
+- a job knows when it has finished reading the entire input, and so a job eventually completes when it is done.
+
+**Stream processing**
+- the input is unbounded — you still have a job, but its inputs are never-ending streams of data
+- a job is never complete, because at any time there may still be more work coming in.
+- the assumption of unbounded streams also changes a lot about how we build systems.
