@@ -47,10 +47,11 @@
   ```
   이름-챕터이름
 
-  (예. yongju-ch1-multi-currency-money)
+  (예. 01-multi-currency-money/yongju/01-multi-currency-money)
   ```
 
 - 이미지는 images 폴더에 따로 저장해 주세요
+  (예. 01-multi-currency-money/yongju/image/your_image.jpg)
 
 ## 🗣 발표
 
