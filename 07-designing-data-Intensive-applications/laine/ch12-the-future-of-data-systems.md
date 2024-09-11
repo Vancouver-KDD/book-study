@@ -177,7 +177,7 @@ many real applications can actually get away with much weaker notions of uniquen
 - **These applications do require integrity, but they don’t require timeliness on the enforcement of the constraint**
 
 #### Coordination-avoiding data systems
-_coordination-avoiding data systems _
+_coordination-avoiding data systems_
 1. Dataflow systems can maintain integrity guarantees on derived data without atomic commit, linearizability, or synchronous cross-partition coordination.
 2. Although strict uniqueness constraints require timeliness and coordination, many applications are actually fine with loose constraints that may be temporar‐ ily violated and fixed up later, as long as integrity is preserved throughout.
 -> dataflow systems can provide the data management services for many applications without requiring coordination, while still giving strong integrity guarantees.
