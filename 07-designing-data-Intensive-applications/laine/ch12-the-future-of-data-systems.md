@@ -153,3 +153,36 @@ Equivalent correctness is achieved with partitioned logs, without an atomic comm
 - deriving information from the message, that was logged from the earlier request
 
 ### Timeliness and Integrity
+_"violations of timeliness are “eventual consistency,” whereas violations of integrity are “perpetual inconsistency.”"_
+- Timeliness means ensuring that users observe the system in an up-to-date state.
+- Integrity means absence of corruption; i.e., no data loss, and no contradictory or false data.
+- integrity is much more important than timeliness. Violations of timeliness can be annoying and confusing, but violations of integrity can be catastrophic.
+
+#### Correctness of dataflow systems
+The event-based dataflow systems discussed in this chapter decouple timeliness and integrity.
+- processing event streams asynchronously, there is no guarantee of timeliness
+- integrity is in fact central to streaming systems: Exactly-once or effectively-once semantics
+
+_"reliable stream processing systems can preserve integrity without requiring distributed transactions and an atomic commit protocol, which means they can potentially achieve comparable correctness with much better performance and operational robustness"_
+  - Representing the content of the write operation as a single message, which can easily be written atomically—an approach that fits very well with event sourcing (see “Event Sourcing” on page 457)
+  - Deriving all other state updates from that single message using deterministic der‐ ivation functions, similarly to stored procedures (see “Actual Serial Execution” on page 252 and “Application code as a derivation function” on page 505)
+  - Passing a client-generated request ID through all these levels of processing, ena‐ bling end-to-end duplicate suppression and idempotence
+  - Making messages immutable and allowing derived data to be reprocessed from time to time, which makes it easier to recover from bugs (see “Advantages of immutable events” on page 460)
+
+- ACID transactions usually provide both timeliness (e.g., linearizability) and integrity (e.g., atomic commit) guarantees.
+
+#### Loosely interpreted constraints
+many real applications can actually get away with much weaker notions of uniqueness by apologizing and fixing later
+- In many business contexts, it is actually acceptable to temporarily violate a constraint and fix it up later by apologizing, with often low cost
+- **These applications do require integrity, but they don’t require timeliness on the enforcement of the constraint**
+
+#### Coordination-avoiding data systems
+_coordination-avoiding data systems _
+1. Dataflow systems can maintain integrity guarantees on derived data without atomic commit, linearizability, or synchronous cross-partition coordination.
+2. Although strict uniqueness constraints require timeliness and coordination, many applications are actually fine with loose constraints that may be temporar‐ ily violated and fixed up later, as long as integrity is preserved throughout.
+-> dataflow systems can provide the data management services for many applications without requiring coordination, while still giving strong integrity guarantees.
+
+_coordination and constraints_
+- they reduce the number of apologies you have to make due to inconsistencies,
+- but potentially also reduce the performance and availability of your system, and thus **potentially increase the number of apologies** you have to make due to outages.
+- find the best trade-off for your need
