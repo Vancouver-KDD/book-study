@@ -81,3 +81,75 @@ Asynchronous derived data system
     - A partitioned system with secondary indexes either needs to send writes to multiple partitions (if the index is term-partitioned) or send reads to all partitions (if the index is document-partitioned)
 
 #### Reprocessing data for application evolution
+- with reprocessing it is possible to restructure a dataset into a completely different model in order to better serve new requirements.
+
+**gradual evolution**
+- maintain the old schema and the new schema side by side as two independently derived views onto the same underlying data.
+- then start shifting a small number of users to the new view, and gradually increase the proportion of the new view, and eventually drop the old view
+- every stage of the process is easily reversible if something goes wrong
+
+#### The lambda architecture
+- combining batch processing used to reprocess historical data, and stream processing used to process recent updates
+- proposes running two different systems in parallel: a batch processing system such as Hadoop MapReduce, and a separate stream- processing system such as Storm.
+
+1. stream processor: fast approximate algorithms
+   - consumes the events and quickly produces an approximate update to the view with 
+2. batch processor: slow exact algorithm
+   - consumes the same set of events and produces a corrected version of the derived view, 
+
+Practical problems were resolved by recent features
+- replay historical events through the same processing engine as the stream of recent events 
+- exactly-once semantics for stream processors
+
+
+## Aiming for Correctness
+- correctness in the context of dataflow architectures
+
+### The End-to-End Argument for Databases
+Data system doesn't guarantee the application code being free from data loss or corruption with its own bug
+ - that's why append-only data is favoured
+
+#### Exactly-once execution of an operation
+- exactly-once means arranging the computation such that the final effect is the same as if no faults had occurred, even if the operation actually was retried due to some fault.
+  - idempotent operation, one of the most effective approach
+
+#### Operation identifiers
+- idempotent operation can't be created relying on just DB transaction, it should consider end-to-end flow of the request
+- Thus generate a unique identifier for an operation - UUID
+  - suppress duplicate requests and acts as an event log
+
+#### The end-to-end argument
+_"The function in question can completely and correctly be implemented only with the knowledge and help of the application standing at the endpoints of the communica‐ tion system. Therefore, providing that questioned function as a feature of the communication system itself is not possible."_
+
+- encryption example: in every layer implemented, encryption and authentication can protect against all of these things.
+
+#### Applying end-to-end thinking in data systems
+The author thinks we have not yet found the right abstraction.
+- Transactions have long been seen as a good abstraction and useful, but not enough.
+- They are expensive in the distributed systems especially, so other fault-tolerance mechanism should be implemented in the application code
+_- "worth exploring fault-tolerance abstractions that make it easy to provide application-specific end-to-end correctness properties, but also maintain good performance and good operational characteristics in a large-scale distributed environment."_
+
+### Enforcing Constraints
+- focus on uniqueness constraints
+
+#### Uniqueness constraints require consensus
+- getting consensus in the distributed system is hard, only simple when a single node is the leader and it funnels all requests
+- uniqueness checking can be partitioned but if different masters accept conflicting writes?
+  - synchronous coordination is unavoidable for uniqueness constraints
+
+#### Uniqueness in log-based messaging
+_total order broadcast = consensus_
+- In the unbundled database approach with log-based messaging, we can use a very similar approach to enforce uniqueness constraints.
+- if the log is partitioned based on the value that needs to be unique, a stream processor can unambiguously and deterministically decide which one of several conflicting operations came first.
+  - client watches the output stream and waits for a success or rejection
+- Not just for uniqueness, but for any constraints
+
+#### Multi-partition request processing
+In the traditional approach to databases, executing multiple related transaction would require an atomic commit across all three partitions, with total order on all partitions.
+- throughput suffering
+
+Equivalent correctness is achieved with partitioned logs, without an atomic commit
+- by breaking down the multi-partition transaction into two differently partitioned stages and using the end-to-end request ID
+- deriving information from the message, that was logged from the earlier request
+
+### Timeliness and Integrity
