@@ -1,7 +1,7 @@
 ## Data Integration
 _the most appropriate choice of software tool also depends on the circumstances. Every piece of software, even a so-called “general-purpose” database, is designed for a particular usage pattern._
-- The first challenge: figure out the mapping between the software products and the circumstances in which they are a good fit. Vendors are understandably reluctant to tell you about the kinds of workloads for which their software is poorly suited
-- The second challenge: data is often used in several different ways. There is unlikely to be one piece of software that is suitable for all the different circumstances in which the data is used, so you inevitably end up having to cobble together several different pieces of software in order to provide your application’s functionality.
+- The first challenge: **figure out the mapping between the software products and the circumstances in which they are a good fit**. Vendors are understandably reluctant to tell you about the kinds of workloads for which their software is poorly suited
+- The second challenge: **data is often used in several different ways.** There is unlikely to be one piece of software that is suitable for all the different circumstances in which the data is used, so you inevitably end up having to cobble together several different pieces of software in order to provide your application’s functionality.
 
 ### Combining Specialized Tools by Deriving Data
 many applications need to combine two different tools in order to satisfy all of the requirements.
