@@ -1,11 +1,6 @@
 # Detailed Breakdown of Systems and Stream Processing
 
-## 1. Evolution of Systems
-- **Simple to Complex Systems:**
-  - Complex systems that work have typically evolved from simpler systems that also worked.
-  - Attempting to design a complex system from scratch often results in failure, as the complexities cannot be fully anticipated.
-
-## 2. Batch Processing
+## Batch Processing
 - **Definition:**
   - Batch processing involves reading a set of files as input and producing a new set of files as output. The output is a form of derived data, which can be recreated by re-running the batch process.
 - **Key Characteristics:**
@@ -14,19 +9,25 @@
 - **Applications:**
   - Commonly used for creating search indexes, recommendation systems, analytics, etc.
 
-## 3. Stream Processing
+## Stream Processing
 - **Definition:**
   - Stream processing handles unbounded data that arrives incrementally over time, processing each event as it happens.
 - **Key Characteristics:**
   - **Unbounded Data:** Data continuously arrives over time, without a known end.
   - **Low-Latency Processing:** Stream processing can be run continuously or at frequent intervals to reduce delays and provide real-time processing.
+  - **Topic/Stream:** related events are usually grouped together 
 - **Examples:**
   - User actions such as viewing a page or making a purchase.
   - Machine-generated data like sensor measurements or CPU utilization metrics.
 
-## 4. Messaging Systems
+## Messaging Systems
 - **Purpose:**
   - Messaging systems help manage the flow of data between producers (which generate events) and consumers (which process events).
+
+- **Questions To Ask:**
+  - What happens if the producers send messages faster than the consumers can process them?
+  - What happens if nodes crash or temporarily go offline—are any messages lost?
+
 - **Direct Messaging:**
   - **Description:** Involves direct communication between producers and consumers, without intermediary nodes.
   - **Examples:** UDP multicast, brokerless messaging libraries like ZeroMQ, direct HTTP or RPC requests.
@@ -53,7 +54,7 @@
 
 
 
-## 5. Comparison of Messaging Systems and Databases
+## Comparison of Messaging Systems and Databases
 - **Databases:**
   - Typically store data until explicitly deleted.
   - Support querying and indexing, with point-in-time snapshots.
@@ -62,7 +63,7 @@
   - Optimized for streaming data with notification mechanisms.
   - Can participate in distributed transactions but generally have different performance characteristics than databases.
 
-## 6. Handling Failures
+## Handling Failures
 - **Acknowledgments:**
   - Consumers acknowledge message processing, allowing the broker to remove the message from the queue.
 - **Redelivery:**
@@ -74,7 +75,7 @@
 
 # Partitioned Logs
 
-## 1. Transient Operations vs. Durable Storage
+## Transient Operations vs. Durable Storage
 - **Transient Operations:**
   - Sending packets over a network or making a network service request is usually a transient operation with no permanent trace.
   - Though possible to record these permanently (e.g., packet capture), it's not the default mindset.
@@ -84,7 +85,7 @@
   - Databases and filesystems operate with the opposite mindset, where data is expected to be permanently recorded until explicitly deleted.
   - This approach allows for repeated batch processing without damaging the original data, unlike transient messaging.
 
-## 2. The Hybrid Approach: Log-Based Message Brokers
+## The Hybrid Approach: Log-Based Message Brokers
 - **Concept:**
   - Combines the durability of databases with the low-latency notification of messaging systems.
   - A **log** is an append-only sequence of records on disk, used here to implement message brokers.
@@ -105,7 +106,7 @@
   - **Twitter’s DistributedLog**
   - **Google Cloud Pub/Sub** (architecturally similar but uses a JMS-style API)
 
-## 3. Logs vs. Traditional Messaging
+## Logs vs. Traditional Messaging
 - **Fan-Out Messaging:**
   - Supports multiple consumers reading the same log independently without deleting messages from the log.
   
@@ -117,7 +118,7 @@
   - Traditional brokers assign individual messages to consumers, which can lead to head-of-line blocking if a message is slow to process.
   - JMS/AMQP-style brokers are preferable when message-by-message parallelism is needed.
 
-## 4. Consumer Offsets
+## Consumer Offsets
 - **Offset Management:**
   - Consumers track their progress using offsets, simplifying the process of determining which messages have been processed.
   - Reduced bookkeeping and opportunities for batching increase throughput.
@@ -125,7 +126,7 @@
 - **Failure Handling:**
   - If a consumer fails, another can take over using the last recorded offset, potentially reprocessing some messages.
   ![alt text](image-2.png)
-## 5. Disk Space Usage
+## Disk Space Usage
 - **Log Segmentation:**
   - Logs are divided into segments, with old segments deleted or archived to free up disk space.
   - Slow consumers that fall behind may miss messages if the segments they need have been deleted.
@@ -137,7 +138,7 @@
 - **Monitoring:**
   - Systems monitor how far consumers are behind the head of the log to prevent missing messages.
 
-## 6. Replaying Old Messages
+## 6Replaying Old Messages
 - **Non-Destructive Processing:**
   - Unlike AMQP/JMS brokers, consuming messages in a log-based broker doesn’t delete them, enabling replay.
   - Consumers can reset their offsets to reprocess messages, allowing experimentation and easier recovery from errors.
@@ -148,7 +149,7 @@
 
 # Databases and Streams
 
-## 1. Bridging Databases and Message Brokers
+## Bridging Databases and Message Brokers
 - **Traditional Separation:**
   - Historically, databases and message brokers have been considered distinct tools with separate purposes.
   
@@ -160,7 +161,7 @@
   - Ideas from messaging and streams can also be applied to databases.
   - A **replication log** is a stream of database write events, where followers replicate these events to maintain an accurate copy of the database.
 
-## 2. Streams and State Machine Replication
+## Streams and State Machine Replication
 - **Event Streams:**
   - An event is a record of something that happened at a specific time, which could be a user action, sensor reading, or a database write.
   
@@ -168,9 +169,9 @@
   - If every replica processes the same events in the same order, they will reach the same final state.
   - This principle connects streams and databases fundamentally.
 
-## 3. Keeping Systems in Sync
+## Keeping Systems in Sync
 
-### 3.1 The Problem: Heterogeneous Data Systems
+### The Problem: Heterogeneous Data Systems
 - **Diverse Technologies:**
   - Most applications use multiple technologies to meet various needs, such as:
     - **OLTP databases** for user requests.
@@ -182,7 +183,7 @@
   - Multiple copies of data are stored in different systems, each optimized for its own purpose.
   - Synchronization is crucial to keep these systems consistent with each other.
 
-### 3.2 Common Approaches to Synchronization
+### Common Approaches to Synchronization
 - **ETL Processes:**
   - Data warehouses are usually synchronized with ETL processes, often involving a full copy of the database, transformation, and bulk-loading.
   
@@ -190,7 +191,7 @@
   - Another approach is to have application code write to each system concurrently (e.g., database, search index, cache).
   - However, this method has serious challenges, such as race conditions and inconsistency issues.
 
-### 3.3 Problems with Dual Writes
+### Problems with Dual Writes
 - **Race Condition:**
   - If two clients concurrently update an item, they might do so in different orders in different systems (e.g., database vs. search index), leading to inconsistencies.
 
@@ -198,19 +199,19 @@
   - One write operation might succeed while the other fails, creating inconsistency between systems.
   - Ensuring both succeed or fail together involves solving the **atomic commit problem**, which is complex and expensive.
 
-## 4. Potential Solution: Single Leader with Followers
+## Potential Solution: Single Leader with Followers
 - **Single Leader Approach:**
   - If there were a single leader (e.g., the database) and other systems (e.g., search index) could follow it, inconsistencies could be reduced.
   - The challenge is implementing this in practice, given the complexity of multi-leader systems and the need for synchronization.
 
 # Change Data Capture (CDC)
 
-## 1. Challenges with Replication Logs
+## Challenges with Replication Logs
 - **Internal Implementation Detail:**
   - Historically, replication logs were considered an internal feature of databases, not intended for public use.
   - As a result, there was no straightforward way to extract changes from the database to replicate them to other systems.
 
-## 2. Introduction to Change Data Capture (CDC)
+## Introduction to Change Data Capture (CDC)
 - **What is CDC?**
   - CDC is the process of observing and capturing all changes made to a database, typically in real-time.
   - This captured data can be streamed to other systems, such as search indexes or caches, ensuring they reflect the current state of the database.
@@ -221,7 +222,7 @@
 - **Log-Based Message Brokers:**
   - A log-based message broker, such as **Apache Kafka**, is well-suited for transporting change events as it preserves the order of changes.
 
-## 3. Implementing Change Data Capture
+## Implementing Change Data Capture
 - **Triggers:**
   - Database triggers can be used for CDC by logging changes to a changelog table.
   - However, triggers can be fragile and may introduce performance overheads.
@@ -233,12 +234,12 @@
   - **LinkedIn’s Databus**, **Facebook’s Wormhole**, **Yahoo!’s Sherpa**: Large-scale CDC implementations.
   - **Bottled Water** for PostgreSQL, **Maxwell** and **Debezium** for MySQL, **Mongoriver** for MongoDB, **GoldenGate** for Oracle.
 
-## 4. Handling Replication Lag
+## Handling Replication Lag
 - **Asynchronous CDC:**
   - CDC is typically asynchronous, meaning the database does not wait for changes to be applied to all consumers before committing them.
   - This approach reduces the impact of slow consumers but introduces issues with replication lag.
 
-## 5. Initial Snapshot
+## Initial Snapshot
 - **Need for Initial Snapshot:**
   - A snapshot of the entire database state is often necessary when setting up new derived systems.
   - The snapshot must correspond to a known position in the change log to ensure consistency when applying subsequent changes.
@@ -246,7 +247,7 @@
 - **Integrated Snapshots:**
   - Some CDC tools include snapshot functionality, while others require this as a manual step.
 
-## 6. Log Compaction
+## Log Compaction
 - **Compaction for Efficiency:**
   - To avoid keeping the entire log history, log compaction can be used to keep only the most recent update for each key.
   - This method reduces the need for frequent snapshots, as the compacted log contains the latest state of the database.
@@ -254,7 +255,7 @@
 - **Usage in Apache Kafka:**
   - Kafka supports log compaction, allowing it to be used for durable storage, not just transient messaging.
 
-## 7. API Support for Change Streams
+## API Support for Change Streams
 - **Emerging Support:**
   - Databases are increasingly supporting change streams as a native interface, rather than relying on retrofitted CDC solutions.
 
