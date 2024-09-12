@@ -186,3 +186,37 @@ _coordination and constraints_
 - they reduce the number of apologies you have to make due to inconsistencies,
 - but potentially also reduce the performance and availability of your system, and thus **potentially increase the number of apologies** you have to make due to outages.
 - find the best trade-off for your need
+
+### Trust, but Verify
+#### Maintaining integrity in the face of software bugs
+- There always exist hardware issues that can be caught by lower-level network, memory, or filesystem checksums & software bugs
+- If the application uses the database incorrectly in some way, for example using a weak isolation level unsafely, the integrity of the database cannot be guaranteed.
+
+#### Don’t just blindly trust what they promise - auditing
+- data corruption is inevitable sooner or later from hardware or software issues, so should check the integrity of data
+- large-scale storage systems such as HDFS and Amazon S3 do not fully trust disks
+  - they run background processes that continually read back files, compare them to other replicas, and move files from one disk to another, in order to mitigate the risk of silent corruption
+
+#### A culture of verification
+Many assume that correctness guarantees are absolute and make no provision for the possibility of rare data corruption
+  - more self-validating or self-auditing systems that continually check their own integrity in the future
+
+Author: "I fear that the culture of ACID databases has led us toward developing applications on the basis of blindly trusting technology (such as a transaction mechanism), and neglecting any sort of auditability in the process."
+- with NoSQL and weaker consistency guarantees, audit mechanism hasn't been developed.
+
+#### Designing for auditability
+event-based systems can provide better auditability than transaction based data system
+  - In the event sourcing approach, user input to the system is represented as a single immutable event, and any resulting state updates are derived from that event.
+  - If a transaction mutates several objects in a database, it is difficult to tell after the fact what that transaction means
+
+A deterministic and well-defined dataflow makes it easier
+ - to make integrity checking much more feasible - using hashes to check the event storage is not corrupted
+ - to debug and trace the execution of a system in order to determine why it did something
+
+#### The end-to-end argument again
+- we must at least periodically check the integrity of our data. If we don’t check, we won’t find out about corruption until it is too late and expensive
+- Having continuous end-to-end integrity checks gives you increased confidence about the correctness of your systems
+
+#### Tools for auditable data systems
+At present, not many data systems make auditability a top-level concern.
+- cryptographic tools to prove the integrity of a system in a way that is robust to a wide range of hardware and software issues, and even potentially malicious actions. Cryptocurrencies, blockchains, and distributed ledger technologies such as Bitcoin, Ethereum, Ripple, Stellar, and various others have sprung up to explore this area.
