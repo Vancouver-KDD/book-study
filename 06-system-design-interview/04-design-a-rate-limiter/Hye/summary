@@ -1,0 +1,69 @@
+A rate limiter limits the number of client or server requests allowed to be sent over a specific period of time and control the rate of traffic.
+
+Benefits:
+1. Prevent resource starvation caused by Denial of Service Attack
+2. Reduce Cost by allocating more resources to high priority API
+3. Prevent servers from being overloaded by filtering out the excess requests by bots or users’ misbehavior
+
+1. Questions to ask:
+- What kind of rate limiter? (Client vs. Server)
+- What properties can be used to throttle API requests? (IP, user ID, etc)
+- What is the scale of the system? (Startup vs big company)
+- Distributed (shared by multiple servers/processes)?
+- Separate service or in-app?
+- What throttles the API requests? Throttle API based on 
+- Inform user? (Exception handling)
+
+
+2. Client side vs. Server side
+
+* Client - Unreliable as they can be forged/malicious. We might not have control over the client implementation.
+* Server - can add rate limiter middleware to throttle requests to APIs and return HTTP status code 429 (too many requests)
+* API Gateway - fully managed service that supports rate limiting, SSL termination, IP whitelisting, servicing static content, etc.
+
+3. Algorithms
+    * Token bucket
+    * Leaking bucket
+    * Fixed window counter - sliding window log
+    * Sliding window counter
+
+* Token bucket
+    * Token bucket has a pre-defined capacity which is preset periodically. Once the bucket is full, it doesn’t add more tokens as extra tokens will overflow
+    * Each requests consume one token. If there is no available token, the request is dropped
+    * Parameters: Bucket size, Refill rate
+    * Different buckets for different rate-limiting rule (1 post per second, 150 friends per day, 5 posts per second for usr / throttle based on IP addresses / global bucket)
+    * Pro: easy to implement and memory efficient. Requests are allowed as long as tokens are left (burst of traffic in short periods of time)
+    * Con: two params (bucket size and refill rate) are hard to tune
+* Leaking bucket algorithm (e-commerce)
+    * Requests processed at a fixed rate with first-in-first-out (FIFO) queue
+    * Requests added to queue when there is capacity, else dropped
+    * Requests are processed at regular intervals
+    * Params: bucket size, outflow rate
+    * Pro: memory efficient with small queue size and can obtain stable outflow rate
+    * Con: burst of traffic fills up the queue with old requests. New requests are rate limited if old is not processed in time. Params not easy to tune.
+* Fixed window counter algorithm
+    * Divides the timeline into fix-sized time windows and assign a counter for each window
+    * Request increments counter by one
+    * Once counter reaches threshold, new requests are dropped until time window starts
+    * Pro: 
+        * burst of traffic at the edges of time window can affect the next window and cause more requests than allowed quota to go through.
+        * Easy to understand and resetting available quota at the end of unit time window makes sense
+    * Cons: spike in the traffic at the edges can cause more requests than allowed quota to go through
+* Sliding window log algorithm
+    * Fixes the fixed window counter issue
+    * Keeps track of request timestamps in cache (invalidated when timestamp is outdated than the start of the current time window)
+    * Add timestamp of the new request to the log, if the log size Is the same or lower than allowed count, then request is accepted.
+    * Pro: Very accurate algorithm where the requests will not exceed the rate limit
+    * Cons: consumes lots of memory as it stores rejected request timestamps in memory
+* Sliding window counter algorithm
+    * Hybrid of fixed window counter and sliding window log
+    * The number of requests in the rolling window is calculated as: Requests in current window + requests in the previous window * overlapping percentage of the rolling window and previous window
+    * Pro: smooths out the spike in traffic as the rate is based on average rate of the previous window and is memory efficient
+    * Only works for not too string look back window as it uses the approximation of the actual rate (previous window is not evenly distributed in real life)
+
+High-level architecture
+* How to store counters?
+    * Database - inefficient due to slowness of disk access
+    * In-memory cache - fast and supports time-based expiration
+        * If limit is reached - request rejected
+        * If limit not reached - request is set to API servers and system increments the counter and saves the counter in Redis
