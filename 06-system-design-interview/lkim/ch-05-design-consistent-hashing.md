@@ -14,6 +14,7 @@ ex) Assume SHA-1 is used as the hash function f, SHA-1’s hash space goes from 
 
 #### Server lookup
 To determine which server a key is stored on, we go clockwise from the key position on the ring until a server is found
+
 #### Adding or removing a server
 It requires only a small fraction of keys require redistribution
 
@@ -33,6 +34,7 @@ When a server is added or removed, a fraction of data needs to be redistributed.
 
 ### addition case 
 - From the newly added server, moves anticlockwise until another server is found. Keys between the two servers need to be redistributed to the new server
+
 ### removal case 
 - From the removed server position, moves anticlockwise until another server is found. Keys between the two servers need to be redistributed to the next (clockwise direction) server
 
