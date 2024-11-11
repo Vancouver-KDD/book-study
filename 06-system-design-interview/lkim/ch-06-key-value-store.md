@@ -110,8 +110,37 @@ the system keeps accepting reads to the server down, even though it might return
   - Using Merkle trees, the amount of data needed to be synchronized is proportional to the differences between the two replicas, and not the amount of data they contain.
   
 
-
 ### System architecture diagram
-• Write path
-• Read path
+![Screenshot 2024-11-11 at 7 30 24 AM](https://github.com/user-attachments/assets/3af1d922-6e83-4c70-8166-329ef488dee2)
+- Clients communicate with the key-value store through simple APIs: get(key) and put(key,
+value).
+- A coordinator is a node that acts as a proxy between the client and the key-value store. • Nodes are distributed on a ring using consistent hashing.
+- The system is completely decentralized so adding and moving nodes can be automatic. • Data is replicated at multiple nodes.
+- There is no single point of failure as every node has the same set of responsibilities.
+- Each node performs tasks as follows with decentralization
+![Screenshot 2024-11-11 at 7 31 49 AM](https://github.com/user-attachments/assets/d3740ade-ceb7-45ef-ac92-979034dfce19)
 
+### Write path - Cassandra
+![Screenshot 2024-11-11 at 7 34 57 AM](https://github.com/user-attachments/assets/1ea2ad87-8175-4e1e-8b9a-9f31789ad050)
+1. The write request is persisted on a commit log file.
+2. Data is saved in the memory cache.
+3. When the memory cache is full or reaches a predefined threshold, data is flushed to SSTable on disk.
+   - A sorted-string table (SSTable) is a sorted list of <key, value> pairs.
+
+### Read path
+- it first checks if data is in the memory cache, otherwise fetches from the disk in the SSTables
+
+
+## Summary
+| Goal/Problems                        | Technique                                                    |
+|--------------------------------------|--------------------------------------------------------------|
+| Ability to store big data            | Use consistent hashing to spread the load across the servers |
+| High availability reads              | Data replication, Multi-data center setup                    |
+| Highly available writes              | Versioning and conflict resolution with vector clocks        |
+| Dataset partition                    | Consistent hashing                                           |
+| Incremental scalability              | Consistent hashing                                           |
+| Heterogeneity                        | Consistent hashing                                           |
+| Tunable consistency                  | Quorum consensus                                             |
+| Handling temporary failures          | Sloppy quorum and hinted handoff                             |
+| Handling permanent failures          | Merkle tree                                                  |
+| Handling data center outage          | Cross-data center replication                                |
