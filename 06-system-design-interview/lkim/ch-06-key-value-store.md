@@ -87,8 +87,31 @@ the system keeps accepting reads to the server down, even though it might return
 - Versioning and vector locks are used to solve inconsistency problems.
     - Versioning: treating each data modification as a new immutable version of data.
 
+**A vector clock**: a [server, version] pair associated with a data item
+- Downsides
+    - First, vector clocks add complexity to the client because it needs to implement conflict resolution logic.
+    - Second, the [server: version] pairs in the vector clock could grow rapidly. So if it exceeds the limit, the oldest pairs are removed. No problem found in the real applications like DynamoDB
+
 ### Handling failures
-• System architecture diagram
+#### How to detect failures
+- it requires at least two independent sources of information to mark a server down.
+- use decentralized failure detection methods like gossip protocol.
+
+#### Handling temporary failures
+**sloppy quorum**: to improve availability, rather than the strict quorum
+- the system chooses the first W healthy servers for writes and first R healthy servers for reads on the hash ring. Offline servers are ignored.
+  - If a server is unavailable due to network or server failures, another server will process requests temporarily.
+**- hinted handoff:** When the down server is up, changes will be pushed back to achieve data consistency.
+
+#### Handling permanent failures
+**anti-entropy protocol** to keep replicas in sync.
+- involves comparing each piece of data on replicas and updating each replica to the newest version.
+- A Merkle tree is used for inconsistency detection and minimizing the amount of data transferred.
+
+
+
+
+### System architecture diagram
 • Write path
 • Read path
 
