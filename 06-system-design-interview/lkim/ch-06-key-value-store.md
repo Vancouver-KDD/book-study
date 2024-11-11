@@ -107,8 +107,8 @@ the system keeps accepting reads to the server down, even though it might return
 **anti-entropy protocol** to keep replicas in sync.
 - involves comparing each piece of data on replicas and updating each replica to the newest version.
 - A Merkle tree is used for inconsistency detection and minimizing the amount of data transferred.
-
-
+  - Using Merkle trees, the amount of data needed to be synchronized is proportional to the differences between the two replicas, and not the amount of data they contain.
+  
 
 
 ### System architecture diagram
