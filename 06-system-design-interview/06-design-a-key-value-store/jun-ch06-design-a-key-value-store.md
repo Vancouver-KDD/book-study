@@ -21,7 +21,8 @@ operations:
 - Ability to store big data.
 - High availability: The system responds quickly, even during failures.
 - High scalability: The system can be scaled to support large data set.
-- Automatic scaling: The addition/deletion of servers should be automatic based on traffic. • Tunable consistency.
+- Automatic scaling: The addition/deletion of servers should be automatic based on traffic. 
+- Tunable consistency.
 - Low latency.
 
 ## Single server key-value store
@@ -74,13 +75,14 @@ Choosing the right CAP guarantees that fit your use case is an important step in
 
 ## System components
 core components and techniques used to build a **key-value store**:
-- Data partition
-- Data replication
-- Consistency
-- Inconsistency resolution
-- Handling failures
-- System architecture diagram • Write path
-- Read path
+- [Data partition](#data-partition)
+- [Data replication](#data-replication)
+- [Consistency](#consistency)
+- [Inconsistency resolution](#inconsistency-resolution-versioning)
+- [Handling failures](#handling-failures)
+- [System architecture diagram ](#system-architecture-diagram)
+- [Write path](#write-path)
+- [Read path](#read-path)
 
 ### Data partition
 it is infeasible data partitioning for large applications. The
