@@ -52,6 +52,7 @@ Many different kinds - extremely important to clarify the feature requirements
 - Single server design is a deal breaker - The single point of failure and else
 
 <img width="648" alt="Screenshot 2024-12-09 at 3 59 33 PM" src="https://github.com/user-attachments/assets/38e26ddc-11d9-46ce-a054-a998c31a73a3">
+
 - client maintains a persistent WebSocket connection to a chat server for real-time messaging.
 - Chat servers facilitate message sending/receiving.
 - Presence servers manage online/offline status.
