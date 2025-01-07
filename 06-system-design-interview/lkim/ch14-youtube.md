@@ -105,3 +105,90 @@
   - Worker queue: a priority queue that contains worker utilization info.
   - Running queue: contains info about the currently running tasks and workers running the tasks.
   - Task scheduler: picks the optimal task/worker, and instructs the chosen task worker to execute the job.
+
+#### The workflow
+- The task scheduler gets the highest priority task from the task queue.
+- The task scheduler gets the optimal task worker to run the task from the worker queue.
+- The task scheduler instructs the chosen task worker to run the task.
+- The task scheduler binds the task/worker info and puts it in the running queue.
+- The task scheduler removes the job from the running queue once the job is done.
+
+### Task workers
+- Task workers run the tasks which are defined in the DAG. Different task workers may run different tasks such as, watermark, encoder, thumbnail, and merger
+
+### Temporary storage
+- Choose the storage system depends on factors like data type, data size, access frequency, data life span, etc.
+- The small Metadata is cached and video/audio data are put in the blob storage.
+
+### Encoded video
+- final output: eg) mind_123.mp4
+
+## System optimizations
+- refine the system with optimizations, including speed, safety, and cost-saving.
+
+### Speed optimization: parallelize video uploading
+- split a video into smaller chunks by GOP alignment as uploading a video as a whole unit is inefficient
+  - allows fast resumable uploads if failed
+
+### Speed optimization: place upload centers close to users
+- setting up multiple upload centers across the globe
+- use CDN as upload centers
+
+### Speed optimization: parallelism everywhere
+- build a loosely coupled system and enable high parallelism
+- Dependency in the flow of how a video is transferred from the original storage to the CDN
+  - it reveals that the output depends on the input of the previous step.
+  - This dependency makes parallelism difficult
+
+#### Message queues
+- To make the system more loosely coupled, use the queue
+- After the message queue is introduced, the encoding module does not need to wait for the output of the download module anymore. If there are events in the message queue, the encoding module can execute those jobs in parallel.
+
+![Screenshot 2025-01-06 214918](https://github.com/user-attachments/assets/7158dd72-411b-40bd-ac64-210d93567416)
+
+### Safety optimization: pre-signed upload URL
+- To ensure only authorized users upload videos to the right location, introduce pre-signed URLs, which is used to upload files to Amazon S3
+
+### Safety optimization: protect your videos
+Options
+**- Digital rights management (DRM) systems:** such as Apple FairPlay, Google Widevine, and Microsoft PlayReady.
+**- AES encryption:** 
+  - encrypt a video and configure an authorization policy and the encrypted video will be decrypted upon playback, so only authorized users can watch an encrypted video.
+**- Visual watermarking:**
+    - an image overlay on top of the video containing the identifying information for your video. It can be your company logo or company name.
+
+### Cost-saving optimization
+- CDN ensures fast video delivery on a global scale, yet very expensive
+- based on content popularity, user access pattern, video size, etc, from the historical viewing patterns
+
+#### How to reduce cost on CDN?
+1. Only serve the most popular videos from CDN and other videos from our high capacity storage video servers
+2. For less popular content, no need to store many encoded video versions. Short
+videos can be encoded on-demand.
+3. Distribute popular videos by region, not in all regions
+4. Build your own CDN like Netflix and partner with Internet Service Providers (ISPs) to reduce the bandwidth charges.
+  - It's a giant project, however, this could make sense for large streaming companies. An ISP can be Comcast, AT&T, Verizon, or other internet providers and are
+located all around the world and are close to users.
+
+## Error handling
+### Recoverable error
+- such as video segment fails to transcode, generally retry a few times
+- if the system believes it is not recoverable, it returns a proper error code to the client.
+### Non-recoverable error
+- such as malformed video format, the system stops the running tasks associated with the video
+- returns the proper error code to the client.
+
+## Wrap up - additional points
+- Scale the API tier: Because API servers are stateless, it is easy to scale API tier
+horizontally.
+- Scale the database: DB replication and sharding.
+- Live streaming:
+  - live streaming and non-live streaming both require uploading, encoding, and streaming. The notable differences are:
+  - Live streaming has a higher latency requirement, so it might need a different
+  streaming protocol.
+  - Live streaming has a lower requirement for parallelism because small chunks of data
+  are already processed in real-time.
+  - Live streaming requires different sets of error handling. Any error handling that
+  takes too much time is not acceptable.
+- Video takedowns: Videos that violate copyrights, pornography, or other illegal acts shall be removed. Some can be discovered by the system during the upload process, while
+others might be discovered through user flagging.
