@@ -102,8 +102,29 @@ If two users try to update the same file at the same time
 
 # Design deep dive
 ## Block servers
-Sending large files updated regularly consumes a lot of bandwidth. Two optimizations
-Delta sync**
-Only modified blocks are synced instead of the whole file 
+- process files passed from clients by splitting a file into blocks, compressing each block, and
+encrypting them. Instead of uploading the whole file to the storage system, only modified
+blocks are transferred.
 
-**
+![Screenshot 2025-01-11 160414](https://github.com/user-attachments/assets/26a6007a-26fc-428f-a930-208a2840ea3b)
+
+- Sending large files updated regularly consumes a lot of bandwidth. Two optimizations
+1. **Delta sync**: Only modified blocks are synced instead of the whole file 
+2. **Compression**: Applying compression on blocks can significantly reduce the data size, using compression algorithms depending on file types.
+
+## High consistency requirement
+- It is unacceptable for a file to be shown differently by different clients at the same time.
+- The system needs to provide **strong consistency (not eventual consistency) for metadata cache and database layers**.
+
+### What to ensure
+- Data in cache replicas and the master is consistent.
+- Invalidate caches on database write to ensure cache and database hold the same value.
+
+### Relational DB and strong conssitency
+- Easy for relational DB maintaining the ACID (Atomicity, Consistency, Isolation, Durability) properties
+- NoSQL DB must programmatically support the ACD
+
+## Metadata DB tables
+- User basic info
+- Device info: including push_id for notifications
+- Namespace: root directory of a user
