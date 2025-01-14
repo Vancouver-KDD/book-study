@@ -128,3 +128,43 @@ blocks are transferred.
 - User basic info
 - Device info: including push_id for notifications
 - Namespace: root directory of a user
+- File: name, path, latest version, if is directory, timestamp
+- File_version: version history of a file, read-only for integrity
+- Block: everything related to a file block. A file of any version can be reconstructed by joining all the blocks in the correct order.
+
+## Upload flow (edit too)
+![Screenshot 2025-01-13 213824](https://github.com/user-attachments/assets/ba8fc40d-c724-4b4d-bd69-787bd8c6fcea)
+
+## Download flow
+![Screenshot 2025-01-13 214334](https://github.com/user-attachments/assets/234233f3-9332-4306-9056-4b18f9eab6e0)
+
+- If client A is offline while a file is changed by another client, data will be saved to the cache. When the offline client is online again, it pulls the latest changes.
+
+## Notification service
+- To maintain file consistency, any mutation of a file performed locally needs to be informed to other clients to reduce conflicts.
+
+### Options 
+**- Long polling** - Dropbox
+    - Chosen as communication for notification service is one direction, server to the client
+    - each client keeps a long poll connection to the notification service 
+    - after a response is received or connection timeout is reached, a client immediately sends a new request to keep the connection open.
+
+- WebSocket - persistent bi-directional, better suited for real-time bi-directional communication such as a chat app. G Drive notifications are infrequent, no burst of data
+
+## Save storage space
+Storage space can be filled up quickly with frequent backups of all file revisions. 3 techniques to reduce storage costs
+
+#### De-duplicate data blocks
+- Eliminating redundant blocks at the account level to save space, for the blocks with the same hash value
+
+#### Adopt an intelligent data backup strategy
+• Set a limit: We can set a limit for the number of versions to store. If the limit is
+reached, the oldest version will be replaced with the new version.
+• Keep valuable versions only: Some files might be edited frequently. For example,
+saving every edited version for a heavily modified document could mean the file is
+saved over 1000 times within a short period. To avoid unnecessary copies, we could
+limit the number of saved versions. We give more weight to recent versions.
+Experimentation is helpful to figure out the optimal number of versions to save.
+• Moving infrequently used data to cold storage. Cold data is the data that has not been
+active for months or years. Cold storage like Amazon S3 glacier [11] is much cheaper than
+S3.
