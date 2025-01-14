@@ -154,17 +154,61 @@ blocks are transferred.
 ## Save storage space
 Storage space can be filled up quickly with frequent backups of all file revisions. 3 techniques to reduce storage costs
 
-#### De-duplicate data blocks
+### De-duplicate data blocks
 - Eliminating redundant blocks at the account level to save space, for the blocks with the same hash value
 
-#### Adopt an intelligent data backup strategy
-• Set a limit: We can set a limit for the number of versions to store. If the limit is
-reached, the oldest version will be replaced with the new version.
-• Keep valuable versions only: Some files might be edited frequently. For example,
-saving every edited version for a heavily modified document could mean the file is
-saved over 1000 times within a short period. To avoid unnecessary copies, we could
-limit the number of saved versions. We give more weight to recent versions.
-Experimentation is helpful to figure out the optimal number of versions to save.
-• Moving infrequently used data to cold storage. Cold data is the data that has not been
-active for months or years. Cold storage like Amazon S3 glacier [11] is much cheaper than
-S3.
+### Adopt an intelligent data backup strategy
+- Set a limit: for the number of versions to store.
+  - after the limit, the oldest version will be replaced with the new version.
+- Keep valuable versions only, limit the number of saved versions
+  - For a heavily modified document, limit the number of saved versions and give more weight to recent versions.
+  - find some optimal number of versions
+
+- Moving infrequently used data to cold storage
+  - Cold data is the data that has not been active for months or years - Amazon S3 glacier 
+
+## Failure handling
+### Load balancer failure
+- if one fails, the secondary would become active and pick up the traffic. Load balancers usually monitor each other using a heartbeat, a periodic
+signal sent between load balancers.
+
+### Block server failure
+- other servers pick up unfinished or pending jobs.
+
+### Cloud storage failure
+- S3 buckets are replicated multiple times in different regions. If files are not available in one region, they can be fetched from different regions.
+
+### API server failure
+- stateless service. The traffic will be redirected to other API servers by a load balancer.
+
+### Metadata cache failure
+- replicated, if one node goes down, can still access other nodes to fetch data
+  
+### Metadata DB failure
+- Master down: promote one of the slaves to act as a new master and bring up a new slave node.
+- Slave down: use another slave for read operations and bring another database server to replace the failed one.
+
+### Notification service failure
+- each notification server is connected with many users. (Dropbox, over 1 million connections open per machine)
+-  with a failure, all the long poll connections are lost so clients must reconnect to a different server. Reconnecting with all the lost clients is a relatively slow.
+
+### offline backup queue failure
+- Queues are replicated multiple times. If one queue fails, consumers of the queue may need to re-subscribe to the backup queue.
+
+
+# Step 4 - Wrap up
+## Other approaches
+- upload files directly to cloud storage from the client instead of going
+through block servers.
+
+**The advantage:** it makes file upload faster because a file only needs to be transferred once to the cloud storage.
+
+**Drawbacks**
+- the same chunking, compression, and encryption logic must be implemented on
+different platforms (iOS, Android, Web). error-prone and lots of work
+  - while with other design, all those logics are implemented in a centralized place: block servers.
+- as a client can easily be hacked or manipulated, implementing encrypting logic on the client side is not ideal.
+
+### Evolution of the system
+- moving online/offline logic to a separate service from the notification service - presence service.
+- online/offline functionality can easily be integrated by other services.
